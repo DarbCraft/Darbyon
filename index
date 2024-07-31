@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 6px;
+            margin: 4px 0;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Character Tracker</h2>
+
+<h3>Add Character</h3>
+<form id="addCharacterForm">
+    <label for="charName">Character Name:</label><br>
+    <input type="text" id="charName" name="charName"><br>
+    <label for="charType">Character Type:</label><br>
+    <select id="charType" name="charType">
+        <option value="Warrior">Warrior</option>
+        <option value="Healer">Healer</option>
+        <option value="Mage">Mage</option>
+    </select><br>
+    <button type="button" onclick="addCharacter()">Add Character</button>
+</form>
+
+<h3>Update Values</h3>
+<form id="updateValuesForm">
+    <label for="updName">Name:</label><br>
+    <input type="text" id="updName" name="updName"><br>
+    <label for="updXP">XP (positive/negative):</label><br>
+    <input type="number" id="updXP" name="updXP"><br>
+    <label for="updAP">AP (positive/negative):</label><br>
+    <input type="number" id="updAP" name="updAP"><br>
+    <label for="updHP">HP (positive/negative):</label><br>
+    <input type="number" id="updHP" name="updHP"><br>
+    <button type="button" onclick="updateValues()">Update Values</button>
+</form>
+
+<h3>Characters</h3>
+<table id="charactersTable">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>XP</th>
+            <th>AP</th>
+            <th>HP</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script>
+    let characters = [];
+
+    function addCharacter() {
+        const name = document.getElementById('charName').value;
+        const type = document.getElementById('charType').value;
+        let hp, ap;
+
+        switch (type) {
+            case 'Warrior':
+                hp = 10;
+                ap = 15;
+                break;
+            case 'Healer':
+                hp = 8;
+                ap = 20;
+                break;
+            case 'Mage':
+                hp = 6;
+                ap = 30;
+                break;
+            default:
+                alert('Invalid character type!');
+                return;
+        }
+
+        const newCharacter = { name, type, xp: 0, ap, hp };
+        characters.push(newCharacter);
+        renderTable();
+        document.getElementById('addCharacterForm').reset();
+    }
+
+    function updateValues() {
+        const name = document.getElementById('updName').value;
+        const xp = parseInt(document.getElementById('updXP').value, 10) || 0;
+        const ap = parseInt(document.getElementById('updAP').value, 10) || 0;
+        const hp = parseInt(document.getElementById('updHP').value, 10) || 0;
+
+        const character = characters.find(char => char.name === name);
+        if (!character) {
+            alert('Name not found in characters!');
+            return;
+        }
+
+        character.xp += xp;
+        character.ap += ap;
+        character.hp += hp;
+
+        renderTable();
+        document.getElementById('updateValuesForm').reset();
+    }
+
+    function renderTable() {
+        const tableBody = document.getElementById('charactersTable').querySelector('tbody');
+        tableBody.innerHTML = '';
+
+        characters.forEach(character => {
+            const row = tableBody.insertRow();
+            row.insertCell(0).innerText = character.name;
+            row.insertCell(1).innerText = character.type;
+            row.insertCell(2).innerText = character.xp;
+            row.insertCell(3).innerText = character.ap;
+            row.insertCell(4).innerText = character.hp;
+        });
+    }
+</script>
+
+</body>
+</html>
