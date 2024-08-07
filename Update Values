@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Values</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        nav a { margin: 10px; text-decoration: none; color: #000; }
+        input, button { display: block; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        nav a:link, nav a:visited { color: #000; }
+        #messageDisplay { margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>Update Values</h1>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="add-character.html">Add Character</a>
+        <a href="scoreboard.html">Scoreboard</a>
+    </nav>
+    <form id="updateValuesForm">
+        <label for="updXP">XP (positive/negative):</label>
+        <input type="number" id="updXP" name="updXP">
+        <label for="updAP">AP (positive/negative):</label>
+        <input type="number" id="updAP" name="updAP">
+        <label for="updHP">HP (positive/negative):</label>
+        <input type="number" id="updHP" name="updHP">
+        <button type="button" onclick="updateValues()">Update Values</button>
+    </form>
+
+    <h2>Select Players</h2>
+    <table id="playerTable">
+        <thead>
+            <tr>
+                <th>Select</th>
+                <th>Name</th>
+                <th>XP</th>
+                <th>AP</th>
+                <th>HP</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Messages</h2>
+    <div id="messageDisplay">
+        <p id="currentMessage"></p>
+        <p>Messages shown: <span id="messageCounter">0</span></p>
+        <button type="button" onclick="showRandomMessage()">Show Random Message</button>
+    </div>
+
+    <script>
+        function loadPlayers() {
+            const tableBody = document.querySelector('#playerTable tbody');
+            tableBody.innerHTML = '';
+            const characters = JSON.parse(localStorage.getItem('characters')) || [];
+            characters.forEach(char => {
+                const row = document.createElement('tr');
+                const selectCell = document.createElement('td');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = char.name;
+                selectCell.appendChild(checkbox);
+                row.appendChild(selectCell);
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = char.name;
+                row.appendChild(nameCell);
+
+                const xpCell = document.createElement('td');
+                xpCell.textContent = char.xp;
+                row.appendChild(xpCell);
+
+                const apCell = document.createElement('td');
+                apCell.textContent = char.ap;
+                row.appendChild(apCell);
+
+                const hpCell = document.createElement('td');
+                hpCell.textContent = char.hp;
+                row.appendChild(hpCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateValues() {
+            const xp = parseInt(document.getElementById('updXP').value, 10) || 0;
+            const ap = parseInt(document.getElementById('updAP').value, 10) || 0;
+            const hp = parseInt(document.getElementById('updHP').value, 10) || 0;
+
+            const selectedPlayers = Array.from(document.querySelectorAll('#playerTable tbody input:checked')).map(checkbox => checkbox.value);
+
+            let characters = JSON.parse(localStorage.getItem('characters')) || [];
+            characters = characters.map(char => {
+                if (selectedPlayers.includes(char.name)) {
+                    return {
+                        ...char,
+                        xp: char.xp + xp,
+                        ap: char.ap + ap,
+                        hp: char.hp + hp
+                    };
+                }
+                return char;
+            });
+
+            localStorage.setItem('characters', JSON.stringify(characters));
+            document.getElementById('updateValuesForm').reset();
+            loadPlayers();
+        }
+
+        function showRandomMessage() {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+            
+            if (shownMessages.length === messages.length) {
+                shownMessages = [];
+            }
+
+            const availableMessages = messages.filter(msg => !shownMessages.includes(msg));
+            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+
+            shownMessages.push(randomMessage);
+            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+
+            document.getElementById('currentMessage').textContent = randomMessage;
+            document.getElementById('messageCounter').textContent = shownMessages.length;
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPlayers);
+    </script>
+</body>
+</html>
