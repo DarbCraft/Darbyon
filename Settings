@@ -30,6 +30,17 @@
         </select>
         <button type="button" onclick="addCharacter()">Add Character</button>
     </form>
+
+    <h2>Add Messages</h2>
+    <form id="addMessageForm">
+        <label for="newMessage">New Message:</label>
+        <textarea id="newMessage"></textarea>
+        <button type="button" onclick="addMessage()">Add Message</button>
+    </form>
+
+    <h2>Messages List</h2>
+    <ul id="messagesList"></ul>
+
     <script>
         async function addCharacter() {
             const name = document.getElementById('charName').value;
@@ -47,20 +58,20 @@
                     break;
                 case 'Mage':
                     hp = 6;
-                    ap = 30
-    </form>
-    
-    <h2>Add Messages</h2>
-    <form id="addMessageForm">
-        <label for="newMessage">New Message:</label>
-        <textarea id="newMessage"></textarea>
-        <button type="button" onclick="addMessage()">Add Message</button>
-    </form>
+                    ap = 30;
+                    break;
+                default:
+                    alert('Invalid character type!');
+                    return;
+            }
 
-    <h2>Messages List</h2>
-    <ul id="messagesList"></ul>
+            const newCharacter = { name, type, xp: 0, ap, hp };
+            let characters = JSON.parse(localStorage.getItem('characters')) || [];
+            characters.push(newCharacter);
+            localStorage.setItem('characters', JSON.stringify(characters));
+            document.getElementById('addCharacterForm').reset();
+        }
 
-    <script>
         function addMessage() {
             const newMessage = document.getElementById('newMessage').value;
             if (!newMessage.trim()) return;
@@ -88,3 +99,4 @@
     </script>
 </body>
 </html>
+
