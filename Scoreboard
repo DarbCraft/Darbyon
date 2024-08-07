@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-image: url('https://github.com/DarbCraft/DarbCRAFT/blob/main/images/Lambeau-Field-Team-Intro-scaled.jpeg?raw=true');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #fff; /* Makes the text white for better readability on dark backgrounds */
+        }
+        nav a {
+            margin: 10px;
+            text-decoration: none;
+            color: #fff; /* Makes the navigation links white */
+        }
+        nav a:link, nav a:visited {
+            color: #fff; /* Ensures visited links remain white */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+            background-color: black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        form {
+            background-color: black; /* Solid black background */
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Scoreboard</h1>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="add-character.html">Add Character</a>
+        <a href="update-values.html">Update Values</a>
+    </nav>
+    <table id="scoreboardTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>XP</th>
+                <th>AP</th>
+                <th>HP</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        function renderTable() {
+            const tableBody = document.getElementById('scoreboardTable').querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            let characters = JSON.parse(localStorage.getItem('characters')) || [];
+            characters.forEach(character => {
+                const row = tableBody.insertRow();
+                row.insertCell(0).innerText = character.name;
+                row.insertCell(1).innerText = character.type;
+                row.insertCell(2).innerText = character.xp;
+                row.insertCell(3).innerText = character.ap;
+                row.insertCell(4).innerText = character.hp;
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', renderTable);
+    </script>
+</body>
+</html>
