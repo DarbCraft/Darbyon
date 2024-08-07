@@ -20,7 +20,34 @@
         <a href="scoreboard.html">Scoreboard</a>
     </nav>
     <form id="addCharacterForm">
-        <!-- Your existing form fields for adding characters -->
+        <label for="charName">Character Name:</label>
+        <input type="text" id="charName" name="charName">
+        <label for="charType">Character Type:</label>
+        <select id="charType" name="charType">
+            <option value="Warrior">Warrior</option>
+            <option value="Healer">Healer</option>
+            <option value="Mage">Mage</option>
+        </select>
+        <button type="button" onclick="addCharacter()">Add Character</button>
+    </form>
+    <script>
+        async function addCharacter() {
+            const name = document.getElementById('charName').value;
+            const type = document.getElementById('charType').value;
+            let hp, ap;
+
+            switch (type) {
+                case 'Warrior':
+                    hp = 10;
+                    ap = 15;
+                    break;
+                case 'Healer':
+                    hp = 8;
+                    ap = 20;
+                    break;
+                case 'Mage':
+                    hp = 6;
+                    ap = 30
     </form>
     
     <h2>Add Messages</h2>
