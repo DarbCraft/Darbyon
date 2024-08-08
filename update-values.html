@@ -39,6 +39,9 @@
         nav a:link, nav a:visited { 
             color: #000; 
         }
+        #messageTable {
+            margin-top: 40px; /* Increased gap between tables */
+        }
         #messageDisplay { 
             margin: 20px 0; 
         }
@@ -170,10 +173,22 @@
         <tbody></tbody>
     </table>
 
-    <h2>Messages</h2>
+    <table id="messageTable">
+        <thead>
+            <tr>
+                <th>Message</th>
+                <th>Messages Shown</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td id="currentMessage"></td>
+                <td id="messageCounter">0</td>
+            </tr>
+        </tbody>
+    </table>
+
     <div id="messageDisplay">
-        <p id="currentMessage"></p>
-        <p>Messages shown: <span id="messageCounter">0</span></p>
         <button type="button" onclick="showRandomMessage()">Show Random Message</button>
     </div>
 </body>
