@@ -12,33 +12,47 @@
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
-            color: #fff; /* Makes the text white for better readability on dark backgrounds */
+            color: #fff;
         }
         nav a {
             margin: 10px;
             text-decoration: none;
-            color: #fff; /* Makes the navigation links white */
+            color: #fff;
         }
         nav a:link, nav a:visited {
-            color: #fff; /* Ensures visited links remain white */
+            color: #fff;
         }
-        table {
-            width: 100%;
+
+        /* Bluey-inspired table styling */
+        .styled-table {
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin: 25px 0;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            min-width: 400px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
         }
-        table, th, td {
-            border: 1px solid black;
-            background-color: black;
-        }
-        th, td {
-            padding: 8px;
+        .styled-table thead tr {
+            background-color: #4BA3C7; /* Bluey-inspired light blue */
+            color: #ffffff;
             text-align: left;
         }
-        form {
-            background-color: black; /* Solid black background */
-            padding: 20px;
-            border-radius: 10px;
+        .styled-table th,
+        .styled-table td {
+            padding: 12px 15px;
+        }
+        .styled-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #D4E9F2; /* Bluey-inspired lighter blue */
+        }
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #4BA3C7; /* Bluey-inspired light blue */
+        }
+        .styled-table tbody tr.active-row {
+            font-weight: bold;
+            color: #4BA3C7;
         }
     </style>
     <script>
@@ -70,7 +84,7 @@
         <a href="settings.html">Settings</a>
         <a href="update-values.html">Update Values</a>
     </nav>
-    <table id="scoreboardTable">
+    <table id="scoreboardTable" class="styled-table">
         <thead>
             <tr>
                 <th>Name</th>
