@@ -14,6 +14,7 @@
         th { background-color: #f4f4f4; }
         nav a:link, nav a:visited { color: #000; }
         #messageDisplay { margin: 20px 0; }
+        .update-btn { cursor: pointer; text-align: center; }
     </style>
 </head>
 <body>
@@ -23,21 +24,12 @@
         <a href="settings.html">Settings</a>
         <a href="scoreboard.html">Scoreboard</a>
     </nav>
-    <form id="updateValuesForm">
-        <label for="updXP">XP (positive/negative):</label>
-        <input type="number" id="updXP" name="updXP">
-        <label for="updAP">AP (positive/negative):</label>
-        <input type="number" id="updAP" name="updAP">
-        <label for="updHP">HP (positive/negative):</label>
-        <input type="number" id="updHP" name="updHP">
-        <button type="button" onclick="updateValues()">Update Values</button>
-    </form>
 
     <h2>Select Players</h2>
     <table id="playerTable">
         <thead>
             <tr>
-                <th>Select</th>
+                <th>Update</th>
                 <th>Name</th>
                 <th>XP</th>
                 <th>AP</th>
@@ -61,12 +53,17 @@
             const characters = JSON.parse(localStorage.getItem('characters')) || [];
             characters.forEach(char => {
                 const row = document.createElement('tr');
-                const selectCell = document.createElement('td');
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.value = char.name;
-                selectCell.appendChild(checkbox);
-                row.appendChild(selectCell);
+
+                const updateCell = document.createElement('td');
+                const form = document.createElement('form');
+                form.className = 'update-form';
+                form.innerHTML = `
+                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'xp')">🔼 XP</button>
+                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'ap')">🔼 AP</button>
+                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'hp')">🔼 HP</button>
+                `;
+                updateCell.appendChild(form);
+                row.appendChild(updateCell);
 
                 const nameCell = document.createElement('td');
                 nameCell.textContent = char.name;
@@ -88,28 +85,19 @@
             });
         }
 
-        function updateValues() {
-            const xp = parseInt(document.getElementById('updXP').value, 10) || 0;
-            const ap = parseInt(document.getElementById('updAP').value, 10) || 0;
-            const hp = parseInt(document.getElementById('updHP').value, 10) || 0;
-
-            const selectedPlayers = Array.from(document.querySelectorAll('#playerTable tbody input:checked')).map(checkbox => checkbox.value);
-
+        function updateCharacter(name, type) {
+            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
             let characters = JSON.parse(localStorage.getItem('characters')) || [];
             characters = characters.map(char => {
-                if (selectedPlayers.includes(char.name)) {
+                if (char.name === name) {
                     return {
                         ...char,
-                        xp: char.xp + xp,
-                        ap: char.ap + ap,
-                        hp: char.hp + hp
+                        [type]: char[type] + value
                     };
                 }
                 return char;
             });
-
             localStorage.setItem('characters', JSON.stringify(characters));
-            document.getElementById('updateValuesForm').reset();
             loadPlayers();
         }
 
