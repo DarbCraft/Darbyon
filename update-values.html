@@ -72,38 +72,7 @@
 
         // Run the function when the page loads
         document.addEventListener('DOMContentLoaded', setBackgroundBasedOnTime);
-    </script>
-</head>
-<body>
-    <h1>Update Values</h1>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="settings.html">Settings</a>
-        <a href="scoreboard.html">Scoreboard</a>
-    </nav>
 
-    <h2>Select Players</h2>
-    <table id="playerTable">
-        <thead>
-            <tr>
-                <th>Update</th>
-                <th>Name</th>
-                <th>XP</th>
-                <th>AP</th>
-                <th>HP</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <h2>Messages</h2>
-    <div id="messageDisplay">
-        <p id="currentMessage"></p>
-        <p>Messages shown: <span id="messageCounter">0</span></p>
-        <button type="button" onclick="showRandomMessage()">Show Random Message</button>
-    </div>
-
-    <script>
         function loadPlayers() {
             const tableBody = document.querySelector('#playerTable tbody');
             tableBody.innerHTML = '';
@@ -178,5 +147,34 @@
 
         document.addEventListener('DOMContentLoaded', loadPlayers);
     </script>
+</head>
+<body>
+    <h1>Update Values</h1>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="settings.html">Settings</a>
+        <a href="scoreboard.html">Scoreboard</a>
+    </nav>
+
+    <h2>Select Players</h2>
+    <table id="playerTable">
+        <thead>
+            <tr>
+                <th>Update</th>
+                <th>Name</th>
+                <th>XP</th>
+                <th>AP</th>
+                <th>HP</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Messages</h2>
+    <div id="messageDisplay">
+        <p id="currentMessage"></p>
+        <p>Messages shown: <span id="messageCounter">0</span></p>
+        <button type="button" onclick="showRandomMessage()">Show Random Message</button>
+    </div>
 </body>
 </html>
