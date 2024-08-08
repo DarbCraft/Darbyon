@@ -17,6 +17,27 @@
         .update-form { display: flex; justify-content: space-around; }
         .update-btn { margin: 0 2px; padding: 5px; cursor: pointer; }
     </style>
+    <script>
+        function setBackgroundBasedOnTime() {
+            const hour = new Date().getHours();
+            let backgroundUrl = '';
+
+            if (hour >= 6 && hour < 9) {
+                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%201.jpeg?raw=true';
+            } else if (hour >= 9 && hour < 10) {
+                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%202.jpeg?raw=true'; 
+            } else if (hour >= 10 && hour < 14) {
+                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%201.jpeg?raw=true';
+            } else {
+                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%203.jpeg?raw=true'; 
+            }
+
+            document.body.style.backgroundImage = `url('${backgroundUrl}')`;
+        }
+
+        // Run the function when the page loads
+        document.addEventListener('DOMContentLoaded', setBackgroundBasedOnTime);
+    </script>
 </head>
 <body>
     <h1>Update Values</h1>
