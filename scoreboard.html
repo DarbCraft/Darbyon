@@ -12,7 +12,7 @@
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
-            color: #fff;
+            color: #fff; /* Makes the text white for better readability on dark backgrounds */
         }
         nav a {
             margin: 10px;
@@ -22,18 +22,16 @@
         nav a:link, nav a:visited {
             color: #fff;
         }
-
-        /* Bluey-inspired table styling */
         .styled-table {
+            width: 100%; /* Full width of the screen */
             border-collapse: collapse;
             margin: 25px 0;
             font-size: 0.9em;
             font-family: sans-serif;
-            min-width: 400px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
         }
         .styled-table thead tr {
-            background-color: #4BA3C7; /* Bluey-inspired light blue */
+            background-color: #6DA9E4; /* Bluey-inspired header color */
             color: #ffffff;
             text-align: left;
         }
@@ -45,14 +43,14 @@
             border-bottom: 1px solid #dddddd;
         }
         .styled-table tbody tr:nth-of-type(even) {
-            background-color: #D4E9F2; /* Bluey-inspired lighter blue */
+            background-color: rgba(109, 169, 228, 0.5); /* Light blue with transparency */
+            color: #000; /* Darker text for readability */
+        }
+        .styled-table tbody tr:nth-of-type(odd):nth-child(n+4) {
+            color: #005b96; /* Darker blue text for odd rows after row three */
         }
         .styled-table tbody tr:last-of-type {
-            border-bottom: 2px solid #4BA3C7; /* Bluey-inspired light blue */
-        }
-        .styled-table tbody tr.active-row {
-            font-weight: bold;
-            color: #4BA3C7;
+            border-bottom: 2px solid #6DA9E4;
         }
     </style>
     <script>
