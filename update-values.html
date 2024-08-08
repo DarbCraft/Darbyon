@@ -17,8 +17,12 @@
             text-decoration: none; 
             color: #000; 
         }
-        input, button { 
+        input, button, textarea { 
             margin: 10px 0; 
+        }
+        textarea { 
+            width: 100%; 
+            height: 100px; 
         }
         table { 
             width: 100%; 
@@ -36,9 +40,6 @@
         th { 
             background-color: #555; /* Ensure header matches the table background */
         }
-        nav a:link, nav a:visited { 
-            color: #000; 
-        }
         #messageTable {
             margin-top: 40px; /* Increased gap between tables */
         }
@@ -46,12 +47,10 @@
         #messageTable td:nth-of-type(1) {
             width: 60%; /* Fixed width for the first column */
         }
-
         #messageTable th:nth-of-type(2),
         #messageTable td:nth-of-type(2) {
             width: 40%; /* Adjust this value as needed */
         }
-
         #messageDisplay { 
             margin: 20px 0; 
         }
@@ -64,7 +63,71 @@
             padding: 5px; 
             cursor: pointer; 
         }
+        .message-form { 
+            margin: 20px 0; 
+        }
+        .message-form label { 
+            display: block; 
+            margin-bottom: 5px; 
+        }
+        .message-item { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 10px; 
+        }
+        .message-item button { 
+            margin-left: 10px; 
+        }
     </style>
+</head>
+<body>
+    <h1>Update Values</h1>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="settings.html">Settings</a>
+        <a href="scoreboard.html">Scoreboard</a>
+    </nav>
+
+    <h2>Select Players</h2>
+    <table id="playerTable">
+        <thead>
+            <tr>
+                <th>Update</th>
+                <th>Name</th>
+                <th>XP</th>
+                <th>AP</th>
+                <th>HP</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Add Daily News</h2>
+    <form id="addMessageForm" class="message-form">
+        <label for="messageName">Message Name:</label>
+        <input type="text" id="messageName" name="messageName">
+        <label for="messageDescription">Message Description:</label>
+        <textarea id="messageDescription" name="messageDescription"></textarea>
+        <button type="button" onclick="addMessage()">Add Message</button>
+    </form>
+
+    <h2>Daily News List</h2>
+    <table id="messageTable">
+        <thead>
+            <tr>
+                <th>Message</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="messagesList"></tbody>
+    </table>
+
+    <div id="messageDisplay">
+        <button type="button" onclick="showRandomMessage()">Show Random Message</button>
+        <p id="currentMessage"></p>
+        <p>Messages shown: <span id="messageCounter">0</span></p>
+    </div>
+
     <script>
         function setBackgroundBasedOnTime() {
             const hour = new Date().getHours();
@@ -83,7 +146,6 @@
             document.body.style.backgroundImage = `url('${backgroundUrl}')`;
         }
 
-        // Run the function when the page loads
         document.addEventListener('DOMContentLoaded', setBackgroundBasedOnTime);
 
         function loadPlayers() {
@@ -140,66 +202,96 @@
             loadPlayers();
         }
 
+        function addMessage() {
+            const name = document.getElementById('messageName').value;
+            const description = document.getElementById('messageDescription').value;
+            if (!name.trim() || !description.trim()) return;
+
+            const newMessage = { name, description };
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.push(newMessage);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            document.getElementById('messageName').value = '';
+            document.getElementById('messageDescription').value = '';
+            loadMessages();
+        }
+
+        function loadMessages() {
+            const messagesList = document.getElementById('messagesList');
+            messagesList.innerHTML = '';
+
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.forEach((message, index) => {
+                const tr = document.createElement('tr');
+                const tdMessage = document.createElement('td');
+                tdMessage.innerHTML = `<strong>${message.name}</strong><br>${message.description}`;
+                tr.appendChild(tdMessage);
+
+                const tdActions = document.createElement('td');
+                tdActions.className = 'message-item';
+                tdActions.innerHTML = `
+                    <button type="button" onclick="editMessage(${index})">Edit</button>
+                    <button type="button" onclick="deleteMessage(${index})">Delete</button>
+                `;
+                tr.appendChild(tdActions);
+
+                messagesList.appendChild(tr);
+            });
+        }
+
+        function editMessage(index) {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const message = messages[index];
+            if (message) {
+                document.getElementById('messageName').value = message.name;
+                document.getElementById('messageDescription').value = message.description;
+
+                // Remove the message from the list temporarily to avoid duplication
+                messages.splice(index, 1);
+                localStorage.setItem('messages', JSON.stringify(messages));
+                loadMessages();
+            }
+        }
+
+        function deleteMessage(index) {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.splice(index, 1);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            loadMessages();
+        }
+
         function showRandomMessage() {
             let messages = JSON.parse(localStorage.getItem('messages')) || [];
             let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
             
+            if (messages.length === 0) {
+                document.getElementById('currentMessage').textContent = 'No messages available.';
+                document.getElementById('messageCounter').textContent = '0';
+                return;
+            }
+
             if (shownMessages.length === messages.length) {
                 shownMessages = [];
             }
 
-            const availableMessages = messages.filter(msg => !shownMessages.includes(msg));
+            const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
+            if (availableMessages.length === 0) {
+                document.getElementById('currentMessage').textContent = 'No more new messages.';
+                document.getElementById('messageCounter').textContent = shownMessages.length;
+                return;
+            }
+
             const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
 
             shownMessages.push(randomMessage);
             localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
 
-            document.getElementById('currentMessage').textContent = randomMessage;
+            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
             document.getElementById('messageCounter').textContent = shownMessages.length;
         }
 
         document.addEventListener('DOMContentLoaded', loadPlayers);
+        document.addEventListener('DOMContentLoaded', loadMessages);
     </script>
-</head>
-<body>
-    <h1>Update Values</h1>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="settings.html">Settings</a>
-        <a href="scoreboard.html">Scoreboard</a>
-    </nav>
-
-    <h2>Select Players</h2>
-    <table id="playerTable">
-        <thead>
-            <tr>
-                <th>Update</th>
-                <th>Name</th>
-                <th>XP</th>
-                <th>AP</th>
-                <th>HP</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <table id="messageTable">
-        <thead>
-            <tr>
-                <th>Message</th>
-                <th>Messages Shown</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td id="currentMessage"></td>
-                <td id="messageCounter">0</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <div id="messageDisplay">
-        <button type="button" onclick="showRandomMessage()">Show Random Message</button>
-    </div>
 </body>
 </html>
