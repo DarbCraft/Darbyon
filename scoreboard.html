@@ -4,74 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scoreboard</title>
-    body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    color: #fff; /* Makes the text white for better readability on dark backgrounds */
-}
-nav a {
-    margin: 10px;
-    text-decoration: none;
-    color: #fff;
-}
-nav a:link, nav a:visited {
-    color: #fff;
-}
-.styled-table {
-    width: 100%; /* Full width of the screen */
-    border-collapse: collapse;
-    margin: 25px 0;
-    font-size: 0.9em;
-    font-family: sans-serif;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-}
-.styled-table thead tr {
-    background-color: #6DA9E4; /* Bluey-inspired header color */
-    color: #ffffff;
-    text-align: left;
-}
-.styled-table th,
-.styled-table td {
-    padding: 12px 15px;
-}
-.styled-table tbody tr {
-    border-bottom: 1px solid #dddddd;
-}
-.styled-table tbody tr:nth-of-type(even) {
-    background-color: rgba(109, 169, 228, 0.9); /* Light blue with transparency, slightly more opaque */
-    color: #000; /* Darker text for readability */
-}
-.styled-table tbody tr:nth-of-type(odd):nth-child(n+4) {
-    color: #005b96; /* Darker blue text for odd rows after row three */
-}
-.styled-table tbody tr:last-of-type {
-    border-bottom: 2px solid #6DA9E4;
-}
-    <script>
-        function setBackgroundBasedOnTime() {
-            const hour = new Date().getHours();
-            let backgroundUrl = '';
-
-            if (hour >= 6 && hour < 9) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%201.jpeg?raw=true';
-            } else if (hour >= 9 && hour < 10) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%202.jpeg?raw=true'; 
-            } else if (hour >= 10 && hour < 14) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%201.jpeg?raw=true';
-            } else {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%203.jpeg?raw=true'; 
-            }
-
-            document.body.style.backgroundImage = `url('${backgroundUrl}')`;
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #fff; /* Makes the text white for better readability on dark backgrounds */
         }
 
-        // Run the function when the page loads
-        document.addEventListener('DOMContentLoaded', setBackgroundBasedOnTime);
-    </script>
+        nav a {
+            margin: 10px;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        nav a:link, nav a:visited {
+            color: #fff;
+        }
+
+        .styled-table {
+            width: 100%; /* Full width of the screen */
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .styled-table thead tr {
+            background-color: #6DA9E4; /* Bluey-inspired header color */
+            color: #ffffff;
+            text-align: left;
+        }
+
+        .styled-table th,
+        .styled-table td {
+            padding: 12px 15px;
+        }
+
+        .styled-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: rgba(109, 169, 228, 0.9); /* Light blue with transparency, slightly more opaque */
+            color: #000; /* Darker text for readability */
+        }
+
+        .styled-table tbody tr:nth-of-type(odd):nth-child(n+4) {
+            color: #005b96; /* Darker blue text for odd rows after row three */
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #6DA9E4;
+        }
+    </style>
 </head>
 <body>
     <h1>Scoreboard</h1>
@@ -80,35 +70,43 @@ nav a:link, nav a:visited {
         <a href="settings.html">Settings</a>
         <a href="update-values.html">Update Values</a>
     </nav>
-    <table id="scoreboardTable" class="styled-table">
+
+    <table class="styled-table">
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Type</th>
                 <th>XP</th>
                 <th>AP</th>
                 <th>HP</th>
             </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+            <tr>
+                <td>Player 1</td>
+                <td>150</td>
+                <td>30</td>
+                <td>100</td>
+            </tr>
+            <tr>
+                <td>Player 2</td>
+                <td>200</td>
+                <td>40</td>
+                <td>90</td>
+            </tr>
+            <tr>
+                <td>Player 3</td>
+                <td>180</td>
+                <td>35</td>
+                <td>95</td>
+            </tr>
+            <tr>
+                <td>Player 4</td>
+                <td>170</td>
+                <td>33</td>
+                <td>85</td>
+            </tr>
+            <!-- Additional rows here -->
+        </tbody>
     </table>
-    <script>
-        function renderTable() {
-            const tableBody = document.getElementById('scoreboardTable').querySelector('tbody');
-            tableBody.innerHTML = '';
-
-            let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters.forEach(character => {
-                const row = tableBody.insertRow();
-                row.insertCell(0).innerText = character.name;
-                row.insertCell(1).innerText = character.type;
-                row.insertCell(2).innerText = character.xp;
-                row.insertCell(3).innerText = character.ap;
-                row.insertCell(4).innerText = character.hp;
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', renderTable);
-    </script>
 </body>
 </html>
