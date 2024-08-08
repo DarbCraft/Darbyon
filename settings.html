@@ -10,6 +10,43 @@
         input, button, textarea { display: block; margin: 10px 0; }
         textarea { width: 100%; height: 100px; }
         ul { padding-left: 20px; }
+        
+        /* Additional styles for messages */
+        #messageTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #messageTable th, #messageTable td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+            background-color: #555;
+            color: #fff;
+        }
+        #messageTable th {
+            background-color: #444;
+        }
+        .message-name {
+            font-weight: bold;
+        }
+        .message-description {
+            margin-top: 5px;
+        }
+        .edit-btn, .delete-btn {
+            margin: 0 5px;
+            cursor: pointer;
+            background: #f1f1f1;
+            border: none;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .edit-btn {
+            background: #ffa;
+        }
+        .delete-btn {
+            background: #faa;
+        }
     </style>
 </head>
 <body>
@@ -19,6 +56,7 @@
         <a href="update-values.html">Update Values</a>
         <a href="scoreboard.html">Scoreboard</a>
     </nav>
+
     <form id="addCharacterForm">
         <label for="charName">Character Name:</label>
         <input type="text" id="charName" name="charName">
@@ -33,13 +71,23 @@
 
     <h2>Add Daily News</h2>
     <form id="addMessageForm">
-        <label for="newMessage">New Entry:</label>
-        <textarea id="newMessage"></textarea>
-        <button type="button" onclick="addMessage()">Add Entry</button>
+        <label for="messageName">Name:</label>
+        <input type="text" id="messageName">
+        <label for="messageDescription">Description:</label>
+        <textarea id="messageDescription"></textarea>
+        <button type="button" onclick="addMessage()">Add Message</button>
     </form>
 
     <h2>Daily News List</h2>
-    <ul id="messagesList"></ul>
+    <table id="messageTable">
+        <thead>
+            <tr>
+                <th>Message</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="messageList"></tbody>
+    </table>
 
     <script>
         async function addCharacter() {
@@ -73,26 +121,61 @@
         }
 
         function addMessage() {
-            const newMessage = document.getElementById('newMessage').value;
-            if (!newMessage.trim()) return;
+            const name = document.getElementById('messageName').value;
+            const description = document.getElementById('messageDescription').value;
+            if (!name.trim() || !description.trim()) return;
 
+            const newMessage = { name, description };
             let messages = JSON.parse(localStorage.getItem('messages')) || [];
             messages.push(newMessage);
             localStorage.setItem('messages', JSON.stringify(messages));
-            document.getElementById('newMessage').value = '';
+            document.getElementById('messageName').value = '';
+            document.getElementById('messageDescription').value = '';
             loadMessages();
         }
 
         function loadMessages() {
-            const messagesList = document.getElementById('messagesList');
-            messagesList.innerHTML = '';
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = '';
 
             let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.forEach((message, index) => {
-                const li = document.createElement('li');
-                li.textContent = message;
-                messagesList.appendChild(li);
+            messages.forEach((msg, index) => {
+                const row = document.createElement('tr');
+
+                const messageCell = document.createElement('td');
+                messageCell.innerHTML = `
+                    <div class="message-name">${msg.name}</div>
+                    <div class="message-description">${msg.description}</div>
+                `;
+                row.appendChild(messageCell);
+
+                const actionsCell = document.createElement('td');
+                actionsCell.innerHTML = `
+                    <button class="edit-btn" onclick="editMessage(${index})">Edit</button>
+                    <button class="delete-btn" onclick="deleteMessage(${index})">Delete</button>
+                `;
+                row.appendChild(actionsCell);
+
+                messageList.appendChild(row);
             });
+        }
+
+        function editMessage(index) {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const newName = prompt('Enter new name:', messages[index].name);
+            const newDescription = prompt('Enter new description:', messages[index].description);
+            if (newName !== null && newDescription !== null) {
+                messages[index] = { name: newName, description: newDescription };
+                localStorage.setItem('messages', JSON.stringify(messages));
+                loadMessages();
+            }
+        }
+
+        function deleteMessage(index) {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.splice(index, 1);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            loadMessages();
         }
 
         document.addEventListener('DOMContentLoaded', loadMessages);
