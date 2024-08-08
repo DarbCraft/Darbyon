@@ -24,42 +24,42 @@
         }
 
         .styled-table {
-    width: 100%; /* Full width of the screen */
-    border-collapse: collapse;
-    margin: 25px 0;
-    font-size: 0.9em;
-    font-family: sans-serif;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-}
+            width: 100%; /* Full width of the screen */
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
 
-.styled-table thead tr {
-    background-color: #6DA9E4; 
-    color: #ffffff;
-    text-align: left;
-}
+        .styled-table thead tr {
+            background-color: #6DA9E4; /* Bluey-inspired header color */
+            color: #ffffff;
+            text-align: left;
+        }
 
-.styled-table th,
-.styled-table td {
-    padding: 12px 15px;
-}
+        .styled-table th,
+        .styled-table td {
+            padding: 12px 15px;
+        }
 
-.styled-table tbody tr {
-    border-bottom: 1px solid #dddddd;
-}
+        .styled-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
 
-.styled-table tbody tr:nth-of-type(even) {
-    background-color: rgba(2, 94, 186, 0.8); 
-    color: #ffffff; 
-}
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: rgba(2, 94, 186, 0.8); /* #025eba at 50% opacity */
+            color: #ffffff; /* White text for even rows */
+        }
 
-.styled-table tbody tr:nth-of-type(odd) {
-    background-color: rgba(2, 94, 186, 0.8); 
-    color: #ffffff; 
-}
+        .styled-table tbody tr:nth-of-type(odd) {
+            background-color: rgba(2, 94, 186, 0.25); /* #025eba at 25% opacity */
+            color: #000; /* Black text for odd rows */
+        }
 
-.styled-table tbody tr:last-of-type {
-    border-bottom: 2px solid #6DA9E4;
-}
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #6DA9E4;
+        }
     </style>
 </head>
 <body>
@@ -79,33 +79,38 @@
                 <th>HP</th>
             </tr>
         </thead>
-        <tbody>
-            <tr>
-                <td>Player 1</td>
-                <td>150</td>
-                <td>30</td>
-                <td>100</td>
-            </tr>
-            <tr>
-                <td>Player 2</td>
-                <td>200</td>
-                <td>40</td>
-                <td>90</td>
-            </tr>
-            <tr>
-                <td>Player 3</td>
-                <td>180</td>
-                <td>35</td>
-                <td>95</td>
-            </tr>
-            <tr>
-                <td>Player 4</td>
-                <td>170</td>
-                <td>33</td>
-                <td>85</td>
-            </tr>
-            <!-- Additional rows here -->
-        </tbody>
+        <tbody id="scoreboardTableBody"></tbody>
     </table>
+
+    <script>
+        function loadScoreboard() {
+            const tableBody = document.querySelector('#scoreboardTableBody');
+            tableBody.innerHTML = '';
+            const characters = JSON.parse(localStorage.getItem('characters')) || [];
+            characters.forEach(char => {
+                const row = document.createElement('tr');
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = char.name;
+                row.appendChild(nameCell);
+
+                const xpCell = document.createElement('td');
+                xpCell.textContent = char.xp;
+                row.appendChild(xpCell);
+
+                const apCell = document.createElement('td');
+                apCell.textContent = char.ap;
+                row.appendChild(apCell);
+
+                const hpCell = document.createElement('td');
+                hpCell.textContent = char.hp;
+                row.appendChild(hpCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadScoreboard);
+    </script>
 </body>
 </html>
