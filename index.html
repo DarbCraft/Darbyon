@@ -8,7 +8,6 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            background-image: url('https://github.com/DarbCraft/DarbCRAFT/blob/main/images/open-uri20160811-32147-h3t28q_2fe94cab.jpeg?raw=true');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -42,5 +41,31 @@
         <a href="update-values.html">Update Values</a>
         <a href="scoreboard.html">Scoreboard</a>
     </nav>
+
+    <script>
+        function setBackgroundBasedOnTime() {
+            const hour = new Date().getHours();
+            let backgroundUrl = '';
+
+            if (hour >= 6 && hour < 12) {
+                // Morning (6 AM to 12 PM)
+                backgroundUrl = 'your-morning-image-url.jpg'; // Update with your morning image URL
+            } else if (hour >= 12 && hour < 18) {
+                // Afternoon (12 PM to 6 PM)
+                backgroundUrl = 'your-afternoon-image-url.jpg'; // Update with your afternoon image URL
+            } else if (hour >= 18 && hour < 21) {
+                // Evening (6 PM to 9 PM)
+                backgroundUrl = 'your-evening-image-url.jpg'; // Update with your evening image URL
+            } else {
+                // Night (9 PM to 6 AM)
+                backgroundUrl = 'your-night-image-url.jpg'; // Update with your night image URL
+            }
+
+            document.body.style.backgroundImage = `url('${backgroundUrl}')`;
+        }
+
+        // Run the function when the page loads
+        document.addEventListener('DOMContentLoaded', setBackgroundBasedOnTime);
+    </script>
 </body>
 </html>
