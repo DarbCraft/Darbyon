@@ -5,17 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Values</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        nav { margin-bottom: 20px; }
-        nav a { margin: 10px; text-decoration: none; color: #000; }
-        input, button { margin: 10px 0; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-        th { background-color: #555; }
-        nav a:link, nav a:visited { color: #000; }
-        #messageDisplay { margin: 20px 0; }
-        .update-form { display: flex; justify-content: space-around; }
-        .update-btn { margin: 0 2px; padding: 5px; cursor: pointer; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+        }
+        nav { 
+            margin-bottom: 20px; 
+        }
+        nav a { 
+            margin: 10px; 
+            text-decoration: none; 
+            color: #000; 
+        }
+        input, button { 
+            margin: 10px 0; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+            background-color: #555; /* Consistent grey background for the entire table */
+        }
+        th, td { 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            text-align: left; 
+            background-color: #555; /* Matching grey background for cells */
+            color: #fff; /* White text for readability */
+        }
+        th { 
+            background-color: #555; /* Ensure header matches the table background */
+        }
+        nav a:link, nav a:visited { 
+            color: #000; 
+        }
+        #messageDisplay { 
+            margin: 20px 0; 
+        }
+        .update-form { 
+            display: flex; 
+            justify-content: space-around; 
+        }
+        .update-btn { 
+            margin: 0 2px; 
+            padding: 5px; 
+            cursor: pointer; 
+        }
     </style>
     <script>
         function setBackgroundBasedOnTime() {
