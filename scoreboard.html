@@ -4,55 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scoreboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            color: #fff; /* Makes the text white for better readability on dark backgrounds */
-        }
-        nav a {
-            margin: 10px;
-            text-decoration: none;
-            color: #fff;
-        }
-        nav a:link, nav a:visited {
-            color: #fff;
-        }
-        .styled-table {
-            width: 100%; /* Full width of the screen */
-            border-collapse: collapse;
-            margin: 25px 0;
-            font-size: 0.9em;
-            font-family: sans-serif;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-        }
-        .styled-table thead tr {
-            background-color: #6DA9E4; /* Bluey-inspired header color */
-            color: #ffffff;
-            text-align: left;
-        }
-        .styled-table th,
-        .styled-table td {
-            padding: 12px 15px;
-        }
-        .styled-table tbody tr {
-            border-bottom: 1px solid #dddddd;
-        }
-        .styled-table tbody tr:nth-of-type(even) {
-            background-color: rgba(109, 169, 228); /* Light blue with transparency */
-            color: #000; /* Darker text for readability */
-        }
-        .styled-table tbody tr:nth-of-type(odd):nth-child(n+2) {
-            color: #005b96; /* Darker blue text for odd rows after row three */
-        }
-        .styled-table tbody tr:last-of-type {
-            border-bottom: 2px solid #6DA9E4;
-        }
-    </style>
+    body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: #fff; /* Makes the text white for better readability on dark backgrounds */
+}
+nav a {
+    margin: 10px;
+    text-decoration: none;
+    color: #fff;
+}
+nav a:link, nav a:visited {
+    color: #fff;
+}
+.styled-table {
+    width: 100%; /* Full width of the screen */
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+.styled-table thead tr {
+    background-color: #6DA9E4; /* Bluey-inspired header color */
+    color: #ffffff;
+    text-align: left;
+}
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+}
+.styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+.styled-table tbody tr:nth-of-type(even) {
+    background-color: rgba(109, 169, 228, 0.9); /* Light blue with transparency, slightly more opaque */
+    color: #000; /* Darker text for readability */
+}
+.styled-table tbody tr:nth-of-type(odd):nth-child(n+4) {
+    color: #005b96; /* Darker blue text for odd rows after row three */
+}
+.styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid #6DA9E4;
+}
     <script>
         function setBackgroundBasedOnTime() {
             const hour = new Date().getHours();
