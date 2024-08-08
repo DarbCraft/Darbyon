@@ -29,7 +29,6 @@
             document.body.style.backgroundImage = `url('${backgroundUrl}')`;
         }
 
-        // Run the function when the page loads
         document.addEventListener('DOMContentLoaded', setBackgroundBasedOnTime);
     </script>
 </head>
@@ -52,14 +51,14 @@
         <button type="button" onclick="addCharacter()">Add Character</button>
     </form>
 
-    <h2>Add Messages</h2>
+    <h2>Add Daily News</h2>
     <form id="addMessageForm">
-        <label for="newMessage">New Message:</label>
+        <label for="newMessage">New Entry:</label>
         <textarea id="newMessage"></textarea>
-        <button type="button" onclick="addMessage()">Add Message</button>
+        <button type="button" onclick="addMessage()">Add Entry</button>
     </form>
 
-    <h2>Messages List</h2>
+    <h2>Daily News List</h2>
     <ul id="messagesList"></ul>
 
     <script>
@@ -120,4 +119,3 @@
     </script>
 </body>
 </html>
-
