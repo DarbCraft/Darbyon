@@ -126,7 +126,6 @@
     </div>
 
     <script>
-        // Function to record changes
         function recordChange(playerName, changeType, oldValue, newValue) {
             const change = {
                 playerName: playerName,
@@ -143,14 +142,12 @@
             updateChangeLog();
         }
 
-        // Function to update a character's XP, AP, or HP
         function updateCharacter(name, type) {
             const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
             let characters = JSON.parse(localStorage.getItem('characters')) || [];
             
             let oldValue;
             
-            // Update the character's value
             characters = characters.map(char => {
                 if (char.name === name) {
                     oldValue = char[type];
@@ -162,39 +159,24 @@
                 return char;
             });
 
-            // Save the updated characters back to local storage
             localStorage.setItem('characters', JSON.stringify(characters));
-            
-            // Record the change
             recordChange(name, type, oldValue, oldValue + value);
-            
-            // Reload the table to reflect changes
             populatePlayerTable();
         }
 
-        // Function to determine the level based on XP
         function getLevel(xp) {
-            if (xp < 5000) {
-                return 1;
-            } else if (xp < 10000) {
-                return 2;
-            } else if (xp < 15000) {
-                return 3;
-            } else if (xp < 20000) {
-                return 4;
-            } else if (xp < 25000) {
-                return 5;
-            } else if (xp < 30000) {
-                return 6;
-            } else {
-                return 7; 
-            }
+            if (xp < 5000) return 1;
+            if (xp < 10000) return 2;
+            if (xp < 15000) return 3;
+            if (xp < 20000) return 4;
+            if (xp < 25000) return 5;
+            if (xp < 30000) return 6;
+            return 7;
         }
 
-        // Function to populate the player table
         function populatePlayerTable() {
             const tbody = document.querySelector('#playerTable tbody');
-            tbody.innerHTML = ''; // Clear the table body
+            tbody.innerHTML = '';
 
             const players = JSON.parse(localStorage.getItem('characters')) || [];
             players.forEach(player => {
@@ -234,10 +216,9 @@
             });
         }
 
-        // Function to update the change log table
         function updateChangeLog() {
             const logTableBody = document.querySelector('#changeLog tbody');
-            logTableBody.innerHTML = ''; // Clear existing log entries
+            logTableBody.innerHTML = '';
 
             const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
 
@@ -246,33 +227,29 @@
                 const cell = document.createElement('td');
                 cell.className = 'change-log-entry';
 
-                let verb;
+                let changeText = `${change.timestamp} > ${change.playerName} `;
                 if (change.changeType === 'hp') {
-                    verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                    cell.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} hearts.`;
+                    changeText += (change.newValue - change.oldValue < 0) ? `lost ${Math.abs(change.newValue - change.oldValue)} hearts.` : `gained ${change.newValue - change.oldValue} hearts.`;
                 } else if (change.changeType === 'ap') {
-                    verb = change.newValue - change.oldValue < 0 ? 'used' : 'gained';
-                    cell.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} AP.`;
+                    changeText += (change.newValue - change.oldValue < 0) ? `used ${Math.abs(change.newValue - change.oldValue)} AP.` : `gained ${change.newValue - change.oldValue} AP.`;
                 } else if (change.changeType === 'xp') {
-                    verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                    cell.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} XP.`;
+                    changeText += `gained ${change.newValue - change.oldValue} XP.`;
                 }
+                
+                cell.textContent = changeText;
                 row.appendChild(cell);
                 logTableBody.appendChild(row);
             });
         }
 
-        // Function to clear the change log
         function clearChangeLog() {
             localStorage.removeItem('playerChanges');
             updateChangeLog();
         }
 
-        // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             populatePlayerTable();
             updateChangeLog();
-
             document.getElementById('clearLogButton').addEventListener('click', clearChangeLog);
         });
     </script>
