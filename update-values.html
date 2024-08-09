@@ -10,6 +10,9 @@
             margin: 20px;
             display: flex;
             flex-direction: row;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
         nav {
             margin-bottom: 20px;
@@ -45,6 +48,9 @@
             padding: 5px;
             cursor: pointer;
         }
+        #messageDisplay {
+            margin: 20px 0;
+        }
         .centered-table {
             width: 75%;
             margin: 0 auto;
@@ -53,74 +59,83 @@
             width: 50%;
             margin: 0 auto;
         }
-        #changeLog {
-            width: 25%;
-            max-height: 80vh;
-            overflow-y: auto;
-            margin-left: 20px;
-            border: 1px solid #ccc;
-            background-color: #555;
+        .main-container {
+            display: flex;
+            width: 100%;
+        }
+        .player-table-container {
+            width: 75%; /* Adjust this width as necessary */
+            padding-right: 20px; /* Space between tables */
+        }
+        .change-log-container {
+            width: 25%; /* Adjust to fit 25% of the page width */
+            max-width: 300px; /* Optional: set a max width for better appearance */
+            padding: 10px;
+            background-color: #333;
             color: #fff;
         }
-        #changeLog td {
+        .change-log {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .change-log td {
             border: none;
             padding: 10px;
             text-align: left;
         }
         .change-log-entry {
-            display: block;
-            margin-bottom: 10px;
-        }
-        .clear-log-btn {
-            margin: 10px;
-            padding: 10px;
-            cursor: pointer;
+            padding: 5px 0;
         }
     </style>
 </head>
 <body>
-    <div>
-        <h1>Update Values</h1>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="settings.html">Settings</a>
-            <a href="scoreboard.html">Scoreboard</a>
-        </nav>
+    <div class="main-container">
+        <div class="player-table-container">
+            <h1>Update Values</h1>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="settings.html">Settings</a>
+                <a href="scoreboard.html">Scoreboard</a>
+            </nav>
 
-        <h2>Select Players</h2>
-        <table id="playerTable">
-            <thead>
-                <tr>
-                    <th>Update</th>
-                    <th>Name</th>
-                    <th>Level</th>
-                    <th>XP</th>
-                    <th>AP</th>
-                    <th>HP</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-
-        <h2>Generate Daily News</h2>
-        <div class="half-width-table">
-            <table id="dailyNewsTable">
-                <tbody>
+            <h2>Select Players</h2>
+            <table id="playerTable">
+                <thead>
                     <tr>
-                        <td>
-                            <button type="button" id="generateMessageButton">Show Daily News</button>
-                            <p id="currentMessage">Generate Daily News</p>
-                            <p>Messages shown: <span id="messageCounter">0</span></p>
-                        </td>
+                        <th>Update</th>
+                        <th>Name</th>
+                        <th>Level</th>
+                        <th>XP</th>
+                        <th>AP</th>
+                        <th>HP</th>
                     </tr>
-                </tbody>
+                </thead>
+                <tbody></tbody>
             </table>
-        </div>
-    </div>
 
-    <div id="changeLog">
-        <button class="clear-log-btn" onclick="clearChangeLog()">Clear Log</button>
-        <div id="logEntries"></div>
+            <h2>Generate Daily News</h2>
+            <div class="half-width-table">
+                <table id="dailyNewsTable">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <button type="button" id="generateMessageButton">Show Daily News</button>
+                                <p id="currentMessage">Generate Daily News</p>
+                                <p>Messages shown: <span id="messageCounter">0</span></p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="change-log-container">
+            <h2>Change Log</h2>
+            <table id="changeLog" class="change-log">
+                <tbody></tbody>
+            </table>
+            <button type="button" id="clearLogButton">Clear Log</button>
+        </div>
     </div>
 
     <script>
