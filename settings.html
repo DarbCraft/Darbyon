@@ -59,6 +59,18 @@
         <a href="scoreboard.html">Scoreboard</a>
     </nav>
 
+     <form id="addCharacterForm">
+        <label for="charName">Character Name:</label>
+        <input type="text" id="charName" name="charName">
+        <label for="charType">Character Type:</label>
+        <select id="charType" name="charType">
+            <option value="Warrior">Warrior</option>
+            <option value="Healer">Healer</option>
+            <option value="Mage">Mage</option>
+        </select>
+        <button type="button" onclick="addCharacter()">Add Character</button>
+    </form>
+
     <h2>Add Daily Message</h2>
     <form id="messageForm">
         <label for="messageName">Daily News Item:</label>
