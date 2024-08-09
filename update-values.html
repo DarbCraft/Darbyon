@@ -100,6 +100,52 @@
 </body>
 
     <script>
+        
+        // Function to record changes
+function recordChange(playerName, changeType, oldValue, newValue) {
+    const change = {
+        playerName: playerName,
+        changeType: changeType,
+        oldValue: oldValue,
+        newValue: newValue,
+        timestamp: new Date().toLocaleString()
+    };
+
+    let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
+    changes.push(change);
+    localStorage.setItem('playerChanges', JSON.stringify(changes));
+}
+
+// Example of updating XP, AP, or HP
+function updatePlayerStat(playerName, statType, newValue) {
+    const player = players.find(p => p.name === playerName);
+    const oldValue = player[statType];
+    player[statType] = newValue;
+
+    recordChange(playerName, statType, oldValue, newValue);
+    // Code to update the table display...
+}
+
+// Populate the table with player data and add event listeners for updates
+players.forEach(player => {
+    const row = document.createElement('tr');
+    const updateCell = document.createElement('td');
+    updateCell.innerHTML = `<button class="update-btn">Update</button>`;
+    row.appendChild(updateCell);
+
+    // Other cells...
+
+    // Example event listener for updating XP (similar for AP and HP)
+    updateCell.querySelector('.update-btn').addEventListener('click', () => {
+        const newValue = prompt("Enter new XP for " + player.name, player.xp);
+        if (newValue !== null) {
+            updatePlayerStat(player.name, 'xp', parseInt(newValue, 10));
+        }
+    });
+
+    tbody.appendChild(row);
+});
+
         // Function to determine the level based on XP
 function getLevel(xp) {
     if (xp < 5000) {
