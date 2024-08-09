@@ -124,7 +124,6 @@
             player[statType] = newValue;
 
             recordChange(playerName, statType, oldValue, newValue);
-            // Code to update the table display...
             loadPlayers();
         }
 
@@ -136,10 +135,16 @@
             players.forEach(player => {
                 const row = document.createElement('tr');
                 const updateCell = document.createElement('td');
-                updateCell.innerHTML = `<button class="update-btn">Update</button>`;
+                const form = document.createElement('form');
+                form.className = 'update-form';
+                form.innerHTML = `
+                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp')">🏅 XP</button>
+                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap')">💎 AP</button>
+                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp')">❤️ HP</button>
+                `;
+                updateCell.appendChild(form);
                 row.appendChild(updateCell);
 
-                // Add cells for player details
                 const nameCell = document.createElement('td');
                 nameCell.textContent = player.name;
                 row.appendChild(nameCell);
@@ -159,14 +164,6 @@
                 const hpCell = document.createElement('td');
                 hpCell.textContent = player.hp;
                 row.appendChild(hpCell);
-
-                // Add event listener for update button
-                updateCell.querySelector('.update-btn').addEventListener('click', () => {
-                    const newValue = prompt("Enter new XP for " + player.name, player.xp);
-                    if (newValue !== null) {
-                        updatePlayerStat(player.name, 'xp', parseInt(newValue, 10));
-                    }
-                });
 
                 tbody.appendChild(row);
             });
