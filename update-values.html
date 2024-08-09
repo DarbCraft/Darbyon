@@ -80,13 +80,23 @@
         </thead>
         <tbody></tbody>
     </table>
+    </div>d
 
     <h2>Generate Daily News</h2>
-    <div class="half-width-table">
-        <button type="button" id="generateMessageButton">Show Daily News</button>
-        <p id="currentMessage">Generate Daily News</p>
-        <p>Messages shown: <span id="messageCounter">0</span></p>
-    </div>
+<div class="half-width-table">
+    <table id="dailyNewsTable">
+        <tbody>
+            <tr>
+                <td>
+                    <button type="button" id="generateMessageButton">Show Daily News</button>
+                    <p id="currentMessage">Generate Daily News</p>
+                    <p>Messages shown: <span id="messageCounter">0</span></p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</body>
 
     <script>
         function setBackgroundBasedOnTime() {
