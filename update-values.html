@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update Values</title>
+    <title>Settings</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,179 +17,198 @@
             text-decoration: none;
             color: #000;
         }
-        input, button, textarea {
-            margin: 10px 0;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
-            background-color: #555;
+            background-color: rgba(192, 192, 192, 0.8);
         }
         th, td {
             border: 1px solid #ccc;
             padding: 10px;
             text-align: left;
-            background-color: #555;
-            color: #fff;
         }
         th {
-            background-color: #555;
+            background-color: #666;
+            color: white;
         }
-        .update-form {
+        tr:nth-child(even):not(:nth-child(1)) {
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+        tr:nth-child(odd) {
+            background-color: rgba(211, 211, 211, 0.6);
+        }
+        form {
             display: flex;
-            justify-content: space-around;
+            flex-direction: column;
+            margin-bottom: 20px;
         }
-        .update-btn {
-            margin: 0 2px;
-            padding: 5px;
-            cursor: pointer;
+        label, input, button {
+            margin: 5px 0;
         }
-        #messageDisplay {
-            margin: 20px 0;
+        .full-width {
+            width: 100%;
         }
     </style>
 </head>
 <body>
-    <h1>Update Values</h1>
+    <h1>Settings</h1>
     <nav>
         <a href="index.html">Home</a>
-        <a href="settings.html">Settings</a>
+        <a href="update-values.html">Update Values</a>
         <a href="scoreboard.html">Scoreboard</a>
     </nav>
 
-    <h2>Select Players</h2>
-    <table id="playerTable">
+    <form id="addCharacterForm">
+        <label for="charName">Character Name:</label>
+        <input type="text" id="charName" name="charName">
+        <label for="charType">Character Type:</label>
+        <select id="charType" name="charType">
+            <option value="Warrior">Warrior</option>
+            <option value="Healer">Healer</option>
+            <option value="Mage">Mage</option>
+        </select>
+        <button type="button" onclick="addCharacter()">Add Character</button>
+    </form>
+
+    <h2>Add Daily Message</h2>
+    <form id="messageForm">
+        <label for="messageName">Daily News Item:</label>
+        <input type="text" id="messageName" name="messageName" required>
+
+        <label for="messageDescription">Description:</label>
+        <textarea id="messageDescription" name="messageDescription" required></textarea>
+
+        <button type="submit">Add News Item</button>
+    </form>
+
+    <h2>Daily News</h2>
+    <button id="generateMessageButton">Show Random Message</button>
+    <div id="messageContainer">
+        <p id="currentMessage">Generate Daily News</p>
+        <p id="messageCounter">Messages shown: 0</p>
+    </div>
+    <table id="messageTable">
         <thead>
             <tr>
-                <th>Update</th>
                 <th>Name</th>
-                <th>XP</th>
-                <th>AP</th>
-                <th>HP</th>
+                <th>Description</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
-    <h2>Generate Daily News</h2>
-    <div id="messageDisplay">
-        <button type="button" onclick="showRandomMessage()">Show Random Message</button>
-        <p id="currentMessage"></p>
-        <p>Messages shown: <span id="messageCounter">0</span></p>
-    </div>
-
     <script>
-        function setBackgroundBasedOnTime() {
-            const hour = new Date().getHours();
-            let backgroundUrl = '';
+        async function addCharacter() {
+            const name = document.getElementById('charName').value;
+            const type = document.getElementById('charType').value;
+            let hp, ap;
 
-            if (hour >= 6 && hour < 9) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%201.jpeg?raw=true';
-            } else if (hour >= 9 && hour < 10) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%202.jpeg?raw=true'; 
-            } else if (hour >= 10 && hour < 14) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%201.jpeg?raw=true';
-            } else {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%203.jpeg?raw=true'; 
+            switch (type) {
+                case 'Warrior':
+                    hp = 10;
+                    ap = 15;
+                    break;
+                case 'Healer':
+                    hp = 8;
+                    ap = 20;
+                    break;
+                case 'Mage':
+                    hp = 6;
+                    ap = 30;
+                    break;
+                default:
+                    alert('Invalid character type!');
+                    return;
             }
 
-            document.body.style.backgroundImage = `url('${backgroundUrl}')`;
-        }
-
-        document.addEventListener('DOMContentLoaded', setBackgroundBasedOnTime);
-
-        function loadPlayers() {
-            const tableBody = document.querySelector('#playerTable tbody');
-            tableBody.innerHTML = '';
-            const characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters.forEach(char => {
-                const row = document.createElement('tr');
-
-                const updateCell = document.createElement('td');
-                const form = document.createElement('form');
-                form.className = 'update-form';
-                form.innerHTML = `
-                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'xp')">🏅 XP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'ap')">💎 AP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'hp')">❤️ HP</button>
-                `;
-                updateCell.appendChild(form);
-                row.appendChild(updateCell);
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = char.name;
-                row.appendChild(nameCell);
-
-                const xpCell = document.createElement('td');
-                xpCell.textContent = char.xp;
-                row.appendChild(xpCell);
-
-                const apCell = document.createElement('td');
-                apCell.textContent = char.ap;
-                row.appendChild(apCell);
-
-                const hpCell = document.createElement('td');
-                hpCell.textContent = char.hp;
-                row.appendChild(hpCell);
-
-                tableBody.appendChild(row);
-            });
-        }
-
-        function updateCharacter(name, type) {
-            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
+            const newCharacter = { name, type, xp: 0, ap, hp };
             let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters = characters.map(char => {
-                if (char.name === name) {
-                    return {
-                        ...char,
-                        [type]: char[type] + value
-                    };
-                }
-                return char;
-            });
+            characters.push(newCharacter);
             localStorage.setItem('characters', JSON.stringify(characters));
-            loadPlayers();
+            document.getElementById('addCharacterForm').reset();
+            loadScoreboard(); // Load updated scoreboard
+        }
+
+        function loadMessages() {
+            const messageTableBody = document.querySelector('#messageTable tbody');
+            messageTableBody.innerHTML = '';
+
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+
+            messages.forEach(msg => {
+                const row = document.createElement('tr');
+                const nameCell = document.createElement('td');
+                const descriptionCell = document.createElement('td');
+
+                nameCell.textContent = msg.name;
+                descriptionCell.textContent = msg.description;
+
+                row.appendChild(nameCell);
+                row.appendChild(descriptionCell);
+
+                messageTableBody.appendChild(row);
+            });
         }
 
         function showRandomMessage() {
-    let messages = JSON.parse(localStorage.getItem('messages')) || [];
-    let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
 
-    if (messages.length === 0) {
-        document.getElementById('currentMessage').textContent = 'No messages available.';
-        document.getElementById('messageCounter').textContent = '0';
-        return;
-    }
+            if (messages.length === 0) {
+                document.getElementById('currentMessage').textContent = 'No messages available.';
+                document.getElementById('messageCounter').textContent = '0';
+                return;
+            }
 
-    // Check if we need to reset the shownMessages
-    if (shownMessages.length === messages.length) {
-        shownMessages = [];
-        localStorage.setItem('shownMessages', JSON.stringify(shownMessages)); // Reset shownMessages in localStorage
-        document.getElementById('messageCounter').textContent = '1'; // Reset counter to 1
-    }
+            // Check if we need to reset the shownMessages
+            if (shownMessages.length === messages.length) {
+                shownMessages = [];
+                localStorage.setItem('shownMessages', JSON.stringify(shownMessages)); // Reset shownMessages in localStorage
+                document.getElementById('messageCounter').textContent = '1'; // Reset counter to 1
+                document.getElementById('currentMessage').textContent = 'All messages have been shown. Restarting...';
+                return;
+            }
 
-    // Filter out the messages that have already been shown
-    const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
+            // Filter out the messages that have already been shown
+            const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
 
-    if (availableMessages.length === 0) {
-        document.getElementById('currentMessage').textContent = 'No more new messages.';
-        return;
-    }
+            // Pick a random message from availableMessages
+            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
 
-    // Pick a random message from availableMessages
-    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+            shownMessages.push(randomMessage);
+            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
 
-    shownMessages.push(randomMessage);
-    localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
+            document.getElementById('messageCounter').textContent = shownMessages.length;
+        }
 
-    document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
-    document.getElementById('messageCounter').textContent = shownMessages.length;
-}
+        document.querySelector('#messageForm').addEventListener('submit', function(event) {
+            event.preventDefault();
 
-document.addEventListener('DOMContentLoaded', loadPlayers);
+            const messageName = document.querySelector('#messageName').value.trim();
+            const messageDescription = document.querySelector('#messageDescription').value.trim();
 
+            if (messageName && messageDescription) {
+                const messages = JSON.parse(localStorage.getItem('messages')) || [];
+
+                messages.push({
+                    name: messageName,
+                    description: messageDescription
+                });
+
+                localStorage.setItem('messages', JSON.stringify(messages));
+                loadMessages();
+
+                // Clear the form
+                document.querySelector('#messageForm').reset();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMessages(); // Ensure messages are loaded
+            document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
+        });
     </script>
 </body>
 </html>
