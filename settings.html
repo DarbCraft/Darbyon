@@ -5,55 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        nav a { margin: 10px; text-decoration: none; }
-        input, button, textarea { display: block; margin: 10px 0; }
-        textarea { width: 100%; height: 100px; }
-        ul { padding-left: 20px; }
-        
-        /* Additional styles for messages */
-        #messageTable {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-              }
-        #messageTable th:nth-of-type(1),
-        #messageTable td:nth-of-type(1) {
-            width: 60%; /* Fixed width for the first column */
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
         }
-        #messageTable th:nth-of-type(2),
-        #messageTable td:nth-of-type(2) {
-            width: 40%; /* Adjust this value as needed */
+        nav { 
+            margin-bottom: 20px; 
         }
-        #messageTable th, #messageTable td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: left;
-            background-color: #555;
-            color: #fff;
+        nav a { 
+            margin: 10px; 
+            text-decoration: none; 
+            color: #000; 
         }
-        #messageTable th {
-            background-color: #444;
+        input, button, textarea { 
+            margin: 10px 0; 
         }
-        .message-name {
-            font-weight: bold;
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+            background-color: #555; 
         }
-        .message-description {
-            margin-top: 5px;
+        th, td { 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            text-align: left; 
+            background-color: #555; 
+            color: #fff; 
         }
-        .edit-btn, .delete-btn {
-            margin: 0 5px;
-            cursor: pointer;
-            background: #f1f1f1;
-            border: none;
-            padding: 5px;
-            border-radius: 3px;
-        }
-        .edit-btn {
-            background: #ffa;
-        }
-        .delete-btn {
-            background: #faa;
+        th { 
+            background-color: #555; 
         }
     </style>
 </head>
@@ -65,124 +46,54 @@
         <a href="scoreboard.html">Scoreboard</a>
     </nav>
 
-    <form id="addCharacterForm">
-        <label for="charName">Character Name:</label>
-        <input type="text" id="charName" name="charName">
-        <label for="charType">Character Type:</label>
-        <select id="charType" name="charType">
-            <option value="Warrior">Warrior</option>
-            <option value="Healer">Healer</option>
-            <option value="Mage">Mage</option>
-        </select>
-        <button type="button" onclick="addCharacter()">Add Character</button>
-    </form>
-
-    <h2>Add Daily News</h2>
-    <form id="addMessageForm">
-        <label for="messageName">Name:</label>
-        <input type="text" id="messageName">
-        <label for="messageDescription">Description:</label>
-        <textarea id="messageDescription"></textarea>
+    <h2>Daily Messages</h2>
+    <div id="messageForm">
+        <textarea id="messageInput" placeholder="Enter your message here"></textarea><br>
         <button type="button" onclick="addMessage()">Add Message</button>
-    </form>
-
-    <h2>Daily News List</h2>
+    </div>
+    
     <table id="messageTable">
         <thead>
             <tr>
-                <th>Message</th>
-                <th>Actions</th>
+                <th>Name</th>
+                <th>Description</th>
             </tr>
         </thead>
-        <tbody id="messageList"></tbody>
+        <tbody></tbody>
     </table>
 
     <script>
-        async function addCharacter() {
-            const name = document.getElementById('charName').value;
-            const type = document.getElementById('charType').value;
-            let hp, ap;
-
-            switch (type) {
-                case 'Warrior':
-                    hp = 10;
-                    ap = 15;
-                    break;
-                case 'Healer':
-                    hp = 8;
-                    ap = 20;
-                    break;
-                case 'Mage':
-                    hp = 6;
-                    ap = 30;
-                    break;
-                default:
-                    alert('Invalid character type!');
-                    return;
-            }
-
-            const newCharacter = { name, type, xp: 0, ap, hp };
-            let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters.push(newCharacter);
-            localStorage.setItem('characters', JSON.stringify(characters));
-            document.getElementById('addCharacterForm').reset();
-        }
-
-        function addMessage() {
-            const name = document.getElementById('messageName').value;
-            const description = document.getElementById('messageDescription').value;
-            if (!name.trim() || !description.trim()) return;
-
-            const newMessage = { name, description };
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.push(newMessage);
-            localStorage.setItem('messages', JSON.stringify(messages));
-            document.getElementById('messageName').value = '';
-            document.getElementById('messageDescription').value = '';
-            loadMessages();
-        }
-
         function loadMessages() {
-            const messageList = document.getElementById('messageList');
-            messageList.innerHTML = '';
-
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.forEach((msg, index) => {
+            const tableBody = document.querySelector('#messageTable tbody');
+            tableBody.innerHTML = '';
+            const messages = JSON.parse(localStorage.getItem('settingsMessages')) || [];
+            messages.forEach((message, index) => {
                 const row = document.createElement('tr');
+                
+                const nameCell = document.createElement('td');
+                nameCell.textContent = message.name || `Message ${index + 1}`;
+                row.appendChild(nameCell);
 
-                const messageCell = document.createElement('td');
-                messageCell.innerHTML = `
-                    <div class="message-name">${msg.name}</div>
-                    <div class="message-description">${msg.description}</div>
-                `;
-                row.appendChild(messageCell);
+                const descriptionCell = document.createElement('td');
+                descriptionCell.textContent = message.description;
+                row.appendChild(descriptionCell);
 
-                const actionsCell = document.createElement('td');
-                actionsCell.innerHTML = `
-                    <button class="edit-btn" onclick="editMessage(${index})">Edit</button>
-                    <button class="delete-btn" onclick="deleteMessage(${index})">Delete</button>
-                `;
-                row.appendChild(actionsCell);
-
-                messageList.appendChild(row);
+                tableBody.appendChild(row);
             });
         }
 
-        function editMessage(index) {
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            const newName = prompt('Enter new name:', messages[index].name);
-            const newDescription = prompt('Enter new description:', messages[index].description);
-            if (newName !== null && newDescription !== null) {
-                messages[index] = { name: newName, description: newDescription };
-                localStorage.setItem('messages', JSON.stringify(messages));
-                loadMessages();
-            }
-        }
+        function addMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const messages = JSON.parse(localStorage.getItem('settingsMessages')) || [];
+            const newMessage = {
+                name: `Message ${messages.length + 1}`,
+                description: messageInput.value
+            };
 
-        function deleteMessage(index) {
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.splice(index, 1);
-            localStorage.setItem('messages', JSON.stringify(messages));
+            messages.push(newMessage);
+            localStorage.setItem('settingsMessages', JSON.stringify(messages));
+
+            messageInput.value = ''; // Clear the input field
             loadMessages();
         }
 
