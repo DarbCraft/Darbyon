@@ -5,48 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Values</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 20px; 
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
-        nav { 
-            margin-bottom: 20px; 
+        nav {
+            margin-bottom: 20px;
         }
-        nav a { 
-            margin: 10px; 
-            text-decoration: none; 
-            color: #000; 
+        nav a {
+            margin: 10px;
+            text-decoration: none;
+            color: #000;
         }
-        input, button, textarea { 
-            margin: 10px 0; 
+        input, button, textarea {
+            margin: 10px 0;
         }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin: 20px 0; 
-            background-color: #555; 
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #555;
         }
-        th, td { 
-            border: 1px solid #ccc; 
-            padding: 10px; 
-            text-align: left; 
-            background-color: #555; 
-            color: #fff; 
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+            background-color: #555;
+            color: #fff;
         }
-        th { 
-            background-color: #555; 
+        th {
+            background-color: #555;
         }
-        .update-form { 
-            display: flex; 
-            justify-content: space-around; 
+        .update-form {
+            display: flex;
+            justify-content: space-around;
         }
-        .update-btn { 
-            margin: 0 2px; 
-            padding: 5px; 
-            cursor: pointer; 
+        .update-btn {
+            margin: 0 2px;
+            padding: 5px;
+            cursor: pointer;
         }
-        #messageDisplay { 
-            margin: 20px 0; 
+        #messageDisplay {
+            margin: 20px 0;
         }
     </style>
 </head>
@@ -154,33 +154,24 @@
         }
 
         function showRandomMessage() {
-            let messages = JSON.parse(localStorage.getItem('settingsMessages')) || [];
-            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
-            
-            if (messages.length === 0) {
-                document.getElementById('currentMessage').textContent = 'No messages available.';
-                document.getElementById('messageCounter').textContent = '0';
-                return;
-            }
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
 
             if (shownMessages.length === messages.length) {
-                shownMessages = [];
-                localStorage.setItem('shownMessages', JSON.stringify(shownMessages)); // Reset shownMessages in localStorage
-            }
-
-            const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
-            if (availableMessages.length === 0) {
-                document.getElementById('currentMessage').textContent = 'No more new messages.';
-                document.getElementById('messageCounter').textContent = shownMessages.length;
+                alert('All messages have been shown.');
                 return;
             }
 
-            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * messages.length);
+            } while (shownMessages.includes(randomIndex));
 
-            shownMessages.push(randomMessage);
+            const randomMessage = messages[randomIndex];
+            shownMessages.push(randomIndex);
+
             localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
-
-            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
+            document.getElementById('currentMessage').textContent = randomMessage.name + ": " + randomMessage.description;
             document.getElementById('messageCounter').textContent = shownMessages.length;
         }
 
