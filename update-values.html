@@ -20,10 +20,6 @@
         input, button, textarea { 
             margin: 10px 0; 
         }
-        textarea { 
-            width: 100%; 
-            height: 100px; 
-        }
         table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -40,20 +36,6 @@
         th { 
             background-color: #555; /* Ensure header matches the table background */
         }
-        #messageTable {
-            margin-top: 40px; /* Increased gap between tables */
-        }
-        #messageTable th:nth-of-type(1),
-        #messageTable td:nth-of-type(1) {
-            width: 60%; /* Fixed width for the first column */
-        }
-        #messageTable th:nth-of-type(2),
-        #messageTable td:nth-of-type(2) {
-            width: 40%; /* Adjust this value as needed */
-        }
-        #messageDisplay { 
-            margin: 20px 0; 
-        }
         .update-form { 
             display: flex; 
             justify-content: space-around; 
@@ -63,20 +45,8 @@
             padding: 5px; 
             cursor: pointer; 
         }
-        .message-form { 
+        #messageDisplay { 
             margin: 20px 0; 
-        }
-        .message-form label { 
-            display: block; 
-            margin-bottom: 5px; 
-        }
-        .message-item { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 10px; 
-        }
-        .message-item button { 
-            margin-left: 10px; 
         }
     </style>
 </head>
@@ -102,26 +72,7 @@
         <tbody></tbody>
     </table>
 
-    <h2>Add Daily News</h2>
-    <form id="addMessageForm" class="message-form">
-        <label for="messageName">Message Name:</label>
-        <input type="text" id="messageName" name="messageName">
-        <label for="messageDescription">Message Description:</label>
-        <textarea id="messageDescription" name="messageDescription"></textarea>
-        <button type="button" onclick="addMessage()">Add Message</button>
-    </form>
-
-    <h2>Daily News List</h2>
-    <table id="messageTable">
-        <thead>
-            <tr>
-                <th>Message</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="messagesList"></tbody>
-    </table>
-
+    <h2>Generate Daily News</h2>
     <div id="messageDisplay">
         <button type="button" onclick="showRandomMessage()">Show Random Message</button>
         <p id="currentMessage"></p>
@@ -202,64 +153,6 @@
             loadPlayers();
         }
 
-        function addMessage() {
-            const name = document.getElementById('messageName').value;
-            const description = document.getElementById('messageDescription').value;
-            if (!name.trim() || !description.trim()) return;
-
-            const newMessage = { name, description };
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.push(newMessage);
-            localStorage.setItem('messages', JSON.stringify(messages));
-            document.getElementById('messageName').value = '';
-            document.getElementById('messageDescription').value = '';
-            loadMessages();
-        }
-
-        function loadMessages() {
-            const messagesList = document.getElementById('messagesList');
-            messagesList.innerHTML = '';
-
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.forEach((message, index) => {
-                const tr = document.createElement('tr');
-                const tdMessage = document.createElement('td');
-                tdMessage.innerHTML = `<strong>${message.name}</strong><br>${message.description}`;
-                tr.appendChild(tdMessage);
-
-                const tdActions = document.createElement('td');
-                tdActions.className = 'message-item';
-                tdActions.innerHTML = `
-                    <button type="button" onclick="editMessage(${index})">Edit</button>
-                    <button type="button" onclick="deleteMessage(${index})">Delete</button>
-                `;
-                tr.appendChild(tdActions);
-
-                messagesList.appendChild(tr);
-            });
-        }
-
-        function editMessage(index) {
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            const message = messages[index];
-            if (message) {
-                document.getElementById('messageName').value = message.name;
-                document.getElementById('messageDescription').value = message.description;
-
-                // Remove the message from the list temporarily to avoid duplication
-                messages.splice(index, 1);
-                localStorage.setItem('messages', JSON.stringify(messages));
-                loadMessages();
-            }
-        }
-
-        function deleteMessage(index) {
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.splice(index, 1);
-            localStorage.setItem('messages', JSON.stringify(messages));
-            loadMessages();
-        }
-
         function showRandomMessage() {
             let messages = JSON.parse(localStorage.getItem('messages')) || [];
             let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
@@ -291,7 +184,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', loadPlayers);
-        document.addEventListener('DOMContentLoaded', loadMessages);
     </script>
 </body>
 </html>
