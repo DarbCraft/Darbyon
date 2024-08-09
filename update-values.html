@@ -73,6 +73,7 @@
             <tr>
                 <th>Update</th>
                 <th>Name</th>
+                <th>Level</th>
                 <th>XP</th>
                 <th>AP</th>
                 <th>HP</th>
@@ -99,6 +100,43 @@
 </body>
 
     <script>
+        // Function to determine the level based on XP
+function getLevel(xp) {
+    if (xp < 5000) {
+        return 1;
+    } else if (xp < 10000) {
+        return 2;
+    } else if (xp < 15000) {
+        return 3;} 
+    } else if {xp < 20000) {
+        return 4;
+    } else if {xp < 25000) {
+        return 5;
+    } else if {xp < 30000) {
+        return 6;
+    }
+}
+        // Function to add the Level column to the player table
+function addLevelColumn() {
+    const rows = document.querySelectorAll('#playerTable tbody tr');
+
+    rows.forEach(row => {
+        const xpCell = row.querySelector('td:nth-child(4)'); // XP is the 4th column
+        const xp = parseInt(xpCell.textContent, 10);
+        const level = getLevel(xp);
+
+        // Create the Level cell
+        const levelCell = document.createElement('td');
+        levelCell.textContent = `Level ${level}`;
+
+        // Insert the Level cell after the name cell (which is the 2nd column)
+        row.insertBefore(levelCell, row.children[2]);
+    });
+}
+
+// Call the function to add the Level column
+addLevelColumn();
+               
         function setBackgroundBasedOnTime() {
             const hour = new Date().getHours();
             let backgroundUrl = '';
