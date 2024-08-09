@@ -153,35 +153,37 @@
             loadPlayers();
         }
 
-        function showRandomMessage() {
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
-            const shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+       function showRandomMessage() {
+    const messages = JSON.parse(localStorage.getItem('messages')) || [];
+    const shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
 
-            if (messages.length === 0) {
-                document.getElementById('currentMessage').textContent = 'No messages available.';
-                document.getElementById('messageCounter').textContent = '0';
-                return;
-            }
+    if (messages.length === 0) {
+        document.getElementById('currentMessage').textContent = 'No messages available.';
+        document.getElementById('messageCounter').textContent = '0';
+        return;
+    }
 
-            // Reset shown messages if all messages have been shown
-            if (shownMessages.length === messages.length) {
-                localStorage.setItem('shownMessages', JSON.stringify([]));
-                document.getElementById('messageCounter').textContent = '1'; // Reset counter to 1
-                document.getElementById('currentMessage').textContent = 'All messages have been shown. Restarting...';
-                return;
-            }
+    // Reset shown messages if all messages have been shown
+    if (shownMessages.length === messages.length) {
+        localStorage.setItem('shownMessages', JSON.stringify([]));
+        document.getElementById('messageCounter').textContent = '0'; // Reset counter to 0
+        document.getElementById('currentMessage').textContent = 'All messages have been shown. Restarting...';
+        return;
+    }
 
-            // Filter out the messages that have already been shown
-            const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
+    // Filter out the messages that have already been shown
+    const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
 
-            // Pick a random message from availableMessages
-            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+    // Pick a random message from availableMessages
+    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
 
-            shownMessages.push(randomMessage);
-            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+    shownMessages.push(randomMessage);
+    localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
 
-            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
-            document.getElementById('messageCounter').textContent = shownMessages.length;
+    document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
+    document.getElementById('messageCounter').textContent = shownMessages.length;
+}
+
         }
 
         document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
