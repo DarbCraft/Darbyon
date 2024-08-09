@@ -10,7 +10,6 @@
             margin: 20px;
             display: flex;
             flex-direction: row;
-            justify-content: space-between;
         }
         nav {
             margin-bottom: 20px;
@@ -24,10 +23,8 @@
             margin: 10px 0;
         }
         table {
-            width: 80%;
             border-collapse: collapse;
             margin: 20px 0;
-            background-color: #555;
         }
         th, td {
             border: 1px solid #ccc;
@@ -48,24 +45,36 @@
             padding: 5px;
             cursor: pointer;
         }
-        #messageDisplay {
-            margin: 20px 0;
+        .centered-table {
+            width: 75%;
+            margin: 0 auto;
         }
         .half-width-table {
             width: 50%;
             margin: 0 auto;
         }
-        .change-log-container {
-            width: 40%;
-            height: calc(100vh - 40px); /* Adjust the height to fit within the viewport */
-            overflow-y: auto; /* Enable vertical scrolling if needed */
+        #changeLog {
+            width: 25%;
+            max-height: 80vh;
+            overflow-y: auto;
             margin-left: 20px;
-        }
-        .change-log-table {
-            width: 100%;
-            height: 100%;
-            border-collapse: collapse;
+            border: 1px solid #ccc;
             background-color: #555;
+            color: #fff;
+        }
+        #changeLog td {
+            border: none;
+            padding: 10px;
+            text-align: left;
+        }
+        .change-log-entry {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .clear-log-btn {
+            margin: 10px;
+            padding: 10px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -109,20 +118,9 @@
         </div>
     </div>
 
-    <div class="change-log-container">
-        <h2>Change Log</h2>
-        <table id="changeLogTable" class="change-log-table">
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>Player</th>
-                    <th>Change Type</th>
-                    <th>Old Value</th>
-                    <th>New Value</th>
-                </tr>
-            </thead>
-            <tbody id="changeList"></tbody>
-        </table>
+    <div id="changeLog">
+        <button class="clear-log-btn" onclick="clearChangeLog()">Clear Log</button>
+        <div id="logEntries"></div>
     </div>
 
     <script>
@@ -139,9 +137,7 @@
             let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
             changes.push(change);
             localStorage.setItem('playerChanges', JSON.stringify(changes));
-
-            // Add change to the table on the page
-            displayChanges();
+            updateChangeLog();
         }
 
         // Function to update a character's XP, AP, or HP
@@ -154,7 +150,6 @@
                 if (char.name === name) {
                     const oldValue = char[type];
                     char[type] += value;
-                    // Record the change
                     recordChange(name, type, oldValue, char[type]);
                 }
                 return char;
@@ -167,7 +162,6 @@
             populatePlayerTable();
         }
 
-        // Function to determine the level based on XP
         function getLevel(xp) {
             if (xp < 5000) {
                 return 1;
@@ -186,7 +180,6 @@
             }
         }
 
-        // Function to populate the player table
         function populatePlayerTable() {
             const tbody = document.querySelector('#playerTable tbody');
             tbody.innerHTML = ''; // Clear the table body
@@ -229,21 +222,22 @@
             });
         }
 
-        // Function to display changes in the table
-        function displayChanges() {
-            const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-            const changeList = document.getElementById('changeList');
-            changeList.innerHTML = ''; // Clear the existing entries
+        function updateChangeLog() {
+            const logEntries = JSON.parse(localStorage.getItem('playerChanges')) || [];
+            const logContainer = document.getElementById('logEntries');
+            logContainer.innerHTML = '';
 
-            changes.forEach(change => {
-                const row = document.createElement('tr');
-                Object.values(change).forEach(value => {
-                    const cell = document.createElement('td');
-                    cell.textContent = value;
-                    row.appendChild(cell);
-                });
-                changeList.appendChild(row);
+            logEntries.forEach(entry => {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'change-log-entry';
+                logEntry.innerText = `${entry.timestamp} > ${entry.playerName} > ${entry.changeType.toUpperCase()} > ${entry.oldValue} > ${entry.newValue}`;
+                logContainer.appendChild(logEntry);
             });
+        }
+
+        function clearChangeLog() {
+            localStorage.removeItem('playerChanges');
+            updateChangeLog();
         }
 
         function setBackgroundBasedOnTime() {
@@ -266,38 +260,60 @@
             document.body.style.backgroundRepeat = 'no-repeat';  // Prevent the image from repeating
         }
 
-        // Function to load players and populate the table
         function loadPlayers() {
             populatePlayerTable();
-            displayChanges(); // Display changes when loading players
         }
-
-        // Generate Daily News Button Functionality
-        const dailyMessages = [
-            "Don't forget to check the new updates!",
-            "Remember to complete your daily quests!",
-            "Have you reviewed your character stats today?",
-            "Stay tuned for more exciting features!",
-            "Keep up the great work and earn more XP!"
-        ];
-        let messageIndex = 0;
 
         function showRandomMessage() {
-            if (dailyMessages.length === 0) return;
-            const message = dailyMessages[messageIndex];
-            document.getElementById('currentMessage').textContent = message;
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
 
-            // Update the counter
-            messageIndex = (messageIndex + 1) % dailyMessages.length;
-            document.getElementById('messageCounter').textContent = messageIndex + 1;
+            if (messages.length === 0) {
+                document.getElementById('currentMessage').textContent = 'No messages available.';
+                document.getElementById('messageCounter').textContent = '0';
+                return;
+            }
+
+            if (shownMessages.length === messages.length) {
+                shownMessages = [];
+                localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+                document.getElementById('currentMessage').textContent = 'All messages have been shown. Restarting...';
+                document.getElementById('messageCounter').textContent = '0';
+                setTimeout(() => showRandomMessage(), 2000);
+                return;
+            }
+
+            const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
+
+            if (availableMessages.length === 0) {
+                document.getElementById('currentMessage').textContent = 'No available messages to show.';
+                return;
+            }
+
+            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+
+            if (!randomMessage || !randomMessage.name || !randomMessage.description) {
+                console.error('Invalid message data:', randomMessage);
+                document.getElementById('currentMessage').textContent = 'An error occurred while generating the message.';
+                return;
+            }
+
+            shownMessages.push(randomMessage);
+            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+
+            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
+            document.getElementById('messageCounter').textContent = shownMessages.length;
         }
-
-        document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             setBackgroundBasedOnTime();
             loadPlayers();
+
+            // Event listener for showing random message
+            document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
+
+            updateChangeLog();
         });
     </script>
 </body>
