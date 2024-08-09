@@ -21,7 +21,7 @@
             margin: 10px 0;
         }
         table {
-            width: 100%;
+            width: 80%;
             border-collapse: collapse;
             margin: 20px 0;
             background-color: #555;
@@ -48,6 +48,14 @@
         #messageDisplay {
             margin: 20px 0;
         }
+        .centered-table {
+            width: 75%;
+            margin: 0 auto;
+        }
+        .half-width-table {
+            width: 50%;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
@@ -59,6 +67,7 @@
     </nav>
 
     <h2>Select Players</h2>
+    <div class="centered-table">
     <table id="playerTable">
         <thead>
             <tr>
@@ -73,7 +82,7 @@
     </table>
 
     <h2>Generate Daily News</h2>
-    <div id="messageDisplay">
+    <div class="half-width-table">
         <button type="button" id="generateMessageButton">Show Daily News</button>
         <p id="currentMessage">Generate Daily News</p>
         <p>Messages shown: <span id="messageCounter">0</span></p>
