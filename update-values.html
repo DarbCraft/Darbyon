@@ -154,28 +154,42 @@
         }
 
         function showRandomMessage() {
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
-            const shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+    let messages = JSON.parse(localStorage.getItem('messages')) || [];
+    let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
 
-            if (shownMessages.length === messages.length) {
-                alert('All messages have been shown.');
-                return;
-            }
+    if (messages.length === 0) {
+        document.getElementById('currentMessage').textContent = 'No messages available.';
+        document.getElementById('messageCounter').textContent = '0';
+        return;
+    }
 
-            let randomIndex;
-            do {
-                randomIndex = Math.floor(Math.random() * messages.length);
-            } while (shownMessages.includes(randomIndex));
+    // Check if we need to reset the shownMessages
+    if (shownMessages.length === messages.length) {
+        shownMessages = [];
+        localStorage.setItem('shownMessages', JSON.stringify(shownMessages)); // Reset shownMessages in localStorage
+        document.getElementById('messageCounter').textContent = '1'; // Reset counter to 1
+    }
 
-            const randomMessage = messages[randomIndex];
-            shownMessages.push(randomIndex);
+    // Filter out the messages that have already been shown
+    const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
 
-            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
-            document.getElementById('currentMessage').textContent = randomMessage.name + ": " + randomMessage.description;
-            document.getElementById('messageCounter').textContent = shownMessages.length;
-        }
+    if (availableMessages.length === 0) {
+        document.getElementById('currentMessage').textContent = 'No more new messages.';
+        return;
+    }
 
-        document.addEventListener('DOMContentLoaded', loadPlayers);
+    // Pick a random message from availableMessages
+    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+
+    shownMessages.push(randomMessage);
+    localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+
+    document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
+    document.getElementById('messageCounter').textContent = shownMessages.length;
+}
+
+document.addEventListener('DOMContentLoaded', loadPlayers);
+
     </script>
 </body>
 </html>
