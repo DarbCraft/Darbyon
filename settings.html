@@ -59,7 +59,7 @@
         <a href="scoreboard.html">Scoreboard</a>
     </nav>
 
-     <form id="addCharacterForm">
+    <form id="addCharacterForm">
         <label for="charName">Character Name:</label>
         <input type="text" id="charName" name="charName">
         <label for="charType">Character Type:</label>
@@ -70,6 +70,19 @@
         </select>
         <button type="button" onclick="addCharacter()">Add Character</button>
     </form>
+
+    <h2>Character List</h2>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>XP</th>
+                <th>AP</th>
+                <th>HP</th>
+            </tr>
+        </thead>
+        <tbody id="scoreboardTableBody"></tbody>
+    </table>
 
     <h2>Add Daily Message</h2>
     <form id="messageForm">
@@ -121,10 +134,37 @@
             let characters = JSON.parse(localStorage.getItem('characters')) || [];
             characters.push(newCharacter);
             localStorage.setItem('characters', JSON.stringify(characters));
+            loadScoreboard();  // Update the table immediately
             document.getElementById('addCharacterForm').reset();
         }
 
-    <script>
+        function loadScoreboard() {
+            const tableBody = document.querySelector('#scoreboardTableBody');
+            tableBody.innerHTML = '';
+            const characters = JSON.parse(localStorage.getItem('characters')) || [];
+            characters.forEach(char => {
+                const row = document.createElement('tr');
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = char.name;
+                row.appendChild(nameCell);
+
+                const xpCell = document.createElement('td');
+                xpCell.textContent = char.xp;
+                row.appendChild(xpCell);
+
+                const apCell = document.createElement('td');
+                apCell.textContent = char.ap;
+                row.appendChild(apCell);
+
+                const hpCell = document.createElement('td');
+                hpCell.textContent = char.hp;
+                row.appendChild(hpCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+
         function loadMessages() {
             const messageTableBody = document.querySelector('#messageTable tbody');
             messageTableBody.innerHTML = '';
@@ -168,7 +208,10 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', loadMessages);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadScoreboard();
+            loadMessages();
+        });
     </script>
 </body>
 </html>
