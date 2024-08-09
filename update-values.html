@@ -218,16 +218,32 @@
             });
         }
 
+        // Function to update the change log table
         function updateChangeLog() {
-            const logEntries = JSON.parse(localStorage.getItem('playerChanges')) || [];
-            const logContainer = document.getElementById('logEntries');
-            logContainer.innerHTML = '';
+            const logTableBody = document.querySelector('#changeLog tbody');
+            logTableBody.innerHTML = ''; // Clear existing log entries
 
-            logEntries.forEach(entry => {
-                const logEntry = document.createElement('div');
-                logEntry.className = 'change-log-entry';
-                logEntry.innerText = `${entry.timestamp} > ${entry.playerName} > ${entry.changeType.toUpperCase()} > ${entry.oldValue} > ${entry.newValue}`;
-                logContainer.appendChild(logEntry);
+            const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
+
+            changes.forEach(change => {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.className = 'change-log-entry';
+
+                let verb;
+                if (change.changeType === 'hp') {
+                    verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
+                    cell.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} hearts.`;
+                } else if (change.changeType === 'ap') {
+                    verb = change.newValue - change.oldValue < 0 ? 'used' : 'gained';
+                    cell.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} AP.`;
+                } else if (change.changeType === 'xp') {
+                    verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
+                    cell.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} XP.`;
+                }
+
+                row.appendChild(cell);
+                logTableBody.appendChild(row);
             });
         }
 
