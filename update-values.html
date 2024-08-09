@@ -10,6 +10,7 @@
             margin: 20px;
             display: flex;
             flex-direction: row;
+            justify-content: space-between; /* Ensures space is distributed between playerTable and changeLog */
         }
         nav {
             margin-bottom: 20px;
@@ -45,16 +46,11 @@
             padding: 5px;
             cursor: pointer;
         }
-        .centered-table {
-            width: 75%;
-            margin: 0 auto;
-        }
-        .half-width-table {
-            width: 50%;
-            margin: 0 auto;
+        #playerTable {
+            width: 75%; /* Ensure player table takes up most of the space */
         }
         #changeLog {
-            width: 25%;
+            width: 25%; /* Fixed width for change log container */
             max-height: 80vh;
             overflow-y: auto;
             margin-left: 20px;
@@ -79,7 +75,7 @@
     </style>
 </head>
 <body>
-    <div>
+    <div style="flex: 1;"> <!-- Allow this div to grow and fill available space -->
         <h1>Update Values</h1>
         <nav>
             <a href="index.html">Home</a>
