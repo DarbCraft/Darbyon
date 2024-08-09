@@ -84,107 +84,132 @@
     </div>
 
     <h2>Generate Daily News</h2>
-<div class="half-width-table">
-    <table id="dailyNewsTable">
-        <tbody>
-            <tr>
-                <td>
-                    <button type="button" id="generateMessageButton">Show Daily News</button>
-                    <p id="currentMessage">Generate Daily News</p>
-                    <p>Messages shown: <span id="messageCounter">0</span></p>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-</body>
+    <div class="half-width-table">
+        <table id="dailyNewsTable">
+            <tbody>
+                <tr>
+                    <td>
+                        <button type="button" id="generateMessageButton">Show Daily News</button>
+                        <p id="currentMessage">Generate Daily News</p>
+                        <p>Messages shown: <span id="messageCounter">0</span></p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
     <script>
-        
+        // Mock data for players (replace with actual data retrieval)
+        const players = JSON.parse(localStorage.getItem('characters')) || [];
+
         // Function to record changes
-function recordChange(playerName, changeType, oldValue, newValue) {
-    const change = {
-        playerName: playerName,
-        changeType: changeType,
-        oldValue: oldValue,
-        newValue: newValue,
-        timestamp: new Date().toLocaleString()
-    };
+        function recordChange(playerName, changeType, oldValue, newValue) {
+            const change = {
+                playerName: playerName,
+                changeType: changeType,
+                oldValue: oldValue,
+                newValue: newValue,
+                timestamp: new Date().toLocaleString()
+            };
 
-    let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-    changes.push(change);
-    localStorage.setItem('playerChanges', JSON.stringify(changes));
-}
-
-// Example of updating XP, AP, or HP
-function updatePlayerStat(playerName, statType, newValue) {
-    const player = players.find(p => p.name === playerName);
-    const oldValue = player[statType];
-    player[statType] = newValue;
-
-    recordChange(playerName, statType, oldValue, newValue);
-    // Code to update the table display...
-}
-
-// Populate the table with player data and add event listeners for updates
-players.forEach(player => {
-    const row = document.createElement('tr');
-    const updateCell = document.createElement('td');
-    updateCell.innerHTML = `<button class="update-btn">Update</button>`;
-    row.appendChild(updateCell);
-
-    // Other cells...
-
-    // Example event listener for updating XP (similar for AP and HP)
-    updateCell.querySelector('.update-btn').addEventListener('click', () => {
-        const newValue = prompt("Enter new XP for " + player.name, player.xp);
-        if (newValue !== null) {
-            updatePlayerStat(player.name, 'xp', parseInt(newValue, 10));
+            let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
+            changes.push(change);
+            localStorage.setItem('playerChanges', JSON.stringify(changes));
         }
-    });
 
-    tbody.appendChild(row);
-});
+        // Example of updating XP, AP, or HP
+        function updatePlayerStat(playerName, statType, newValue) {
+            const player = players.find(p => p.name === playerName);
+            const oldValue = player[statType];
+            player[statType] = newValue;
+
+            recordChange(playerName, statType, oldValue, newValue);
+            // Code to update the table display...
+            loadPlayers();
+        }
+
+        // Populate the table with player data and add event listeners for updates
+        function populatePlayerTable() {
+            const tbody = document.querySelector('#playerTable tbody');
+            tbody.innerHTML = ''; // Clear the table body
+
+            players.forEach(player => {
+                const row = document.createElement('tr');
+                const updateCell = document.createElement('td');
+                updateCell.innerHTML = `<button class="update-btn">Update</button>`;
+                row.appendChild(updateCell);
+
+                // Add cells for player details
+                const nameCell = document.createElement('td');
+                nameCell.textContent = player.name;
+                row.appendChild(nameCell);
+
+                const levelCell = document.createElement('td');
+                levelCell.textContent = getLevel(player.xp);
+                row.appendChild(levelCell);
+
+                const xpCell = document.createElement('td');
+                xpCell.textContent = player.xp;
+                row.appendChild(xpCell);
+
+                const apCell = document.createElement('td');
+                apCell.textContent = player.ap;
+                row.appendChild(apCell);
+
+                const hpCell = document.createElement('td');
+                hpCell.textContent = player.hp;
+                row.appendChild(hpCell);
+
+                // Add event listener for update button
+                updateCell.querySelector('.update-btn').addEventListener('click', () => {
+                    const newValue = prompt("Enter new XP for " + player.name, player.xp);
+                    if (newValue !== null) {
+                        updatePlayerStat(player.name, 'xp', parseInt(newValue, 10));
+                    }
+                });
+
+                tbody.appendChild(row);
+            });
+        }
 
         // Function to determine the level based on XP
-function getLevel(xp) {
-    if (xp < 5000) {
-        return 1;
-    } else if (xp < 10000) {
-        return 2;
-    } else if (xp < 15000) {
-        return 3;
-    } else if (xp < 20000) {
-        return 4;
-    } else if (xp < 25000) {
-        return 5;
-    } else if (xp < 30000) {
-        return 6;
-    } else {
-        return 7; 
-    }
-}
+        function getLevel(xp) {
+            if (xp < 5000) {
+                return 1;
+            } else if (xp < 10000) {
+                return 2;
+            } else if (xp < 15000) {
+                return 3;
+            } else if (xp < 20000) {
+                return 4;
+            } else if (xp < 25000) {
+                return 5;
+            } else if (xp < 30000) {
+                return 6;
+            } else {
+                return 7; 
+            }
+        }
+
         // Function to add the Level column to the player table
-function addLevelColumn() {
-    const rows = document.querySelectorAll('#playerTable tbody tr');
+        function addLevelColumn() {
+            const rows = document.querySelectorAll('#playerTable tbody tr');
 
-    rows.forEach(row => {
-        const xpCell = row.querySelector('td:nth-child(4)'); // XP is the 4th column
-        const xp = parseInt(xpCell.textContent, 10);
-        const level = getLevel(xp);
+            rows.forEach(row => {
+                const xpCell = row.querySelector('td:nth-child(4)'); // XP is the 4th column
+                const xp = parseInt(xpCell.textContent, 10);
+                const level = getLevel(xp);
 
-        // Create the Level cell
-        const levelCell = document.createElement('td');
-        levelCell.textContent = `Level ${level}`;
+                // Create the Level cell
+                const levelCell = document.createElement('td');
+                levelCell.textContent = `Level ${level}`;
 
-        // Insert the Level cell after the name cell (which is the 2nd column)
-        row.insertBefore(levelCell, row.children[2]);
-    });
-}
+                // Insert the Level cell after the name cell (which is the 2nd column)
+                row.insertBefore(levelCell, row.children[2]);
+            });
+        }
 
-// Call the function to add the Level column
-addLevelColumn();
-               
+        // Function to set background based on time
         function setBackgroundBasedOnTime() {
             const hour = new Date().getHours();
             let backgroundUrl = '';
@@ -202,50 +227,12 @@ addLevelColumn();
             document.body.style.backgroundImage = `url('${backgroundUrl}')`;
         }
 
-        document.addEventListener('DOMContentLoaded', setBackgroundBasedOnTime);
-
+        // Function to load players from local storage and populate the table
         function loadPlayers() {
-            const tableBody = document.querySelector('#playerTable tbody');
-            tableBody.innerHTML = '';
-            const characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters.forEach(char => {
-                const row = document.createElement('tr');
-
-                const updateCell = document.createElement('td');
-                const form = document.createElement('form');
-                form.className = 'update-form';
-                form.innerHTML = `
-                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'xp')">🏅 XP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'ap')">💎 AP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'hp')">❤️ HP</button>
-                `;
-                updateCell.appendChild(form);
-                row.appendChild(updateCell);
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = char.name;
-                row.appendChild(nameCell);
-                
-                const nameCell = document.createElement('td');
-                nameCell.textContent = char.level;
-                row.appendChild(nameCell);
-
-                const xpCell = document.createElement('td');
-                xpCell.textContent = char.xp;
-                row.appendChild(xpCell);
-
-                const apCell = document.createElement('td');
-                apCell.textContent = char.ap;
-                row.appendChild(apCell);
-
-                const hpCell = document.createElement('td');
-                hpCell.textContent = char.hp;
-                row.appendChild(hpCell);
-
-                tableBody.appendChild(row);
-            });
+            populatePlayerTable();
         }
 
+        // Function to update a character's XP, AP, or HP
         function updateCharacter(name, type) {
             const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
             let characters = JSON.parse(localStorage.getItem('characters')) || [];
@@ -262,12 +249,10 @@ addLevelColumn();
             loadPlayers();
         }
 
+        // Function to show a random message from local storage
         function showRandomMessage() {
             const messages = JSON.parse(localStorage.getItem('messages')) || [];
-            console.log('Messages:', messages);
-
             let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
-            console.log('Shown Messages:', shownMessages);
 
             if (messages.length === 0) {
                 document.getElementById('currentMessage').textContent = 'No messages available.';
@@ -285,7 +270,6 @@ addLevelColumn();
             }
 
             const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
-            console.log('Available Messages:', availableMessages);
 
             if (availableMessages.length === 0) {
                 document.getElementById('currentMessage').textContent = 'No available messages to show.';
@@ -293,7 +277,6 @@ addLevelColumn();
             }
 
             const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-            console.log('Random Message:', randomMessage);
 
             if (!randomMessage || !randomMessage.name || !randomMessage.description) {
                 console.error('Invalid message data:', randomMessage);
@@ -308,9 +291,12 @@ addLevelColumn();
             document.getElementById('messageCounter').textContent = shownMessages.length;
         }
 
+        // Event listeners
         document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
-
-        document.addEventListener('DOMContentLoaded', loadPlayers);
+        document.addEventListener('DOMContentLoaded', () => {
+            setBackgroundBasedOnTime();
+            loadPlayers();
+        });
     </script>
 </body>
 </html>
