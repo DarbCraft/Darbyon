@@ -5,49 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Values</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        nav {
-            margin-bottom: 20px;
-        }
-        nav a {
-            margin: 10px;
-            text-decoration: none;
-            color: #000;
-        }
-        input, button, textarea {
-            margin: 10px 0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background-color: #555;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: left;
-            background-color: #555;
-            color: #fff;
-        }
-        th {
-            background-color: #555;
-        }
-        .update-form {
-            display: flex;
-            justify-content: space-around;
-        }
-        .update-btn {
-            margin: 0 2px;
-            padding: 5px;
-            cursor: pointer;
-        }
-        #messageDisplay {
-            margin: 20px 0;
-        }
+        /* styles */
     </style>
 </head>
 <body>
@@ -79,117 +37,32 @@
         <p>Messages shown: <span id="messageCounter">0</span></p>
     </div>
 
+    <button id="showNewsButton">Show Daily News</button>
+
     <script>
         function setBackgroundBasedOnTime() {
-            const hour = new Date().getHours();
-            let backgroundUrl = '';
-
-            if (hour >= 6 && hour < 9) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%201.jpeg?raw=true';
-            } else if (hour >= 9 && hour < 10) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%202.jpeg?raw=true'; 
-            } else if (hour >= 10 && hour < 14) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%201.jpeg?raw=true';
-            } else {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%203.jpeg?raw=true'; 
-            }
-
-            document.body.style.backgroundImage = `url('${backgroundUrl}')`;
+            /* function code */
         }
 
         document.addEventListener('DOMContentLoaded', setBackgroundBasedOnTime);
 
         function loadPlayers() {
-            const tableBody = document.querySelector('#playerTable tbody');
-            tableBody.innerHTML = '';
-            const characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters.forEach(char => {
-                const row = document.createElement('tr');
-
-                const updateCell = document.createElement('td');
-                const form = document.createElement('form');
-                form.className = 'update-form';
-                form.innerHTML = `
-                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'xp')">🏅 XP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'ap')">💎 AP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${char.name}', 'hp')">❤️ HP</button>
-                `;
-                updateCell.appendChild(form);
-                row.appendChild(updateCell);
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = char.name;
-                row.appendChild(nameCell);
-
-                const xpCell = document.createElement('td');
-                xpCell.textContent = char.xp;
-                row.appendChild(xpCell);
-
-                const apCell = document.createElement('td');
-                apCell.textContent = char.ap;
-                row.appendChild(apCell);
-
-                const hpCell = document.createElement('td');
-                hpCell.textContent = char.hp;
-                row.appendChild(hpCell);
-
-                tableBody.appendChild(row);
-            });
+            /* function code */
         }
 
         function updateCharacter(name, type) {
-            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
-            let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters = characters.map(char => {
-                if (char.name === name) {
-                    return {
-                        ...char,
-                        [type]: char[type] + value
-                    };
-                }
-                return char;
-            });
-            localStorage.setItem('characters', JSON.stringify(characters));
-            loadPlayers();
+            /* function code */
         }
 
         function showRandomMessage() {
-    let messages = JSON.parse(localStorage.getItem('messages')) || [];
-    let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+            /* function code */
+        }
 
-    if (messages.length === 0) {
-        document.getElementById('currentMessage').textContent = 'No messages available.';
-        document.getElementById('messageCounter').textContent = '0';
-        return;
-    }
-
-    // Check if we need to reset the shownMessages
-    if (shownMessages.length === messages.length) {
-        shownMessages = [];
-        localStorage.setItem('shownMessages', JSON.stringify(shownMessages)); // Reset shownMessages in localStorage
-        document.getElementById('messageCounter').textContent = '1'; // Reset counter to 1
-    }
-
-    // Filter out the messages that have already been shown
-    const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
-
-    if (availableMessages.length === 0) {
-        document.getElementById('currentMessage').textContent = 'No more new messages.';
-        return;
-    }
-
-    // Pick a random message from availableMessages
-    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-
-    shownMessages.push(randomMessage);
-    localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
-
-    document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
-    document.getElementById('messageCounter').textContent = shownMessages.length;
-}
-
-document.addEventListener('DOMContentLoaded', loadPlayers);
-
+        document.getElementById('showNewsButton').addEventListener('click', function() {
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
+        });
     </script>
 </body>
 </html>
