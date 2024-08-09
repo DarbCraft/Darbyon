@@ -200,21 +200,7 @@
             });
             localStorage.setItem('characters', JSON.stringify(characters));
             loadPlayers();
-        }
 
-        function addMessage() {
-            const name = document.getElementById('messageName').value;
-            const description = document.getElementById('messageDescription').value;
-            if (!name.trim() || !description.trim()) return;
-
-            const newMessage = { name, description };
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.push(newMessage);
-            localStorage.setItem('messages', JSON.stringify(messages));
-            document.getElementById('messageName').value = '';
-            document.getElementById('messageDescription').value = '';
-            loadMessages();
-        }
 
         function loadMessages() {
             const messagesList = document.getElementById('messagesList');
