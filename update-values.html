@@ -10,9 +10,6 @@
             margin: 20px;
             display: flex;
             flex-direction: row;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
         }
         nav {
             margin-bottom: 20px;
@@ -48,37 +45,41 @@
             padding: 5px;
             cursor: pointer;
         }
-        #messageDisplay {
-            margin: 20px 0;
+        .centered-table {
+            width: 75%;
+            margin: 0 auto;
         }
-        .player-table-container {
-            width: 75%; /* Adjusted width for the player table container */
-            padding-right: 20px; /* Space between tables */
+        .half-width-table {
+            width: 50%;
+            margin: 0 auto;
         }
-        .change-log-container {
-            width: 25%; /* Fixed width for the change log container */
-            max-width: 300px; /* Optional: set a max width for better appearance */
-            padding: 10px;
-            background-color: #333;
+        #changeLog {
+            width: 25%;
+            max-height: 80vh;
+            overflow-y: auto;
+            margin-left: 20px;
+            border: 1px solid #ccc;
+            background-color: #555;
             color: #fff;
-            box-sizing: border-box; /* Ensure padding does not affect total width */
         }
-        .change-log {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .change-log td {
+        #changeLog td {
             border: none;
             padding: 10px;
             text-align: left;
         }
         .change-log-entry {
-            padding: 5px 0;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .clear-log-btn {
+            margin: 10px;
+            padding: 10px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="player-table-container">
+    <div>
         <h1>Update Values</h1>
         <nav>
             <a href="index.html">Home</a>
@@ -117,15 +118,13 @@
         </div>
     </div>
 
-    <div class="change-log-container">
-        <h2>Change Log</h2>
-        <table id="changeLog" class="change-log">
-            <tbody></tbody>
-        </table>
-        <button type="button" id="clearLogButton">Clear Log</button>
+    <div id="changeLog">
+        <button class="clear-log-btn" onclick="clearChangeLog()">Clear Log</button>
+        <div id="logEntries"></div>
     </div>
 
     <script>
+        // Function to record changes
         function recordChange(playerName, changeType, oldValue, newValue) {
             const change = {
                 playerName: playerName,
@@ -138,45 +137,52 @@
             let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
             changes.push(change);
             localStorage.setItem('playerChanges', JSON.stringify(changes));
-
             updateChangeLog();
         }
 
+        // Function to update a character's XP, AP, or HP
         function updateCharacter(name, type) {
             const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
             let characters = JSON.parse(localStorage.getItem('characters')) || [];
             
-            let oldValue;
-            
+            // Update the character's value
             characters = characters.map(char => {
                 if (char.name === name) {
-                    oldValue = char[type];
-                    return {
-                        ...char,
-                        [type]: char[type] + value
-                    };
+                    const oldValue = char[type];
+                    char[type] += value;
+                    recordChange(name, type, oldValue, char[type]);
                 }
                 return char;
             });
 
+            // Save the updated characters back to local storage
             localStorage.setItem('characters', JSON.stringify(characters));
-            recordChange(name, type, oldValue, oldValue + value);
+            
+            // Reload the table to reflect changes
             populatePlayerTable();
         }
 
         function getLevel(xp) {
-            if (xp < 5000) return 1;
-            if (xp < 10000) return 2;
-            if (xp < 15000) return 3;
-            if (xp < 20000) return 4;
-            if (xp < 25000) return 5;
-            if (xp < 30000) return 6;
-            return 7;
+            if (xp < 5000) {
+                return 1;
+            } else if (xp < 10000) {
+                return 2;
+            } else if (xp < 15000) {
+                return 3;
+            } else if (xp < 20000) {
+                return 4;
+            } else if (xp < 25000) {
+                return 5;
+            } else if (xp < 30000) {
+                return 6;
+            } else {
+                return 7; 
+            }
         }
 
         function populatePlayerTable() {
             const tbody = document.querySelector('#playerTable tbody');
-            tbody.innerHTML = '';
+            tbody.innerHTML = ''; // Clear the table body
 
             const players = JSON.parse(localStorage.getItem('characters')) || [];
             players.forEach(player => {
@@ -217,28 +223,15 @@
         }
 
         function updateChangeLog() {
-            const logTableBody = document.querySelector('#changeLog tbody');
-            logTableBody.innerHTML = '';
+            const logEntries = JSON.parse(localStorage.getItem('playerChanges')) || [];
+            const logContainer = document.getElementById('logEntries');
+            logContainer.innerHTML = '';
 
-            const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-
-            changes.forEach(change => {
-                const row = document.createElement('tr');
-                const cell = document.createElement('td');
-                cell.className = 'change-log-entry';
-
-                let changeText = `${change.timestamp} > ${change.playerName} `;
-                if (change.changeType === 'hp') {
-                    changeText += (change.newValue - change.oldValue < 0) ? `lost ${Math.abs(change.newValue - change.oldValue)} hearts.` : `gained ${change.newValue - change.oldValue} hearts.`;
-                } else if (change.changeType === 'ap') {
-                    changeText += (change.newValue - change.oldValue < 0) ? `used ${Math.abs(change.newValue - change.oldValue)} AP.` : `gained ${change.newValue - change.oldValue} AP.`;
-                } else if (change.changeType === 'xp') {
-                    changeText += `gained ${change.newValue - change.oldValue} XP.`;
-                }
-                
-                cell.textContent = changeText;
-                row.appendChild(cell);
-                logTableBody.appendChild(row);
+            logEntries.forEach(entry => {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'change-log-entry';
+                logEntry.innerText = `${entry.timestamp} > ${entry.playerName} > ${entry.changeType.toUpperCase()} > ${entry.oldValue} > ${entry.newValue}`;
+                logContainer.appendChild(logEntry);
             });
         }
 
@@ -247,10 +240,80 @@
             updateChangeLog();
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        function setBackgroundBasedOnTime() {
+            const hour = new Date().getHours();
+            let backgroundUrl = '';
+
+            if (hour >= 6 && hour < 9) {
+                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%201.jpeg?raw=true';
+            } else if (hour >= 9 && hour < 10) {
+                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%202.jpeg?raw=true'; 
+            } else if (hour >= 10 && hour < 14) {
+                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%201.jpeg?raw=true';
+            } else {
+                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%203.jpeg?raw=true'; 
+            }
+
+            document.body.style.backgroundImage = `url('${backgroundUrl}')`;
+            document.body.style.backgroundSize = 'cover';        // Ensure the background covers the entire page
+            document.body.style.backgroundPosition = 'center';   // Center the background image
+            document.body.style.backgroundRepeat = 'no-repeat';  // Prevent the image from repeating
+        }
+
+        function loadPlayers() {
             populatePlayerTable();
+        }
+
+        function showRandomMessage() {
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+
+            if (messages.length === 0) {
+                document.getElementById('currentMessage').textContent = 'No messages available.';
+                document.getElementById('messageCounter').textContent = '0';
+                return;
+            }
+
+            if (shownMessages.length === messages.length) {
+                shownMessages = [];
+                localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+                document.getElementById('currentMessage').textContent = 'All messages have been shown. Restarting...';
+                document.getElementById('messageCounter').textContent = '0';
+                setTimeout(() => showRandomMessage(), 2000);
+                return;
+            }
+
+            const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
+
+            if (availableMessages.length === 0) {
+                document.getElementById('currentMessage').textContent = 'No available messages to show.';
+                return;
+            }
+
+            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+
+            if (!randomMessage || !randomMessage.name || !randomMessage.description) {
+                console.error('Invalid message data:', randomMessage);
+                document.getElementById('currentMessage').textContent = 'An error occurred while generating the message.';
+                return;
+            }
+
+            shownMessages.push(randomMessage);
+            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+
+            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
+            document.getElementById('messageCounter').textContent = shownMessages.length;
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            setBackgroundBasedOnTime();
+            loadPlayers();
+
+            // Event listener for showing random message
+            document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
+
             updateChangeLog();
-            document.getElementById('clearLogButton').addEventListener('click', clearChangeLog);
         });
     </script>
 </body>
