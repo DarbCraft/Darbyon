@@ -214,6 +214,9 @@
             }
 
             document.body.style.backgroundImage = `url('${backgroundUrl}')`;
+    document.body.style.backgroundSize = 'cover';        // Ensure the background covers the entire page
+    document.body.style.backgroundPosition = 'center';   // Center the background image
+    document.body.style.backgroundRepeat = 'no-repeat';  // Prevent the image from repeating
         }
 
         // Function to load players and populate the table
