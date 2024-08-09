@@ -154,70 +154,54 @@
         }
 
         function showRandomMessage() {
-    const messages = JSON.parse(localStorage.getItem('messages')) || [];
-    console.log('Messages:', messages);
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            console.log('Messages:', messages);
 
-    let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
-    console.log('Shown Messages:', shownMessages);
+            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+            console.log('Shown Messages:', shownMessages);
 
-    // Check if there are no messages to show
-    if (messages.length === 0) {
-        document.getElementById('currentMessage').textContent = 'No messages available.';
-        document.getElementById('messageCounter').textContent = '0';
-        return;
-    }
+            if (messages.length === 0) {
+                document.getElementById('currentMessage').textContent = 'No messages available.';
+                document.getElementById('messageCounter').textContent = '0';
+                return;
+            }
 
-    // If all messages have been shown, reset shownMessages and update the UI
-    if (shownMessages.length === messages.length) {
-        shownMessages = [];
-        localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+            if (shownMessages.length === messages.length) {
+                shownMessages = [];
+                localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+                document.getElementById('currentMessage').textContent = 'All messages have been shown. Restarting...';
+                document.getElementById('messageCounter').textContent = '0';
+                setTimeout(() => showRandomMessage(), 2000);
+                return;
+            }
 
-        // Update UI elements to reflect the reset
-        document.getElementById('currentMessage').textContent = 'All messages have been shown. Restarting...';
-        document.getElementById('messageCounter').textContent = '0'; // Reset the counter to 0
+            const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
+            console.log('Available Messages:', availableMessages);
 
-        // Optional: Delay before showing the next message
-        setTimeout(() => showRandomMessage(), 2000); // Wait for 2 seconds before showing the next message
-        return;
-    }
+            if (availableMessages.length === 0) {
+                document.getElementById('currentMessage').textContent = 'No available messages to show.';
+                return;
+            }
 
-    // Filter available messages to exclude the ones already shown
-    const availableMessages = messages.filter(msg => !shownMessages.some(shown => shown.name === msg.name && shown.description === msg.description));
-    console.log('Available Messages:', availableMessages);
+            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+            console.log('Random Message:', randomMessage);
 
-    if (availableMessages.length === 0) {
-        document.getElementById('currentMessage').textContent = 'No available messages to show.';
-        return;
-    }
+            if (!randomMessage || !randomMessage.name || !randomMessage.description) {
+                console.error('Invalid message data:', randomMessage);
+                document.getElementById('currentMessage').textContent = 'An error occurred while generating the message.';
+                return;
+            }
 
-    // Select a random message from the available messages
-    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-    console.log('Random Message:', randomMessage);
+            shownMessages.push(randomMessage);
+            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
 
-    // Check for invalid message data
-    if (!randomMessage || !randomMessage.name || !randomMessage.description) {
-        console.error('Invalid message data:', randomMessage);
-        document.getElementById('currentMessage').textContent = 'An error occurred while generating the message.';
-        return;
-    }
+            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
+            document.getElementById('messageCounter').textContent = shownMessages.length;
+        }
 
-    // Add the selected message to shownMessages
-    shownMessages.push(randomMessage);
-    localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+        document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
 
-    // Update the UI with the selected message and the new counter value
-    document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong><br>${randomMessage.description}`;
-    document.getElementById('messageCounter').textContent = shownMessages.length;
-}
-
-// Attach the function to the button click event
-document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
-
-// Initialize the counter on page load
-document.addEventListener('DOMContentLoaded', () => {
-    const shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
-    document.getElementById('messageCounter').textContent = shownMessages.length;
-});
+        document.addEventListener('DOMContentLoaded', loadPlayers);
     </script>
 </body>
 </html>
