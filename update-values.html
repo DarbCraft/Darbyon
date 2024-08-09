@@ -51,24 +51,12 @@
         #messageDisplay {
             margin: 20px 0;
         }
-        .centered-table {
-            width: 75%;
-            margin: 0 auto;
-        }
-        .half-width-table {
-            width: 50%;
-            margin: 0 auto;
-        }
-        .main-container {
-            display: flex;
-            width: 100%;
-        }
         .player-table-container {
-            width: 80%; /* Increase width of the player table container */
+            width: 75%; /* Adjusted width for the player table container */
             padding-right: 20px; /* Space between tables */
         }
         .change-log-container {
-            width: 20%; /* Adjust to fit 20% of the page width */
+            width: 25%; /* Fixed width for the change log container */
             max-width: 300px; /* Optional: set a max width for better appearance */
             padding: 10px;
             background-color: #333;
@@ -90,53 +78,51 @@
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <div class="player-table-container">
-            <h1>Update Values</h1>
-            <nav>
-                <a href="index.html">Home</a>
-                <a href="settings.html">Settings</a>
-                <a href="scoreboard.html">Scoreboard</a>
-            </nav>
+    <div class="player-table-container">
+        <h1>Update Values</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="settings.html">Settings</a>
+            <a href="scoreboard.html">Scoreboard</a>
+        </nav>
 
-            <h2>Select Players</h2>
-            <table id="playerTable">
-                <thead>
+        <h2>Select Players</h2>
+        <table id="playerTable">
+            <thead>
+                <tr>
+                    <th>Update</th>
+                    <th>Name</th>
+                    <th>Level</th>
+                    <th>XP</th>
+                    <th>AP</th>
+                    <th>HP</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <h2>Generate Daily News</h2>
+        <div class="half-width-table">
+            <table id="dailyNewsTable">
+                <tbody>
                     <tr>
-                        <th>Update</th>
-                        <th>Name</th>
-                        <th>Level</th>
-                        <th>XP</th>
-                        <th>AP</th>
-                        <th>HP</th>
+                        <td>
+                            <button type="button" id="generateMessageButton">Show Daily News</button>
+                            <p id="currentMessage">Generate Daily News</p>
+                            <p>Messages shown: <span id="messageCounter">0</span></p>
+                        </td>
                     </tr>
-                </thead>
-                <tbody></tbody>
+                </tbody>
             </table>
-
-            <h2>Generate Daily News</h2>
-            <div class="half-width-table">
-                <table id="dailyNewsTable">
-                    <tbody>
-                        <tr>
-                            <td>
-                                <button type="button" id="generateMessageButton">Show Daily News</button>
-                                <p id="currentMessage">Generate Daily News</p>
-                                <p>Messages shown: <span id="messageCounter">0</span></p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
+    </div>
 
-        <div class="change-log-container">
-            <h2>Change Log</h2>
-            <table id="changeLog" class="change-log">
-                <tbody></tbody>
-            </table>
-            <button type="button" id="clearLogButton">Clear Log</button>
-        </div>
+    <div class="change-log-container">
+        <h2>Change Log</h2>
+        <table id="changeLog" class="change-log">
+            <tbody></tbody>
+        </table>
+        <button type="button" id="clearLogButton">Clear Log</button>
     </div>
 
     <script>
@@ -271,7 +257,6 @@
                     verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
                     cell.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} XP.`;
                 }
-
                 row.appendChild(cell);
                 logTableBody.appendChild(row);
             });
@@ -283,41 +268,13 @@
             updateChangeLog();
         }
 
-        // Function to show a random message
-        function showRandomMessage() {
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
-            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            populatePlayerTable();
+            updateChangeLog();
 
-            if (messages.length === 0) {
-                document.getElementById('currentMessage').textContent = 'No messages available.';
-                document.getElementById('messageCounter').textContent = '0';
-                return;
-            }
-
-            if (shownMessages.length === messages.length) {
-                shownMessages = [];
-                localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
-                document.getElementById('currentMessage').textContent = 'All messages have been shown. Restarting...';
-            }
-
-            let message;
-            do {
-                message = messages[Math.floor(Math.random() * messages.length)];
-            } while (shownMessages.includes(message));
-
-            shownMessages.push(message);
-            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
-
-            document.getElementById('currentMessage').textContent = message;
-            document.getElementById('messageCounter').textContent = shownMessages.length;
-        }
-
-        // Initialize
-        populatePlayerTable();
-        updateChangeLog();
-
-        document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
-        document.getElementById('clearLogButton').addEventListener('click', clearChangeLog);
+            document.getElementById('clearLogButton').addEventListener('click', clearChangeLog);
+        });
     </script>
 </body>
 </html>
