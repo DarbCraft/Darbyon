@@ -225,6 +225,10 @@ addLevelColumn();
                 const nameCell = document.createElement('td');
                 nameCell.textContent = char.name;
                 row.appendChild(nameCell);
+                
+                const nameCell = document.createElement('td');
+                nameCell.textContent = char.level;
+                row.appendChild(nameCell);
 
                 const xpCell = document.createElement('td');
                 xpCell.textContent = char.xp;
