@@ -104,6 +104,7 @@
                 <tr>
                     <th>Update</th>
                     <th>Name</th>
+                    <th>Type</th>
                     <th>Level</th>
                     <th>XP</th>
                     <th>AP</th>
@@ -150,7 +151,7 @@
             updateChangeLog();
         }
 
-        // Function to update a character's XP, AP, or HP
+          // Function to update a character's XP, AP, or HP
         function updateCharacter(name, type) {
             const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
             let characters = JSON.parse(localStorage.getItem('characters')) || [];
@@ -163,14 +164,22 @@
                     recordChange(name, type, oldValue, char[type]);
                 }
                 return char;
+                let characters = [
+    { name: 'Player1', type: 'Mage', xp: 5000, ap: 300, hp: 100 },
+    { name: 'Player2', type: 'Warrior', xp: 6000, ap: 250, hp: 150 },
+    { name: 'Player3', type: 'Healer', xp: 7000, ap: 200, hp: 200 },
+];
+
+// Save this array to local storage
+localStorage.setItem('characters', JSON.stringify(characters));
+
             });
 
             // Save the updated characters back to local storage
             localStorage.setItem('characters', JSON.stringify(characters));
             
             // Reload the table to reflect changes
-            populatePlayerTable();
-        }
+            p
 
         function getLevel(xp) {
             if (xp < 5000) {
@@ -191,45 +200,51 @@
         }
 
         function populatePlayerTable() {
-            const tbody = document.querySelector('#playerTable tbody');
-            tbody.innerHTML = ''; // Clear the table body
+    const tbody = document.querySelector('#playerTable tbody');
+    tbody.innerHTML = ''; // Clear the table body
 
-            const players = JSON.parse(localStorage.getItem('characters')) || [];
-            players.forEach(player => {
-                const row = document.createElement('tr');
-                const updateCell = document.createElement('td');
-                const form = document.createElement('form');
-                form.className = 'update-form';
-                form.innerHTML = `
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp')">🏅 XP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap')">💎 AP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp')">❤️ HP</button>
-                `;
-                updateCell.appendChild(form);
-                row.appendChild(updateCell);
+    const players = JSON.parse(localStorage.getItem('characters')) || [];
+    players.forEach(player => {
+        const row = document.createElement('tr');
+        
+        const updateCell = document.createElement('td');
+        const form = document.createElement('form');
+        form.className = 'update-form';
+        form.innerHTML = `
+            <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp')">🏅 XP</button>
+            <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap')">💎 AP</button>
+            <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp')">❤️ HP</button>
+        `;
+        updateCell.appendChild(form);
+        row.appendChild(updateCell);
 
-                const nameCell = document.createElement('td');
-                nameCell.textContent = player.name;
-                row.appendChild(nameCell);
+        const nameCell = document.createElement('td');
+        nameCell.textContent = player.name;
+        row.appendChild(nameCell);
 
-                const levelCell = document.createElement('td');
-                levelCell.textContent = getLevel(player.xp);
-                row.appendChild(levelCell);
+        const typeCell = document.createElement('td');
+        typeCell.textContent = player.type; // Add this line
+        row.appendChild(typeCell);
 
-                const xpCell = document.createElement('td');
-                xpCell.textContent = player.xp;
-                row.appendChild(xpCell);
+        const levelCell = document.createElement('td');
+        levelCell.textContent = getLevel(player.xp);
+        row.appendChild(levelCell);
 
-                const apCell = document.createElement('td');
-                apCell.textContent = player.ap;
-                row.appendChild(apCell);
+        const xpCell = document.createElement('td');
+        xpCell.textContent = player.xp;
+        row.appendChild(xpCell);
 
-                const hpCell = document.createElement('td');
-                hpCell.textContent = player.hp;
-                row.appendChild(hpCell);
+        const apCell = document.createElement('td');
+        apCell.textContent = player.ap;
+        row.appendChild(apCell);
 
-                tbody.appendChild(row);
-            });
+        const hpCell = document.createElement('td');
+        hpCell.textContent = player.hp;
+        row.appendChild(hpCell);
+
+        tbody.appendChild(row);
+    });
+}
         }
 
         // Function to update the change log table
