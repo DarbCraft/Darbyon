@@ -103,15 +103,6 @@
             players.forEach(player => {
                 const row = document.createElement('tr');
 
-                // Create and append the checkbox cell
-                const selectCell = document.createElement('td');
-                selectCell.textContent = " "; // Placeholder for checkbox, not functional here
-                row.appendChild(selectCell);
-
-                const updateCell = document.createElement('td');
-                updateCell.textContent = " "; // Placeholder for update buttons, not functional here
-                row.appendChild(updateCell);
-
                 const nameCell = document.createElement('td');
                 nameCell.textContent = player.name;
                 row.appendChild(nameCell);
