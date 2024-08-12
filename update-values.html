@@ -119,7 +119,7 @@
                     <td>
                         <button type="button" id="generateMessageButton">Show Daily News</button>
                         <p id="currentMessage">Generate Daily News</p>
-                        <p>Messages shown: <span id="messageCounter">0</span></p>
+                        <p>Messages shown: <span id="messageCounter">0/0</span></p>
                     </td>
                 </tr>
             </tbody>
@@ -271,31 +271,34 @@
         }
 
         // Function to display a random daily news message
-function showRandomMessage() {
-    const messages = JSON.parse(localStorage.getItem('messages')) || [];
-    let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+        function showRandomMessage() {
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
 
-    console.log('Messages:', messages);
-    console.log('Shown Messages:', shownMessages);
+            console.log('Messages:', messages);
+            console.log('Shown Messages:', shownMessages);
 
-    if (shownMessages.length === messages.length) {
-        shownMessages = []; 
-    }
+            if (shownMessages.length === messages.length) {
+                shownMessages = []; 
+            }
 
-    const availableMessages = messages.filter(message => !shownMessages.includes(message));
-    console.log('Available Messages:', availableMessages);
+            const availableMessages = messages.filter(message => !shownMessages.includes(message));
+            console.log('Available Messages:', availableMessages);
 
-    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-    console.log('Random Message:', randomMessage);
+            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+            console.log('Random Message:', randomMessage);
 
-    shownMessages.push(randomMessage);
-    localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+            shownMessages.push(randomMessage);
+            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
 
-    document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong>: ${randomMessage.description}`;
-    document.getElementById('messageCounter').textContent = shownMessages.length;
-}
-
-
+            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong>: ${randomMessage.description}`;
+            
+            // Calculate the fraction and update the counter display
+            const totalMessages = messages.length;
+            const shownCount = shownMessages.length;
+            const fractionText = `${shownCount % totalMessages || totalMessages}/${totalMessages}`;
+            document.getElementById('messageCounter').textContent = fractionText;
+        }
 
         document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
 
