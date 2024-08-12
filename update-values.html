@@ -91,6 +91,9 @@
         #currentMessage {
             font-size: 1.2em;
         }
+        .select-all-cell input[type="checkbox"] {
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -110,7 +113,9 @@
         <table id="playerTable">
             <thead>
                 <tr>
-                    <th>Select</th>
+                    <th class="select-all-cell">
+                        <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)">
+                    </th>
                     <th>Update</th>
                     <th>Name</th>
                     <th>Type</th>
@@ -143,23 +148,13 @@
     </div>
 
     <script>
-        // Function to record changes
-        function recordChange(playerName, changeType, oldValue, newValue) {
-            const change = {
-                playerName: playerName,
-                changeType: changeType,
-                oldValue: oldValue,
-                newValue: newValue,
-                timestamp: new Date().toLocaleString()
-            };
-
-            let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-            changes.push(change);
-            localStorage.setItem('playerChanges', JSON.stringify(changes));
-            updateChangeLog();
+        function toggleSelectAll(selectAllCheckbox) {
+            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
         }
 
-        // Function to update the character's value
         function updateCharacter(name, type, value) {
             let characters = JSON.parse(localStorage.getItem('characters')) || [];
             characters = characters.map(char => {
@@ -182,7 +177,6 @@
             populatePlayerTable();
         }
 
-        // Function to apply updates to selected characters
         function updateSelectedCharacters(type) {
             const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
             const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
@@ -194,26 +188,16 @@
             });
         }
 
-        // Function to determine the level based on XP
         function getLevel(xp) {
-            if (xp < 5000) {
-                return 1;
-            } else if (xp < 10000) {
-                return 2;
-            } else if (xp < 15000) {
-                return 3;
-            } else if (xp < 20000) {
-                return 4;
-            } else if (xp < 25000) {
-                return 5;
-            } else if (xp < 30000) {
-                return 6;
-            } else {
-                return 7; 
-            }
+            if (xp < 5000) return 1;
+            if (xp < 10000) return 2;
+            if (xp < 15000) return 3;
+            if (xp < 20000) return 4;
+            if (xp < 25000) return 5;
+            if (xp < 30000) return 6;
+            return 7;
         }
 
-        // Function to populate the player table
         function populatePlayerTable() {
             const tbody = document.querySelector('#playerTable tbody');
             tbody.innerHTML = '';
@@ -221,8 +205,7 @@
             const players = JSON.parse(localStorage.getItem('characters')) || [];
             players.forEach(player => {
                 const row = document.createElement('tr');
-                
-                // Create and append the checkbox cell
+
                 const selectCell = document.createElement('td');
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
@@ -245,7 +228,7 @@
                 row.appendChild(nameCell);
 
                 const typeCell = document.createElement('td');
-                typeCell.textContent = player.type; 
+                typeCell.textContent = player.type;
                 row.appendChild(typeCell);
 
                 const levelCell = document.createElement('td');
@@ -268,13 +251,26 @@
             });
         }
 
-        // Function to update the change log table
+        function recordChange(playerName, changeType, oldValue, newValue) {
+            const change = {
+                playerName: playerName,
+                changeType: changeType,
+                oldValue: oldValue,
+                newValue: newValue,
+                timestamp: new Date().toLocaleString()
+            };
+
+            let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
+            changes.push(change);
+            localStorage.setItem('playerChanges', JSON.stringify(changes));
+            updateChangeLog();
+        }
+
         function updateChangeLog() {
             const logEntries = document.getElementById('logEntries');
             logEntries.innerHTML = '';
 
             const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-
             changes.forEach(change => {
                 const logEntry = document.createElement('div');
                 logEntry.className = 'change-log-entry';
@@ -295,13 +291,11 @@
             });
         }
 
-        // Function to clear the change log
         function clearChangeLog() {
             localStorage.removeItem('playerChanges');
             updateChangeLog();
         }
 
-        // Function to display a random daily news message
         function showRandomMessage() {
             const messages = JSON.parse(localStorage.getItem('messages')) || [];
             let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
@@ -316,18 +310,12 @@
             shownMessages.push(randomMessage);
             localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
 
-            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong>: ${randomMessage.description}`;
-            
-            // Calculate the fraction and update the counter display
-            const totalMessages = messages.length;
-            const shownCount = shownMessages.length;
-            const fractionText = `${shownCount % totalMessages || totalMessages}/${totalMessages}`;
-            document.getElementById('messageCounter').textContent = fractionText;
+            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage}</strong>`;
         }
 
         document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
 
-        window.onload = function() {
+        window.onload = () => {
             populatePlayerTable();
             updateChangeLog();
         };
