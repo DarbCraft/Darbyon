@@ -31,6 +31,27 @@
             padding: 20px;
             border-radius: 10px;
         }
+        table {
+            border-collapse: collapse;
+            margin: 20px 0;
+            width: 100%; /* Ensure table takes up full width */
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+            background-color: #555;
+            color: #fff;
+        }
+        th {
+            background-color: #444; /* Slightly different color for the header */
+        }
+        .update-form {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-start;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -39,8 +60,23 @@
         <a href="index.html">Home</a>
         <a href="settings.html">Settings</a>
         <a href="update-values.html">Update Values</a>
-        <a href="scoreboard.html">Scoreboard</a>
     </nav>
+    <h2>Player Table</h2>
+    <table id="playerTable">
+        <thead>
+            <tr>
+                <th>Select</th>
+                <th>Update</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Level</th>
+                <th>XP</th>
+                <th>AP</th>
+                <th>HP</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
     <script>
         function setBackgroundBasedOnTime() {
@@ -51,7 +87,7 @@
                 backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%201.jpeg?raw=true';
             } else if (hour >= 9 && hour < 10) {
                 backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%202.jpeg?raw=true'; 
-            } else if (hour >= 10 && hour < 2) {
+            } else if (hour >= 10 && hour < 14) {
                 backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%201.jpeg?raw=true';
             } else {
                 backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%203.jpeg?raw=true'; 
@@ -60,8 +96,67 @@
             document.body.style.backgroundImage = `url('${backgroundUrl}')`;
         }
 
-        // Run the function when the page loads
-        document.addEventListener('DOMContentLoaded', setBackgroundBasedOnTime);
+        // Function to populate the player table
+        function populatePlayerTable() {
+            const tbody = document.querySelector('#playerTable tbody');
+            tbody.innerHTML = ''; // Clear the table body
+
+            const players = JSON.parse(localStorage.getItem('characters')) || [];
+            players.forEach(player => {
+                const row = document.createElement('tr');
+
+                // Create and append the checkbox cell
+                const selectCell = document.createElement('td');
+                selectCell.textContent = " "; // Placeholder for checkbox, not functional here
+                row.appendChild(selectCell);
+
+                const updateCell = document.createElement('td');
+                updateCell.textContent = " "; // Placeholder for update buttons, not functional here
+                row.appendChild(updateCell);
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = player.name;
+                row.appendChild(nameCell);
+
+                const typeCell = document.createElement('td');
+                typeCell.textContent = player.type; 
+                row.appendChild(typeCell);
+
+                const levelCell = document.createElement('td');
+                levelCell.textContent = getLevel(player.xp);
+                row.appendChild(levelCell);
+
+                const xpCell = document.createElement('td');
+                xpCell.textContent = player.xp;
+                row.appendChild(xpCell);
+
+                const apCell = document.createElement('td');
+                apCell.textContent = player.ap;
+                row.appendChild(apCell);
+
+                const hpCell = document.createElement('td');
+                hpCell.textContent = player.hp;
+                row.appendChild(hpCell);
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function getLevel(xp) {
+            if (xp < 5000) return 1;
+            if (xp < 10000) return 2;
+            if (xp < 15000) return 3;
+            if (xp < 20000) return 4;
+            if (xp < 25000) return 5;
+            if (xp < 30000) return 6;
+            return 7; 
+        }
+
+        window.onload = function() {
+            populatePlayerTable();
+            setBackgroundBasedOnTime();
+        };
     </script>
 </body>
 </html>
+
