@@ -159,18 +159,21 @@
             updateChangeLog();
         }
 
-        // Function to update a character's XP, AP, or HP
-        function updateCharacter(name, type, value) {
-            let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            
-            // Update the character's value
-            characters = characters.map(char => {
-                if (char.name === name) {
-                    const oldValue = char[type];
-                    char[type] += value;
-                    recordChange(name, type, oldValue, char[type]);
-                }
-                return char;
+        // Update the character's value
+    characters = characters.map(char => {
+        if (char.name === name) {
+            let oldValue = char[type];
+            let newValue = oldValue + value;
+
+            // Ensure the value does not go below 0
+            if (type === 'ap' || type === 'hp') {
+                newValue = Math.max(newValue, 0);
+            }
+
+            char[type] = newValue;
+            recordChange(name, type, oldValue, char[type]);
+        }
+        return char;
             });
 
             // Save the updated characters back to local storage
