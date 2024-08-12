@@ -56,10 +56,24 @@
             margin: 20px 0;
             text-align: center;
         }
+        .random-picker-box {
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the box */
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
         .random-picker button {
             margin: 5px;
             padding: 10px;
             cursor: pointer;
+        }
+        .picked-player {
+            font-size: 2em; /* Twice the normal size */
+            margin: 10px 0;
+        }
+        .selection-counter {
+            font-size: 1.5em; /* 1.5 times the normal size */
+            margin: 10px 0;
         }
     </style>
 </head>
@@ -87,10 +101,12 @@
     </table>
 
     <div class="random-picker">
-        <button type="button" id="pickRandomPlayerButton">Pick Random Player</button>
-        <button type="button" id="resetPickerButton">Reset Picker</button>
-        <p id="selectedPlayer">Selected Player: <span id="playerName">None</span></p>
-        <p>Players selected: <span id="selectionCounter">0/0</span></p>
+        <div class="random-picker-box">
+            <button type="button" id="pickRandomPlayerButton">Pick Random Player</button>
+            <button type="button" id="resetPickerButton">Reset Picker</button>
+            <p id="selectedPlayer" class="picked-player">Selected Player: <span id="playerName">None</span></p>
+            <p class="selection-counter">Players selected: <span id="selectionCounter">0/0</span></p>
+        </div>
     </div>
 
     <script>
