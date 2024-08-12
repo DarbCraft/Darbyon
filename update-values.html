@@ -112,18 +112,11 @@
             <tbody></tbody>
         </table>
 
-        <h2>Generate Daily News</h2>
-        <table id="dailyNewsTable">
-            <tbody>
-                <tr>
-                    <td>
-                        <button type="button" id="generateMessageButton">Show Daily News</button>
-                        <p id="currentMessage">Generate Daily News</p>
-                        <p>Messages shown: <span id="messageCounter">0</span></p>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <h2>Messages</h2>
+    <div id="messageDisplay">
+        <p id="currentMessage"></p>
+        <p>Messages shown: <span id="messageCounter">0</span></p>
+        <button type="button" onclick="showRandomMessage()">Show Random Message</button>
     </div>
 
     <div id="changeLog">
@@ -271,21 +264,21 @@
         }
 
         // Function to display a random daily news message
-        function showRandomMessage() {
-            const messages = JSON.parse(localStorage.getItem('dailyMessages')) || [];
+       function showRandomMessage() {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
             let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
-
+            
             if (shownMessages.length === messages.length) {
-                shownMessages = []; 
+                shownMessages = [];
             }
 
-            const availableMessages = messages.filter(message => !shownMessages.includes(message));
+            const availableMessages = messages.filter(msg => !shownMessages.includes(msg));
             const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-            shownMessages.push(randomMessage);
 
+            shownMessages.push(randomMessage);
             localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
 
-            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong>: ${randomMessage.description}`;
+            document.getElementById('currentMessage').textContent = randomMessage;
             document.getElementById('messageCounter').textContent = shownMessages.length;
         }
 
