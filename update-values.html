@@ -7,14 +7,14 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-    margin: 20px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    background-image: url('https://github.com/DarbCraft/Darbyon/blob/main/Images/White%20background.jpeg?raw=true');
-    background-size: cover; /* Ensures the image covers the entire background */
-    background-position: center; /* Centers the image */
-    background-repeat: no-repeat; /* Prevents the image from repeating */
+            margin: 20px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            background-image: url('https://github.com/DarbCraft/Darbyon/blob/main/Images/White%20background.jpeg?raw=true');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
         nav {
             margin-bottom: 20px;
@@ -42,10 +42,10 @@
             background-color: #555;
         }
         .update-form {
-    display: flex;
-    gap: 5px; /* Adjust this value to control space between buttons */
-    justify-content: flex-start; /* Align buttons to the start of the container */
-    margin-bottom: 10px; /* Optional: Adds space below the button group */
+            display: flex;
+            gap: 5px;
+            justify-content: flex-start;
+            margin-bottom: 10px;
         }
         .update-btn {
             margin: 0 1px;
@@ -53,10 +53,10 @@
             cursor: pointer;
         }
         #playerTable {
-            width: 75%; /* Ensure player table takes up most of the space */
+            width: 75%;
         }
         #changeLog {
-            width: 20%; /* Fixed width for change log container */
+            width: 20%;
             max-height: 80vh;
             overflow-y: auto;
             margin-left: 10px;
@@ -79,22 +79,22 @@
             cursor: pointer;
         }
         #dailyNewsTable {
-            width: 50%; /* Adjust the width as needed */
-            margin: 0 auto; /* Center the table on the page */
-            background-color: #555; /* Optional: Ensure consistent background color */
-            color: #fff; /* Optional: Ensure consistent text color */
+            width: 50%;
+            margin: 0 auto;
+            background-color: #555;
+            color: #fff;
         }
         #currentMessage strong {
             font-weight: bold;
-            font-size: 1.5em; /* Makes the title larger */
+            font-size: 1.5em;
         }
         #currentMessage {
-            font-size: 1.2em; /* Makes the message larger */
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
-    <div style="flex: 1;"> <!-- Allow this div to grow and fill available space -->
+    <div style="flex: 1;">
         <h1>Update Values</h1>
         <nav>
             <a href="index.html">Home</a>
@@ -159,40 +159,39 @@
             updateChangeLog();
         }
 
-        // Update the character's value
-    characters = characters.map(char => {
-        if (char.name === name) {
-            let oldValue = char[type];
-            let newValue = oldValue + value;
+        // Function to update the character's value
+        function updateCharacter(name, type, value) {
+            let characters = JSON.parse(localStorage.getItem('characters')) || [];
+            characters = characters.map(char => {
+                if (char.name === name) {
+                    let oldValue = char[type];
+                    let newValue = oldValue + value;
 
-            // Ensure the value does not go below 0
-            if (type === 'ap' || type === 'hp') {
-                newValue = Math.max(newValue, 0);
-            }
+                    // Ensure the value does not go below 0
+                    if (type === 'ap' || type === 'hp') {
+                        newValue = Math.max(newValue, 0);
+                    }
 
-            char[type] = newValue;
-            recordChange(name, type, oldValue, char[type]);
-        }
-        return char;
+                    char[type] = newValue;
+                    recordChange(name, type, oldValue, char[type]);
+                }
+                return char;
             });
 
-            // Save the updated characters back to local storage
             localStorage.setItem('characters', JSON.stringify(characters));
-            
-            // Reload the table to reflect changes
             populatePlayerTable();
         }
 
         // Function to apply updates to selected characters
         function updateSelectedCharacters(type) {
-    const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
-    const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
-    
-    checkboxes.forEach(checkbox => {
-        const row = checkbox.closest('tr');
-        const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
-        updateCharacter(name, type, value);
-    });
+            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
+            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
+            
+            checkboxes.forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
+                updateCharacter(name, type, value);
+            });
         }
 
         // Function to determine the level based on XP
@@ -217,7 +216,7 @@
         // Function to populate the player table
         function populatePlayerTable() {
             const tbody = document.querySelector('#playerTable tbody');
-            tbody.innerHTML = ''; // Clear the table body
+            tbody.innerHTML = '';
 
             const players = JSON.parse(localStorage.getItem('characters')) || [];
             players.forEach(player => {
@@ -272,7 +271,7 @@
         // Function to update the change log table
         function updateChangeLog() {
             const logEntries = document.getElementById('logEntries');
-            logEntries.innerHTML = ''; // Clear existing log entries
+            logEntries.innerHTML = '';
 
             const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
 
@@ -307,18 +306,12 @@
             const messages = JSON.parse(localStorage.getItem('messages')) || [];
             let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
 
-            console.log('Messages:', messages);
-            console.log('Shown Messages:', shownMessages);
-
             if (shownMessages.length === messages.length) {
-                shownMessages = []; 
+                shownMessages = [];
             }
 
             const availableMessages = messages.filter(message => !shownMessages.includes(message));
-            console.log('Available Messages:', availableMessages);
-
             const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-            console.log('Random Message:', randomMessage);
 
             shownMessages.push(randomMessage);
             localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
