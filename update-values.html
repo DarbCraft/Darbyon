@@ -271,23 +271,24 @@
         }
 
         // Function to display a random daily news message
-        function showRandomMessage() {
-            const messages = JSON.parse(localStorage.getItem('dailyMessages')) || [];
-            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+function showRandomMessage() {
+    const messages = JSON.parse(localStorage.getItem('messages')) || [];
+    let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
 
-            if (shownMessages.length === messages.length) {
-                shownMessages = []; 
-            }
+    if (shownMessages.length === messages.length) {
+        shownMessages = []; 
+    }
 
-            const availableMessages = messages.filter(message => !shownMessages.includes(message));
-            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-            shownMessages.push(randomMessage);
+    const availableMessages = messages.filter(message => !shownMessages.includes(message));
+    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+    shownMessages.push(randomMessage);
 
-            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+    localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
 
-            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong>: ${randomMessage.description}`;
-            document.getElementById('messageCounter').textContent = shownMessages.length;
-        }
+    document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong>: ${randomMessage.description}`;
+    document.getElementById('messageCounter').textContent = shownMessages.length;
+}
+
 
         document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
 
