@@ -52,6 +52,15 @@
             justify-content: flex-start;
             margin-bottom: 10px;
         }
+        .random-picker {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .random-picker button {
+            margin: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -61,6 +70,7 @@
         <a href="settings.html">Settings</a>
         <a href="update-values.html">Update Values</a>
     </nav>
+
     <h2>Player Table</h2>
     <table id="playerTable">
         <thead>
@@ -75,6 +85,13 @@
         </thead>
         <tbody></tbody>
     </table>
+
+    <div class="random-picker">
+        <button type="button" id="pickRandomPlayerButton">Pick Random Player</button>
+        <button type="button" id="resetPickerButton">Reset Picker</button>
+        <p id="selectedPlayer">Selected Player: <span id="playerName">None</span></p>
+        <p>Players selected: <span id="selectionCounter">0/0</span></p>
+    </div>
 
     <script>
         function setBackgroundBasedOnTime() {
@@ -94,7 +111,6 @@
             document.body.style.backgroundImage = `url('${backgroundUrl}')`;
         }
 
-        // Function to populate the player table
         function populatePlayerTable() {
             const tbody = document.querySelector('#playerTable tbody');
             tbody.innerHTML = ''; // Clear the table body
@@ -141,6 +157,42 @@
             return 7; 
         }
 
+        function pickRandomPlayer() {
+            const players = JSON.parse(localStorage.getItem('characters')) || [];
+            let shownPlayers = JSON.parse(localStorage.getItem('shownPlayers')) || [];
+
+            if (shownPlayers.length === players.length) {
+                shownPlayers = [];
+            }
+
+            const availablePlayers = players.filter(player => !shownPlayers.includes(player.name));
+            if (availablePlayers.length === 0) {
+                document.getElementById('selectedPlayer').textContent = 'No new players available.';
+                return;
+            }
+
+            const randomPlayer = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
+            shownPlayers.push(randomPlayer.name);
+            localStorage.setItem('shownPlayers', JSON.stringify(shownPlayers));
+
+            document.getElementById('playerName').textContent = randomPlayer.name;
+
+            // Update the counter
+            const totalPlayers = players.length;
+            const shownCount = shownPlayers.length;
+            const fractionText = `${shownCount % totalPlayers || totalPlayers}/${totalPlayers}`;
+            document.getElementById('selectionCounter').textContent = fractionText;
+        }
+
+        function resetPicker() {
+            localStorage.removeItem('shownPlayers');
+            document.getElementById('playerName').textContent = 'None';
+            document.getElementById('selectionCounter').textContent = '0/0';
+        }
+
+        document.getElementById('pickRandomPlayerButton').addEventListener('click', pickRandomPlayer);
+        document.getElementById('resetPickerButton').addEventListener('click', resetPicker);
+
         window.onload = function() {
             populatePlayerTable();
             setBackgroundBasedOnTime();
@@ -148,4 +200,3 @@
     </script>
 </body>
 </html>
-
