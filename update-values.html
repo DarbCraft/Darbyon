@@ -97,9 +97,15 @@
         </nav>
 
         <h2>Select Players</h2>
+        <div class="update-form">
+            <button type="button" class="update-btn" onclick="updateSelectedCharacters('xp')">🏅 XP to Selected</button>
+            <button type="button" class="update-btn" onclick="updateSelectedCharacters('ap')">💎 AP to Selected</button>
+            <button type="button" class="update-btn" onclick="updateSelectedCharacters('hp')">❤️ HP to Selected</button>
+        </div>
         <table id="playerTable">
             <thead>
                 <tr>
+                    <th>Select</th>
                     <th>Update</th>
                     <th>Name</th>
                     <th>Type</th>
@@ -149,8 +155,7 @@
         }
 
         // Function to update a character's XP, AP, or HP
-        function updateCharacter(name, type) {
-            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
+        function updateCharacter(name, type, value) {
             let characters = JSON.parse(localStorage.getItem('characters')) || [];
             
             // Update the character's value
@@ -168,6 +173,18 @@
             
             // Reload the table to reflect changes
             populatePlayerTable();
+        }
+
+        // Function to apply updates to selected characters
+        function updateSelectedCharacters(type) {
+            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
+            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
+            
+            checkboxes.forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
+                updateCharacter(name, type, value);
+            });
         }
 
         // Function to determine the level based on XP
@@ -198,13 +215,20 @@
             players.forEach(player => {
                 const row = document.createElement('tr');
                 
+                // Create and append the checkbox cell
+                const selectCell = document.createElement('td');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                selectCell.appendChild(checkbox);
+                row.appendChild(selectCell);
+
                 const updateCell = document.createElement('td');
                 const form = document.createElement('form');
                 form.className = 'update-form';
                 form.innerHTML = `
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp')">🏅 XP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap')">💎 AP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp')">❤️ HP</button>
+                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp', parseInt(prompt('Enter XP value:')))">🏅 XP</button>
+                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap', parseInt(prompt('Enter AP value:')))">💎 AP</button>
+                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp', parseInt(prompt('Enter HP value:')))">❤️ HP</button>
                 `;
                 updateCell.appendChild(form);
                 row.appendChild(updateCell);
