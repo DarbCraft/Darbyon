@@ -185,14 +185,14 @@
 
         // Function to apply updates to selected characters
         function updateSelectedCharacters(type) {
-            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
-            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
-            
-            checkboxes.forEach(checkbox => {
-                const row = checkbox.closest('tr');
-                const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
-                updateCharacter(name, type, value);
-            });
+    const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
+    const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
+    
+    checkboxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
+        updateCharacter(name, type, value);
+    });
         }
 
         // Function to determine the level based on XP
