@@ -274,9 +274,13 @@
         let messages = []; // Array to hold daily news messages
         let shownMessages = []; // Array to track shown messages
 
+    
         function populateDailyNews() {
-            messages = JSON.parse(localStorage.getItem('dailyNews')) || [];
-        }
+    messages = JSON.parse(localStorage.getItem('dailyNews')) || [];
+}
+
+document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
+
 
         function showRandomMessage() {
             if (messages.length === 0) {
