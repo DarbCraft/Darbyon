@@ -214,7 +214,7 @@
                 row.appendChild(nameCell);
 
                 const typeCell = document.createElement('td');
-                typeCell.textContent = player.type; // Add this line
+                typeCell.textContent = player.type; 
                 row.appendChild(typeCell);
 
                 const levelCell = document.createElement('td');
@@ -270,50 +270,31 @@
             updateChangeLog();
         }
 
-        // Function to handle daily news generation
-        let messages = []; // Array to hold daily news messages
-        let shownMessages = []; // Array to track shown messages
-
-    
-        function populateDailyNews() {
-    messages = JSON.parse(localStorage.getItem('dailyNews')) || [];
-}
-
-document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
-
-
+        // Function to display a random daily news message
         function showRandomMessage() {
-            if (messages.length === 0) {
-                alert("No daily news messages available.");
-                return;
-            }
+            const messages = JSON.parse(localStorage.getItem('dailyMessages')) || [];
+            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
 
             if (shownMessages.length === messages.length) {
-                // All messages have been shown; reset the shownMessages array
-                shownMessages = [];
-                document.getElementById('messageCounter').textContent = 0;
+                shownMessages = []; 
             }
 
-            let randomIndex;
-            do {
-                randomIndex = Math.floor(Math.random() * messages.length);
-            } while (shownMessages.includes(randomIndex));
+            const availableMessages = messages.filter(message => !shownMessages.includes(message));
+            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+            shownMessages.push(randomMessage);
 
-            shownMessages.push(randomIndex);
+            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+
+            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong>: ${randomMessage.description}`;
             document.getElementById('messageCounter').textContent = shownMessages.length;
-
-            const randomMessage = messages[randomIndex];
-            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.title}</strong><br>${randomMessage.description}`;
         }
 
         document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
 
-        // Initialize the page
-        window.addEventListener('DOMContentLoaded', () => {
+        window.onload = function() {
             populatePlayerTable();
             updateChangeLog();
-            populateDailyNews();
-        });
+        };
     </script>
 </body>
 </html>
