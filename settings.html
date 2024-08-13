@@ -9,192 +9,307 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        h1 {
-            text-align: center;
-        }
-        .message-table, .character-table {
-            width: 100%;
-            border-collapse: collapse;
+        nav {
             margin-bottom: 20px;
         }
-        .message-table th, .message-table td, .character-table th, .character-table td {
+        nav a {
+            margin: 10px;
+            text-decoration: none;
+            color: #000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgba(192, 192, 192, 0.8);
+        }
+        th, td {
             border: 1px solid #ccc;
             padding: 10px;
             text-align: left;
         }
-        .message-table th, .character-table th {
-            background-color: #f2f2f2;
+        th {
+            background-color: #666;
+            color: white;
         }
-        .message-table {
-            margin-top: 20px;
+        tr:nth-child(even):not(:nth-child(1)) {
+            background-color: rgba(255, 255, 255, 0.6);
         }
-        #addMessageForm {
+        tr:nth-child(odd) {
+            background-color: rgba(211, 211, 211, 0.6);
+        }
+        form {
+            display: flex;
+            flex-direction: column;
             margin-bottom: 20px;
         }
-        #addCharacterForm {
-            margin-bottom: 20px;
+        label, input, button {
+            margin: 5px 0;
         }
-        button {
-            margin: 5px;
+        .full-width {
+            width: 100%;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+        }
+        .btn-group button {
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
     <h1>Settings</h1>
-    
-    <!-- Add Daily News Form -->
-    <div id="addMessageForm">
-        <h2>Add Daily News Message</h2>
-        <form id="messageForm">
-            <label for="messageName">Message Name:</label>
-            <input type="text" id="messageName" required>
-            <br>
-            <label for="messageDescription">Message Description:</label>
-            <textarea id="messageDescription" rows="4" required></textarea>
-            <br>
-            <button type="button" onclick="addMessage()">Add Message</button>
-        </form>
-    </div>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="update-values.html">Update Values</a>
+    </nav>
 
-    <!-- Daily News Table -->
-    <table class="message-table">
+    <form id="addCharacterForm">
+        <label for="charName">Character Name:</label>
+        <input type="text" id="charName" name="charName">
+        <label for="charType">Character Type:</label>
+        <select id="charType" name="charType">
+            <option value="Warrior">Warrior</option>
+            <option value="Healer">Healer</option>
+            <option value="Mage">Mage</option>
+        </select>
+        <button type="button" onclick="addCharacter()">Add Character</button>
+    </form>
+
+    <h2>Character List</h2>
+    <table class="styled-table">
         <thead>
             <tr>
-                <th>Message Name</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody id="messageTableBody">
-            <!-- Daily news messages will be inserted here -->
-        </tbody>
-    </table>
-
-    <!-- Add Character Form -->
-    <div id="addCharacterForm">
-        <h2>Add Character</h2>
-        <form id="characterForm">
-            <label for="characterName">Character Name:</label>
-            <input type="text" id="characterName" required>
-            <br>
-            <label for="characterType">Character Type:</label>
-            <select id="characterType" required>
-                <option value="Mage">Mage</option>
-                <option value="Warrior">Warrior</option>
-                <option value="Healer">Healer</option>
-            </select>
-            <br>
-            <button type="button" onclick="addCharacter()">Add Character</button>
-        </form>
-    </div>
-
-    <!-- Character Table -->
-    <table class="character-table">
-        <thead>
-            <tr>
-                <th>Character Name</th>
-                <th>Type</th>
+                <th>Name</th>
                 <th>XP</th>
                 <th>AP</th>
                 <th>HP</th>
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody id="characterTableBody">
-            <!-- Characters will be inserted here -->
-        </tbody>
+        <tbody id="scoreboardTableBody"></tbody>
+    </table>
+
+    <h2>Add Daily Message</h2>
+    <form id="messageForm">
+        <label for="messageName">Daily News Item:</label>
+        <input type="text" id="messageName" name="messageName" required>
+
+        <label for="messageDescription">Description:</label>
+        <textarea id="messageDescription" name="messageDescription" required></textarea>
+
+        <button type="submit">Add News Item</button>
+    </form>
+
+    <h2>Daily News</h2>
+    <table id="messageTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
     </table>
 
     <script>
-    // Function to add a new daily news message
-    function addMessage() {
-        const name = document.getElementById('messageName').value;
-        const description = document.getElementById('messageDescription').value;
+        function addCharacter() {
+            const name = document.getElementById('charName').value;
+            const type = document.getElementById('charType').value;
+            let hp, ap;
 
-        if (name && description) {
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.push({ name, description });
-            localStorage.setItem('messages', JSON.stringify(messages));
-            displayMessages();
-            document.getElementById('messageForm').reset();
-        } else {
-            alert('Please fill in both fields.');
-        }
-    }
+            switch (type) {
+                case 'Warrior':
+                    hp = 10;
+                    ap = 15;
+                    break;
+                case 'Healer':
+                    hp = 8;
+                    ap = 20;
+                    break;
+                case 'Mage':
+                    hp = 6;
+                    ap = 30;
+                    break;
+                default:
+                    alert('Invalid character type!');
+                    return;
+            }
 
-    // Function to display messages in the table
-    function displayMessages() {
-        const messageTableBody = document.getElementById('messageTableBody');
-        messageTableBody.innerHTML = '';
-
-        const messages = JSON.parse(localStorage.getItem('messages')) || [];
-        messages.forEach(message => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${message.name}</td>
-                <td>${message.description}</td>
-            `;
-            messageTableBody.appendChild(row);
-        });
-    }
-
-    // Function to add a new character
-    function addCharacter() {
-        const name = document.getElementById('characterName').value;
-        const type = document.getElementById('characterType').value;
-
-        if (name && type) {
+            const newCharacter = { name, type, xp: 0, ap, hp };
             let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters.push({ name, type, xp: 0, ap: 0, hp: 0 });
+            characters.push(newCharacter);
             localStorage.setItem('characters', JSON.stringify(characters));
-            displayCharacters();
-            document.getElementById('characterForm').reset();
-        } else {
-            alert('Please fill in both fields.');
+            loadScoreboard();  // Update the table immediately
+            document.getElementById('addCharacterForm').reset();
         }
-    }
 
-    // Function to display characters in the table
-    function displayCharacters() {
-        const characterTableBody = document.getElementById('characterTableBody');
-        characterTableBody.innerHTML = '';
+        function loadScoreboard() {
+            const tableBody = document.querySelector('#scoreboardTableBody');
+            tableBody.innerHTML = '';
+            const characters = JSON.parse(localStorage.getItem('characters')) || [];
+            
+            characters.forEach((char, index) => {
+                const row = document.createElement('tr');
 
-        const characters = JSON.parse(localStorage.getItem('characters')) || [];
-        characters.forEach(character => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${character.name}</td>
-                <td>${character.type}</td>
-                <td>${character.xp}</td>
-                <td>${character.ap}</td>
-                <td>${character.hp}</td>
-                <td>
-                    <button onclick="editCharacter('${character.name}')">Edit</button>
-                    <button onclick="removeCharacter('${character.name}')">Remove</button>
-                </td>
-            `;
-            characterTableBody.appendChild(row);
-        });
-    }
+                const nameCell = document.createElement('td');
+                nameCell.textContent = char.name;
+                row.appendChild(nameCell);
 
-    // Function to edit a character
-    function editCharacter(name) {
-        // Implement your edit character logic here
-        alert('Edit character feature is not yet implemented.');
-    }
+                const xpCell = document.createElement('td');
+                xpCell.textContent = char.xp;
+                row.appendChild(xpCell);
 
-    // Function to remove a character
-    function removeCharacter(name) {
-        let characters = JSON.parse(localStorage.getItem('characters')) || [];
-        characters = characters.filter(character => character.name !== name);
-        localStorage.setItem('characters', JSON.stringify(characters));
-        displayCharacters();
-    }
+                const apCell = document.createElement('td');
+                apCell.textContent = char.ap;
+                row.appendChild(apCell);
 
-    // Populate tables on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        displayMessages();
-        displayCharacters();
+                const hpCell = document.createElement('td');
+                hpCell.textContent = char.hp;
+                row.appendChild(hpCell);
+
+                // Add Actions cell
+                const actionsCell = document.createElement('td');
+
+                // Edit button
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.addEventListener('click', () => editCharacter(index));
+                actionsCell.appendChild(editButton);
+
+                // Delete button
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => deleteCharacter(index));
+                actionsCell.appendChild(deleteButton);
+
+                row.appendChild(actionsCell);
+                tableBody.appendChild(row);
+            });
+        }
+
+        function editCharacter(index) {
+            const characters = JSON.parse(localStorage.getItem('characters')) || [];
+            const char = characters[index];
+
+            // Prompt user for new values
+            const newName = prompt("Edit Character Name:", char.name);
+            const newXP = prompt("Edit XP:", char.xp);
+            const newAP = prompt("Edit AP:", char.ap);
+            const newHP = prompt("Edit HP:", char.hp);
+
+            // Update the character with new values if confirmed
+            if (newName !== null && newXP !== null && newAP !== null && newHP !== null) {
+                char.name = newName.trim();
+                char.xp = parseInt(newXP);
+                char.ap = parseInt(newAP);
+                char.hp = parseInt(newHP);
+                characters[index] = char;
+                localStorage.setItem('characters', JSON.stringify(characters));
+                loadScoreboard();
+            }
+        }
+
+        function deleteCharacter(index) {
+            const confirmation = confirm("Are you sure you want to delete this character?");
+            if (confirmation) {
+                let characters = JSON.parse(localStorage.getItem('characters')) || [];
+                characters.splice(index, 1);
+                localStorage.setItem('characters', JSON.stringify(characters));
+                loadScoreboard();
+            }
+        }
+
+       function loadMessages() {
+    const messageTableBody = document.querySelector('#messageTable tbody');
+    messageTableBody.innerHTML = '';
+
+    const messages = JSON.parse(localStorage.getItem('messages')) || [];
+
+    messages.forEach((msg, index) => {
+        const row = document.createElement('tr');
+        const nameCell = document.createElement('td');
+        const descriptionCell = document.createElement('td');
+        const actionsCell = document.createElement('td');
+
+        // Style the name in bold and the description in a larger font
+        nameCell.innerHTML = `<strong>${msg.name}</strong>`;
+        descriptionCell.innerHTML = `<span style="font-size: larger;">${msg.description}</span>`;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = () => deleteMessage(index);
+
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.onclick = () => editMessage(index);
+
+        const btnGroup = document.createElement('div');
+        btnGroup.classList.add('btn-group');
+        btnGroup.appendChild(editButton);
+        btnGroup.appendChild(deleteButton);
+
+        actionsCell.appendChild(btnGroup);
+
+        row.appendChild(nameCell);
+        row.appendChild(descriptionCell);
+        row.appendChild(actionsCell);
+
+        messageTableBody.appendChild(row);
     });
+}
+
+function deleteMessage(index) {
+    if (confirm('Are you sure you want to delete this news item?')) {
+        let messages = JSON.parse(localStorage.getItem('messages')) || [];
+        messages.splice(index, 1);
+        localStorage.setItem('messages', JSON.stringify(messages));
+        loadMessages();
+    }
+}
+
+function editMessage(index) {
+    let messages = JSON.parse(localStorage.getItem('messages')) || [];
+    const msg = messages[index];
+
+    const newName = prompt('Edit Name:', msg.name);
+    const newDescription = prompt('Edit Description:', msg.description);
+
+    if (newName !== null && newDescription !== null) {
+        messages[index] = { name: newName.trim(), description: newDescription.trim() };
+        localStorage.setItem('messages', JSON.stringify(messages));
+        loadMessages();
+    }
+}
+
+document.querySelector('#messageForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const messageName = document.querySelector('#messageName').value.trim();
+    const messageDescription = document.querySelector('#messageDescription').value.trim();
+
+    if (messageName && messageDescription) {
+        const messages = JSON.parse(localStorage.getItem('messages')) || [];
+
+        messages.push({
+            name: messageName,
+            description: messageDescription
+        });
+
+        localStorage.setItem('messages', JSON.stringify(messages));
+        loadMessages();
+
+        // Clear the form
+        document.querySelector('#messageForm').reset();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadScoreboard();
+    loadMessages();
+        });
     </script>
 </body>
 </html>
