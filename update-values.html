@@ -85,13 +85,14 @@
         margin: 0 auto;
     }
     .random-picker-box {
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the box */
-        padding: 20px;
-        border-radius: 10px;
-        display: inline-block;
-        width: 25%; /* Reduced width by half */
-        text-align: center;
-    }
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the box */
+    padding: 20px;
+    border-radius: 10px;
+    display: inline-block;
+    width: 25%; /* Reduced width by half */
+    text-align: center;
+    color: #fff; /* Text color set to white */
+}
     #currentMessage {
         font-size: 2em; /* Twice the normal size */
         margin: 10px 0;
@@ -140,6 +141,7 @@
         <h2>Generate Daily News</h2>
         <div class="random-picker-box">
             <button type="button" id="generateMessageButton">Show Daily News</button>
+            <button type="button" id="resetDailyEventsButton">Reset Daily Events</button>
             <p id="currentMessage">Generate Daily News</p>
             <p class="selection-counter">Messages shown: <span id="messageCounter">0/0</span></p>
         </div>
@@ -151,177 +153,180 @@
     </div>
 
     <script>
-        function toggleSelectAll(selectAllCheckbox) {
-            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = selectAllCheckbox.checked;
-            });
-        }
+    function toggleSelectAll(selectAllCheckbox) {
+        const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+    }
 
-        function updateCharacter(name, type, value) {
-            let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters = characters.map(char => {
-                if (char.name === name) {
-                    let oldValue = char[type];
-                    let newValue = oldValue + value;
+    function updateCharacter(name, type, value) {
+        let characters = JSON.parse(localStorage.getItem('characters')) || [];
+        characters = characters.map(char => {
+            if (char.name === name) {
+                let oldValue = char[type];
+                let newValue = oldValue + value;
 
-                    // Ensure the value does not go below 0
-                    if (type === 'ap' || type === 'hp') {
-                        newValue = Math.max(newValue, 0);
-                    }
-
-                    char[type] = newValue;
-                    recordChange(name, type, oldValue, char[type]);
+                // Ensure the value does not go below 0
+                if (type === 'ap' || type === 'hp') {
+                    newValue = Math.max(newValue, 0);
                 }
-                return char;
-            });
 
-            localStorage.setItem('characters', JSON.stringify(characters));
-            populatePlayerTable();
+                char[type] = newValue;
+                recordChange(name, type, oldValue, char[type]);
+            }
+            return char;
+        });
+
+        localStorage.setItem('characters', JSON.stringify(characters));
+        populatePlayerTable();
+    }
+
+    function updateSelectedCharacters(type) {
+        const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
+        const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
+        
+        checkboxes.forEach(checkbox => {
+            const row = checkbox.closest('tr');
+            const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
+            updateCharacter(name, type, value);
+        });
+    }
+
+    function getLevel(xp) {
+        if (xp < 5000) {
+            return 1;
+        } else if (xp < 10000) {
+            return 2;
+        } else if (xp < 15000) {
+            return 3;
+        } else if (xp < 20000) {
+            return 4;
+        } else if (xp < 25000) {
+            return 5;
+        } else if (xp < 30000) {
+            return 6;
+        } else {
+            return 7; 
         }
+    }
 
-        function updateSelectedCharacters(type) {
-            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
-            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
+    function populatePlayerTable() {
+        const tbody = document.querySelector('#playerTable tbody');
+        tbody.innerHTML = '';
+
+        const players = JSON.parse(localStorage.getItem('characters')) || [];
+        players.forEach(player => {
+            const row = document.createElement('tr');
             
-            checkboxes.forEach(checkbox => {
-                const row = checkbox.closest('tr');
-                const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
-                updateCharacter(name, type, value);
-            });
-        }
+            const selectCell = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            selectCell.appendChild(checkbox);
+            row.appendChild(selectCell);
 
-        function getLevel(xp) {
-            if (xp < 5000) {
-                return 1;
-            } else if (xp < 10000) {
-                return 2;
-            } else if (xp < 15000) {
-                return 3;
-            } else if (xp < 20000) {
-                return 4;
-            } else if (xp < 25000) {
-                return 5;
-            } else if (xp < 30000) {
-                return 6;
-            } else {
-                return 7; 
-            }
-        }
+            const updateCell = document.createElement('td');
+            const form = document.createElement('form');
+            form.className = 'update-form';
+            form.innerHTML = `
+                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp', parseInt(prompt('Enter XP value:')))">🏅 XP</button>
+                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap', parseInt(prompt('Enter AP value:')))">💎 AP</button>
+                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp', parseInt(prompt('Enter HP value:')))">❤️ HP</button>
+            `;
+            updateCell.appendChild(form);
+            row.appendChild(updateCell);
 
-        function populatePlayerTable() {
-            const tbody = document.querySelector('#playerTable tbody');
-            tbody.innerHTML = '';
+            const nameCell = document.createElement('td');
+            nameCell.textContent = player.name;
+            row.appendChild(nameCell);
 
-            const players = JSON.parse(localStorage.getItem('characters')) || [];
-            players.forEach(player => {
-                const row = document.createElement('tr');
-                
-                const selectCell = document.createElement('td');
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                selectCell.appendChild(checkbox);
-                row.appendChild(selectCell);
+            const typeCell = document.createElement('td');
+            typeCell.textContent = player.type; 
+            row.appendChild(typeCell);
 
-                const updateCell = document.createElement('td');
-                const form = document.createElement('form');
-                form.className = 'update-form';
-                form.innerHTML = `
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp', parseInt(prompt('Enter XP value:')))">🏅 XP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap', parseInt(prompt('Enter AP value:')))">💎 AP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp', parseInt(prompt('Enter HP value:')))">❤️ HP</button>
-                `;
-                updateCell.appendChild(form);
-                row.appendChild(updateCell);
+            const levelCell = document.createElement('td');
+            levelCell.textContent = getLevel(player.xp);
+            row.appendChild(levelCell);
 
-                const nameCell = document.createElement('td');
-                nameCell.textContent = player.name;
-                row.appendChild(nameCell);
+            const xpCell = document.createElement('td');
+            xpCell.textContent = player.xp;
+            row.appendChild(xpCell);
 
-                const typeCell = document.createElement('td');
-                typeCell.textContent = player.type; 
-                row.appendChild(typeCell);
+            const apCell = document.createElement('td');
+            apCell.textContent = player.ap;
+            row.appendChild(apCell);
 
-                const levelCell = document.createElement('td');
-                levelCell.textContent = getLevel(player.xp);
-                row.appendChild(levelCell);
+            const hpCell = document.createElement('td');
+            hpCell.textContent = player.hp;
+            row.appendChild(hpCell);
 
-                const xpCell = document.createElement('td');
-                xpCell.textContent = player.xp;
-                row.appendChild(xpCell);
+            tbody.appendChild(row);
+        });
+    }
 
-                const apCell = document.createElement('td');
-                apCell.textContent = player.ap;
-                row.appendChild(apCell);
+    function recordChange(playerName, changeType, oldValue, newValue) {
+        const change = {
+            playerName: playerName,
+            changeType: changeType,
+            oldValue: oldValue,
+            newValue: newValue,
+            timestamp: new Date().toLocaleString()
+        };
 
-                const hpCell = document.createElement('td');
-                hpCell.textContent = player.hp;
-                row.appendChild(hpCell);
+        let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
+        changes.push(change);
+        localStorage.setItem('playerChanges', JSON.stringify(changes));
+        updateChangeLog();
+    }
 
-                tbody.appendChild(row);
-            });
-        }
+    function updateChangeLog() {
+        const logEntries = document.getElementById('logEntries');
+        logEntries.innerHTML = '';
 
-        function recordChange(playerName, changeType, oldValue, newValue) {
-            const change = {
-                playerName: playerName,
-                changeType: changeType,
-                oldValue: oldValue,
-                newValue: newValue,
-                timestamp: new Date().toLocaleString()
-            };
+        const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
 
-            let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-            changes.push(change);
-            localStorage.setItem('playerChanges', JSON.stringify(changes));
-            updateChangeLog();
-        }
+        changes.forEach(change => {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'change-log-entry';
 
-        function updateChangeLog() {
-            const logEntries = document.getElementById('logEntries');
-            logEntries.innerHTML = '';
-
-            const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-
-            changes.forEach(change => {
-                const logEntry = document.createElement('div');
-                logEntry.className = 'change-log-entry';
-
-                let verb;
-                if (change.changeType === 'hp') {
-                    verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                    logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} hearts.`;
-                } else if (change.changeType === 'ap') {
-                    verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                    logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} action points.`;
-                } else if (change.changeType === 'xp') {
-                    verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                    logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} experience points.`;
-                }
-
-                logEntries.appendChild(logEntry);
-            });
-        }
-
-        function clearChangeLog() {
-            localStorage.removeItem('playerChanges');
-            updateChangeLog();
-        }
-
-        function showRandomMessage() {
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
-            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
-
-            if (shownMessages.length === messages.length) {
-                shownMessages = [];
+            let verb;
+            if (change.changeType === 'hp') {
+                verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
+                logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} hearts.`;
+            } else if (change.changeType === 'ap') {
+                verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
+                logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} action points.`;
+            } else if (change.changeType === 'xp') {
+                verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
+                logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} experience points.`;
             }
 
-            const availableMessages = messages.filter(message => !shownMessages.includes(message));
-            if (availableMessages.length === 0) {
-                document.getElementById('currentMessage').innerHTML = `<strong>No new messages available.</strong>`;
-                return;
-            }
+            logEntries.appendChild(logEntry);
+        });
+    }
 
+    function clearChangeLog() {
+        localStorage.removeItem('playerChanges');
+        updateChangeLog();
+    }
+
+    function showRandomMessage() {
+        const messages = JSON.parse(localStorage.getItem('messages')) || [];
+        let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+
+        if (shownMessages.length === messages.length) {
+            shownMessages = [];
+        }
+
+        const availableMessages = messages.filter(message => !shownMessages.includes(message));
+        if (availableMessages.length === 0) {
+            document.getElementById('currentMessage').innerHTML = `<strong>No new messages available.</strong>`;
+            return;
+        }
+
+        document.getElementById('currentMessage').innerHTML = `<strong>Gathering Daily News Item...</strong>`;
+
+        setTimeout(() => {
             const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
 
             shownMessages.push(randomMessage);
@@ -333,14 +338,16 @@
             const shownCount = shownMessages.length;
             const fractionText = `${shownCount % totalMessages || totalMessages}/${totalMessages}`;
             document.getElementById('messageCounter').textContent = fractionText;
-        }
+        }, 2000); // Delay of 2 seconds
+    }
 
-        document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
+    document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
 
-        window.onload = () => {
-            populatePlayerTable();
-            updateChangeLog();
-        };
-    </script>
+    window.onload = () => {
+        populatePlayerTable();
+        updateChangeLog();
+    };
+</script>
+
 </body>
 </html>
