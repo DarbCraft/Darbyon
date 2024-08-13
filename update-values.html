@@ -341,13 +341,21 @@
         }, 2000); // Delay of 2 seconds
     }
 
+    function resetDailyEvents() {
+        localStorage.removeItem('shownMessages');
+        document.getElementById('messageCounter').textContent = `0/${JSON.parse(localStorage.getItem('messages'))?.length || 0}`;
+        showRandomMessage();
+    }
+
     document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
+    document.getElementById('resetEventsButton').addEventListener('click', resetDailyEvents);
 
     window.onload = () => {
         populatePlayerTable();
         updateChangeLog();
     };
 </script>
+
 
 </body>
 </html>
