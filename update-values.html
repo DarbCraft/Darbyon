@@ -4,107 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Values</title>
-   <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        background-image: url('https://github.com/DarbCraft/Darbyon/blob/main/Images/White%20background.jpeg?raw=true');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-    }
-    nav {
-        margin-bottom: 20px;
-    }
-    nav a {
-        margin: 10px;
-        text-decoration: none;
-        color: #000;
-    }
-    input, button, textarea {
-        margin: 10px 0;
-    }
-    table {
-        border-collapse: collapse;
-        margin: 5px 0;
-        border-radius: 10px; /* Added rounded corners to all tables */
-        overflow: hidden; /* Ensures content stays within rounded corners */
-    }
-    th, td {
-        border: 1px solid #ccc;
-        padding: 10px;
-        text-align: left;
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
-        color: #fff;
-    }
-    th {
-        background-color: rgba(0, 0, 0, 0.7); /* Darker semi-transparent background color for header */
-    }
-    .update-form {
-        display: flex;
-        gap: 5px;
-        justify-content: flex-start;
-        margin-bottom: 10px;
-    }
-    .update-btn {
-        margin: 0 1px;
-        padding: 2px;
-        cursor: pointer;
-    }
-    #playerTable {
-        width: 75%; /* Reduced width */
-    }
-    #changeLog {
-        width: 30%; /* Updated width */
-        max-height: 80vh;
-        overflow-y: auto;
-        margin-left: 2px; /* Reduced margin to half */
-        border: 1px solid #ccc;
-        border-radius: 10px; /* Rounded corners for change log */
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
-        color: #fff;
-    }
-    #changeLog td {
-        border: none;
-        padding: 10px;
-        text-align: left;
-    }
-    .change-log-entry {
-        display: block;
-        margin-bottom: 10px;
-    }
-    .clear-log-btn {
-        margin: 10px;
-        padding: 10px;
-        cursor: pointer;
-    }
-    #dailyNewsTable {
-        width: 25%; /* Reduced width by half */
-        margin: 0 auto;
-    }
-    .random-picker-box {
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the box */
-        padding: 20px;
-        border-radius: 10px;
-        display: inline-block;
-        width: 25%; /* Reduced width by half */
-        text-align: center;
-    }
-    #currentMessage {
-        font-size: 2em; /* Twice the normal size */
-        margin: 10px 0;
-    }
-    .selection-counter {
-        font-size: 1.5em; /* 1.5 times the normal size */
-        margin: 10px 0;
-    }
-    .select-all-cell input[type="checkbox"] {
-        margin: 0;
-    }
-</style>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            background-image: url('https://github.com/DarbCraft/Darbyon/blob/main/Images/White%20background.jpeg?raw=true');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        nav {
+            margin-bottom: 20px;
+        }
+        nav a {
+            margin: 10px;
+            text-decoration: none;
+            color: #000;
+        }
+        input, button, textarea {
+            margin: 10px 0;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 5px 0;
+            border-radius: 10px; /* Added rounded corners to all tables */
+            overflow: hidden; /* Ensures content stays within rounded corners */
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
+            color: #fff;
+        }
+        th {
+            background-color: rgba(0, 0, 0, 0.7); /* Darker semi-transparent background color for header */
+        }
+        .update-form {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-start;
+            margin-bottom: 10px;
+        }
+        .update-btn {
+            margin: 0 1px;
+            padding: 2px;
+            cursor: pointer;
+        }
+        #playerTable {
+            width: 75%; /* Reduced width */
+        }
+        #changeLog {
+            width: 30%; /* Updated width */
+            max-height: 80vh;
+            overflow-y: auto;
+            margin-left: 2px; /* Reduced margin to half */
+            border: 1px solid #ccc;
+            border-radius: 10px; /* Rounded corners for change log */
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
+            color: #fff;
+        }
+        #changeLog td {
+            border: none;
+            padding: 10px;
+            text-align: left;
+        }
+        .change-log-entry {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .clear-log-btn {
+            margin: 10px;
+            padding: 10px;
+            cursor: pointer;
+        }
+        #dailyNewsTable {
+            width: 25%; /* Reduced width by half */
+            margin: 0 auto;
+        }
+        .random-picker-box {
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the box */
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            width: 25%; /* Reduced width by half */
+            text-align: center;
+        }
+        #currentMessage {
+            font-size: 2em; /* Twice the normal size */
+            margin: 10px 0;
+        }
+        .selection-counter {
+            font-size: 1.5em; /* 1.5 times the normal size */
+            margin: 10px 0;
+        }
+        .select-all-cell input[type="checkbox"] {
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
     <div style="flex: 1;">
@@ -140,7 +140,7 @@
 
         <div style="height: 24px;"></div> <!-- Empty space to replace "Generate Daily News" heading -->
         <div class="random-picker-box">
-            <button type="button" id="generateMessageButton">Show Daily News</button>
+            <button type="button" id="generateMessageButton" onclick="showRandomMessage()">Show Daily News</button>
             <p id="currentMessage">Generate Daily News</p>
             <p class="selection-counter">Messages shown: <span id="messageCounter">0/0</span></p>
         </div>
@@ -240,76 +240,58 @@
             updateCell.appendChild(form);
             row.appendChild(updateCell);
 
-            const nameCell = document.createElement('td');
-            nameCell.textContent = player.name;
-            row.appendChild(nameCell);
-
-            const typeCell = document.createElement('td');
-            typeCell.textContent = player.type; 
-            row.appendChild(typeCell);
-
-            const levelCell = document.createElement('td');
-            levelCell.textContent = getLevel(player.xp);
-            row.appendChild(levelCell);
-
-            const xpCell = document.createElement('td');
-            xpCell.textContent = player.xp;
-            row.appendChild(xpCell);
-
-            const apCell = document.createElement('td');
-            apCell.textContent = player.ap;
-            row.appendChild(apCell);
-
-            const hpCell = document.createElement('td');
-            hpCell.textContent = player.hp;
-            row.appendChild(hpCell);
+            row.innerHTML += `
+                <td>${player.name}</td>
+                <td>${player.type}</td>
+                <td>${getLevel(player.xp)}</td>
+                <td>${player.xp}</td>
+                <td>${player.ap}</td>
+                <td>${player.hp}</td>
+            `;
 
             tbody.appendChild(row);
         });
     }
 
-    // Function to record changes to local storage and display them in the change log
+    // Function to record changes in the log
     function recordChange(name, type, oldValue, newValue) {
         const logEntries = document.getElementById('logEntries');
-        const changeLog = JSON.parse(localStorage.getItem('changeLog')) || [];
-        const now = new Date();
-        const timestamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-        const entry = `> ${timestamp} / ${name} / ${type.toUpperCase()} / ${oldValue} / ${newValue}`;
-
-        changeLog.push(entry);
-        localStorage.setItem('changeLog', JSON.stringify(changeLog));
-
-        const entryElement = document.createElement('div');
-        entryElement.textContent = entry;
-        entryElement.className = 'change-log-entry';
-        logEntries.appendChild(entryElement);
+        const entry = document.createElement('div');
+        entry.className = 'change-log-entry';
+        entry.textContent = `${new Date().toLocaleString()} - ${name} ${type.toUpperCase()} changed from ${oldValue} to ${newValue}`;
+        logEntries.appendChild(entry);
     }
 
-    // Function to populate the change log with entries from local storage
-    function populateChangeLog() {
-        const logEntries = document.getElementById('logEntries');
-        logEntries.innerHTML = '';
-        const changeLog = JSON.parse(localStorage.getItem('changeLog')) || [];
-        changeLog.forEach(entry => {
-            const entryElement = document.createElement('div');
-            entryElement.textContent = entry;
-            entryElement.className = 'change-log-entry';
-            logEntries.appendChild(entryElement);
-        });
-    }
-
-    // Function to clear the change log from local storage and update the display
+    // Function to clear the change log
     function clearChangeLog() {
-        localStorage.removeItem('changeLog');
-        populateChangeLog();
+        document.getElementById('logEntries').innerHTML = '';
     }
 
-    // Populate the tables when the document is loaded
+    // Function to show a random daily news message
+    function showRandomMessage() {
+        const messages = JSON.parse(localStorage.getItem('messages')) || [];
+        if (messages.length === 0) {
+            alert('No messages available.');
+            return;
+        }
+
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        const message = messages[randomIndex];
+
+        document.getElementById('currentMessage').innerHTML = `<strong>${message.name}</strong><br>${message.description}`;
+        document.getElementById('messageCounter').textContent = `${randomIndex + 1}/${messages.length}`;
+    }
+
+    // Function to populate the change log on page load
+    function populateChangeLog() {
+        // The change log is populated by the recordChange function as changes occur
+    }
+
+    // Populate tables on page load
     document.addEventListener('DOMContentLoaded', () => {
         populatePlayerTable();
         populateChangeLog();
     });
-</script>
-
+    </script>
 </body>
 </html>
