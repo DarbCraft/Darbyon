@@ -61,8 +61,9 @@
         width: 30%; /* Updated width */
         max-height: 80vh;
         overflow-y: auto;
-        margin-left: 2px;
+        margin-left: 2px; /* Reduced margin to half */
         border: 1px solid #ccc;
+        border-radius: 10px; /* Rounded corners for change log */
         background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
         color: #fff;
     }
@@ -113,11 +114,11 @@
             <a href="settings.html">Settings</a>
         </nav>
 
-        <h2>Select Players</h2>
+        <div style="height: 24px;"></div> <!-- Empty space to replace "Select Players" heading -->
         <div class="update-form">
-            <button type="button" class="update-btn" onclick="updateSelectedCharacters('xp')">🏅 XP to Selected</button>
-            <button type="button" class="update-btn" onclick="updateSelectedCharacters('ap')">💎 AP to Selected</button>
-            <button type="button" class="update-btn" onclick="updateSelectedCharacters('hp')">❤️ HP to Selected</button>
+            <button type="button" class="update-btn" onclick="updateSelectedCharacters('xp')">🏅 XP</button>
+            <button type="button" class="update-btn" onclick="updateSelectedCharacters('ap')">💎 AP</button>
+            <button type="button" class="update-btn" onclick="updateSelectedCharacters('hp')">❤️ HP</button>
         </div>
         <table id="playerTable">
             <thead>
@@ -137,7 +138,7 @@
             <tbody></tbody>
         </table>
 
-        <h2>Generate Daily News</h2>
+        <div style="height: 24px;"></div> <!-- Empty space to replace "Generate Daily News" heading -->
         <div class="random-picker-box">
             <button type="button" id="generateMessageButton">Show Daily News</button>
             <p id="currentMessage">Generate Daily News</p>
@@ -262,85 +263,43 @@
             });
         }
 
-        function recordChange(playerName, changeType, oldValue, newValue) {
-            const change = {
-                playerName: playerName,
-                changeType: changeType,
-                oldValue: oldValue,
-                newValue: newValue,
-                timestamp: new Date().toLocaleString()
-            };
+        function recordChange(name, type, oldValue, newValue) {
+            const logEntries = document.getElementById('logEntries');
+            const changeLog = JSON.parse(localStorage.getItem('changeLog')) || [];
+            const now = new Date();
+            const timestamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+            const entry = `> ${timestamp} / ${name} / ${type.toUpperCase()} / ${oldValue} / ${newValue}`;
 
-            let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-            changes.push(change);
-            localStorage.setItem('playerChanges', JSON.stringify(changes));
-            updateChangeLog();
+            changeLog.push(entry);
+            localStorage.setItem('changeLog', JSON.stringify(changeLog));
+
+            const entryElement = document.createElement('div');
+            entryElement.textContent = entry;
+            entryElement.className = 'change-log-entry';
+            logEntries.appendChild(entryElement);
         }
 
-        function updateChangeLog() {
+        function populateChangeLog() {
             const logEntries = document.getElementById('logEntries');
             logEntries.innerHTML = '';
-
-            const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-
-            changes.forEach(change => {
-                const logEntry = document.createElement('div');
-                logEntry.className = 'change-log-entry';
-
-                let verb;
-                if (change.changeType === 'hp') {
-                    verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                    logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} hearts.`;
-                } else if (change.changeType === 'ap') {
-                    verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                    logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} action points.`;
-                } else if (change.changeType === 'xp') {
-                    verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                    logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} experience points.`;
-                }
-
-                logEntries.appendChild(logEntry);
+            const changeLog = JSON.parse(localStorage.getItem('changeLog')) || [];
+            changeLog.forEach(entry => {
+                const entryElement = document.createElement('div');
+                entryElement.textContent = entry;
+                entryElement.className = 'change-log-entry';
+                logEntries.appendChild(entryElement);
             });
         }
 
         function clearChangeLog() {
-            localStorage.removeItem('playerChanges');
-            updateChangeLog();
+            localStorage.removeItem('changeLog');
+            populateChangeLog();
         }
 
-        function showRandomMessage() {
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
-            let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
-
-            if (shownMessages.length === messages.length) {
-                shownMessages = [];
-            }
-
-            const availableMessages = messages.filter(message => !shownMessages.includes(message));
-            if (availableMessages.length === 0) {
-                document.getElementById('currentMessage').innerHTML = `<strong>No new messages available.</strong>`;
-                return;
-            }
-
-            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-
-            shownMessages.push(randomMessage);
-            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
-
-            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong>: ${randomMessage.description}`;
-
-            const totalMessages = messages.length;
-            const shownCount = shownMessages.length;
-            const fractionText = `${shownCount % totalMessages || totalMessages}/${totalMessages}`;
-            document.getElementById('messageCounter').textContent = fractionText;
-        }
-
-        document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
-
-        window.onload = () => {
+        document.addEventListener('DOMContentLoaded', () => {
             populatePlayerTable();
-            updateChangeLog();
-        };
+            populateChangeLog();
+        });
     </script>
 </body>
 </html>
