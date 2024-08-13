@@ -4,107 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Values</title>
-   <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        background-image: url('https://github.com/DarbCraft/Darbyon/blob/main/Images/White%20background.jpeg?raw=true');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-    }
-    nav {
-        margin-bottom: 20px;
-    }
-    nav a {
-        margin: 10px;
-        text-decoration: none;
-        color: #000;
-    }
-    input, button, textarea {
-        margin: 10px 0;
-    }
-    table {
-        border-collapse: collapse;
-        margin: 5px 0;
-        border-radius: 10px; /* Added rounded corners to all tables */
-        overflow: hidden; /* Ensures content stays within rounded corners */
-    }
-    th, td {
-        border: 1px solid #ccc;
-        padding: 10px;
-        text-align: left;
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
-        color: #fff;
-    }
-    th {
-        background-color: rgba(0, 0, 0, 0.7); /* Darker semi-transparent background color for header */
-    }
-    .update-form {
-        display: flex;
-        gap: 5px;
-        justify-content: flex-start;
-        margin-bottom: 10px;
-    }
-    .update-btn {
-        margin: 0 1px;
-        padding: 2px;
-        cursor: pointer;
-    }
-    #playerTable {
-        width: 75%; /* Reduced width */
-    }
-    #changeLog {
-        width: 30%; /* Updated width */
-        max-height: 80vh;
-        overflow-y: auto;
-        margin-left: 2px; /* Reduced margin to half */
-        border: 1px solid #ccc;
-        border-radius: 10px; /* Rounded corners for change log */
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
-        color: #fff;
-    }
-    #changeLog td {
-        border: none;
-        padding: 10px;
-        text-align: left;
-    }
-    .change-log-entry {
-        display: block;
-        margin-bottom: 10px;
-    }
-    .clear-log-btn {
-        margin: 10px;
-        padding: 10px;
-        cursor: pointer;
-    }
-    #dailyNewsTable {
-        width: 25%; /* Reduced width by half */
-        margin: 0 auto;
-    }
-    .random-picker-box {
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the box */
-        padding: 20px;
-        border-radius: 10px;
-        display: inline-block;
-        width: 25%; /* Reduced width by half */
-        text-align: center;
-    }
-    #currentMessage {
-        font-size: 2em; /* Twice the normal size */
-        margin: 10px 0;
-    }
-    .selection-counter {
-        font-size: 1.5em; /* 1.5 times the normal size */
-        margin: 10px 0;
-    }
-    .select-all-cell input[type="checkbox"] {
-        margin: 0;
-    }
-</style>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            background-image: url('https://github.com/DarbCraft/Darbyon/blob/main/Images/White%20background.jpeg?raw=true');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        nav {
+            margin-bottom: 20px;
+        }
+        nav a {
+            margin: 10px;
+            text-decoration: none;
+            color: #000;
+        }
+        input, button, textarea {
+            margin: 10px 0;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 5px 0;
+            border-radius: 10px; /* Rounded corners for all tables */
+            overflow: hidden; /* Ensures content stays within rounded corners */
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
+            color: #fff;
+        }
+        th {
+            background-color: rgba(0, 0, 0, 0.7); /* Darker semi-transparent background color for header */
+        }
+        .update-form {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-start;
+            margin-bottom: 10px;
+        }
+        .update-btn {
+            margin: 0 1px;
+            padding: 2px;
+            cursor: pointer;
+        }
+        #playerTable {
+            width: 70%; /* Reduced width */
+        }
+        #changeLog {
+            width: 25%; /* Updated width */
+            max-height: 80vh;
+            overflow-y: auto;
+            margin-left: 1px; /* Reduced margin */
+            border: 1px solid #ccc;
+            border-radius: 10px; /* Rounded corners for change log */
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
+            color: #fff;
+        }
+        #changeLog td {
+            border: none;
+            padding: 10px;
+            text-align: left;
+        }
+        .change-log-entry {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .clear-log-btn {
+            margin: 10px;
+            padding: 10px;
+            cursor: pointer;
+        }
+        #dailyNewsTable {
+            width: 25%; /* Reduced width by half */
+            margin: 0 auto;
+        }
+        .random-picker-box {
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the box */
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            width: 25%; /* Reduced width by half */
+            text-align: center;
+        }
+        #currentMessage {
+            font-size: 2em; /* Twice the normal size */
+            margin: 10px 0;
+        }
+        .selection-counter {
+            font-size: 1.5em; /* 1.5 times the normal size */
+            margin: 10px 0;
+        }
+        .select-all-cell input[type="checkbox"] {
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
     <div style="flex: 1;">
