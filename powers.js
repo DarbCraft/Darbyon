@@ -1,98 +1,101 @@
-document.addEventListener('DOMContentLoaded', () => {
-    populatePlayerTable();
-    loadPowers();
+document.addEventListener('DOMContentLoaded', function() {
+    loadPlayers();
 });
 
-function populatePlayerTable() {
-    const tbody = document.querySelector('#playerTable tbody');
-    tbody.innerHTML = '';
+function loadPlayers() {
+    const playersTableBody = document.querySelector('#playersTable tbody');
+    playersTableBody.innerHTML = '';
 
     const players = JSON.parse(localStorage.getItem('characters')) || [];
-    players.forEach(player => {
-        const row = document.createElement('tr');
-        
-        const selectCell = document.createElement('td');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        selectCell.appendChild(checkbox);
-        row.appendChild(selectCell);
+    const powers = JSON.parse(localStorage.getItem('powers')) || [];
 
+    players.forEach((player, index) => {
+        const row = document.createElement('tr');
+
+        // Player Name
         const nameCell = document.createElement('td');
         nameCell.textContent = player.name;
         row.appendChild(nameCell);
 
-        const typeCell = document.createElement('td');
-        typeCell.textContent = player.type;
-        row.appendChild(typeCell);
-
-        const levelCell = document.createElement('td');
-        levelCell.textContent = getLevel(player.xp);
-        row.appendChild(levelCell);
-
+        // XP
         const xpCell = document.createElement('td');
         xpCell.textContent = player.xp;
         row.appendChild(xpCell);
 
+        // AP
         const apCell = document.createElement('td');
         apCell.textContent = player.ap;
         row.appendChild(apCell);
 
+        // HP
         const hpCell = document.createElement('td');
         hpCell.textContent = player.hp;
         row.appendChild(hpCell);
 
+        // Powers
         const powersCell = document.createElement('td');
-        const select = document.createElement('select');
-        select.className = 'power-select';
-        select.addEventListener('change', () => usePower(player.name, select.value));
-        powersCell.appendChild(select);
+        const powersSelect = document.createElement('select');
+        powersSelect.classList.add('powers-select');
+
+        const defaultOption = document.createElement('option');
+        defaultOption.text = 'Select power';
+        defaultOption.value = '';
+        powersSelect.appendChild(defaultOption);
+
+        powers.forEach((power, powerIndex) => {
+            const option = document.createElement('option');
+            option.value = powerIndex;
+            option.text = power.name;
+            powersSelect.appendChild(option);
+        });
+
+        powersSelect.addEventListener('change', function() {
+            const powerIndex = this.value;
+            if (powerIndex) {
+                applyPowerToPlayer(index, powerIndex);
+            }
+        });
+
+        powersCell.appendChild(powersSelect);
         row.appendChild(powersCell);
 
-        tbody.appendChild(row);
+        playersTableBody.appendChild(row);
     });
 }
 
-function loadPowers() {
-    const selects = document.querySelectorAll('.power-select');
+function applyPowerToPlayer(playerIndex, powerIndex) {
+    const players = JSON.parse(localStorage.getItem('characters')) || [];
     const powers = JSON.parse(localStorage.getItem('powers')) || [];
 
-    selects.forEach(select => {
-        select.innerHTML = '<option value="">Select a power</option>';
-        powers.forEach((power, index) => {
-            const option = document.createElement('option');
-            option.value = index;
-            option.textContent = power.name;
-            select.appendChild(option);
-        });
-    });
-}
-
-function usePower(playerName, powerIndex) {
-    const powers = JSON.parse(localStorage.getItem('powers')) || [];
+    const player = players[playerIndex];
     const power = powers[powerIndex];
-    if (!power) return;
 
-    let characters = JSON.parse(localStorage.getItem('characters')) || [];
-    characters = characters.map(char => {
-        if (char.name === playerName) {
-            if (char.ap >= power.apCost) {
-                char.ap -= power.apCost;
-                char.xp += power.xpGain || 0;
-                char.ap += power.apGain || 0;
-                char.hp += power.hpGain || 0;
-            } else {
-                alert('Not enough AP to use this power.');
+    // Update player's stats based on the power effects
+    player.ap -= power.apCost;
+    player.xp += power.gainXp;
+    player.ap += power.gainAp;
+    player.hp += power.gainHp;
+
+    // If the power affects another player
+    const powerEffects = document.querySelectorAll('.affect-select');
+    powerEffects.forEach(select => {
+        if (select.value) {
+            const targetPlayerName = select.value;
+            const targetPlayer = players.find(p => p.name === targetPlayerName);
+
+            if (targetPlayer) {
+                const effectType = select.nextElementSibling.querySelector('.effect-type').value;
+                const effectAmount = parseInt(select.nextElementSibling.querySelector('.effect-amount').value, 10);
+
+                if (effectType === 'hp') {
+                    targetPlayer.hp += effectAmount;
+                } else if (effectType === 'ap') {
+                    targetPlayer.ap += effectAmount;
+                }
             }
         }
-        return char;
     });
 
-    localStorage.setItem('characters', JSON.stringify(characters));
-    populatePlayerTable();
-}
-
-function getLevel(xp) {
-    if (xp < 5000) return 1;
-    if (xp < 9999) return 2;
-    return Math.floor(xp / 5000) + 1;
+    localStorage.setItem('characters', JSON.stringify(players));
+    loadPlayers();
 }
