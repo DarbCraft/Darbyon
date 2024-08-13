@@ -304,33 +304,44 @@
 
     function showRandomMessage() {
         const messages = JSON.parse(localStorage.getItem('messages')) || [];
+        let currentIndex = parseInt(localStorage.getItem('currentMessageIndex'), 10) || 0;
+
         if (messages.length > 0) {
-            const randomIndex = Math.floor(Math.random() * messages.length);
-            const selectedMessage = messages[randomIndex];
+            const selectedMessage = messages[currentIndex];
             document.getElementById('currentMessage').innerHTML = `<strong>${selectedMessage.name}</strong>: ${selectedMessage.description}`;
-            document.getElementById('messageCounter').textContent = `${randomIndex + 1}/${messages.length}`;
+            document.getElementById('messageCounter').textContent = `${currentIndex + 1}/${messages.length}`;
+
+            // Update index for next message
+            currentIndex = (currentIndex + 1) % messages.length;
+            localStorage.setItem('currentMessageIndex', currentIndex);
         } else {
             document.getElementById('currentMessage').textContent = "No messages available.";
         }
+    }
+
+    function resetDailyEvents() {
+        localStorage.removeItem('currentMessageIndex');
+        showRandomMessage(); // Show the first message after resetting
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         // Check if messages are already in localStorage
         if (!localStorage.getItem('messages')) {
             const messages = [
-                { name: "Electrical Storm", description: "Eveveryone loses 2 HP" },
+                { name: "Electrical Storm", description: "Everyone loses 2 HP" },
                 { name: "Sunny Day Feeling", description: "Everyone gains 100XP" },
-                { name: "Shuffle!", description: "Leave your chiar where it is and move to another desk. Run and you lose HP" }
+                { name: "Shuffle!", description: "Leave your chair where it is and move to another desk. Run and you lose HP" }
             ];
             localStorage.setItem('messages', JSON.stringify(messages));
         }
         
         // Initialize the showRandomMessage button
         document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
+        document.getElementById('resetDailyEventsButton').addEventListener('click', resetDailyEvents);
 
         // Populate player table or any other initialization logic
         populatePlayerTable();
     });
-    </script>
+</script>
 </body>
 </html>
