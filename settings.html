@@ -56,6 +56,27 @@
         .btn-group button {
             margin-left: 10px;
         }
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgba(192, 192, 192, 0.8);
+        }
+        .styled-table th, .styled-table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        .styled-table th {
+            background-color: #666;
+            color: white;
+        }
+        .styled-table tr:nth-child(even):not(:nth-child(1)) {
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+        .styled-table tr:nth-child(odd) {
+            background-color: rgba(211, 211, 211, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -114,202 +135,25 @@
         <tbody></tbody>
     </table>
 
-    <script>
-        function addCharacter() {
-            const name = document.getElementById('charName').value;
-            const type = document.getElementById('charType').value;
-            let hp, ap;
+    <h2>Powers</h2>
+    <table id="powersTable">
+        <thead>
+            <tr>
+                <th>Power Name</th>
+                <th>AP Cost</th>
+                <th>Gain XP</th>
+                <th>Gain AP</th>
+                <th>Gain HP</th>
+                <th>Affect Other Player?</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Power rows will be populated by JavaScript -->
+        </tbody>
+    </table>
+    <button id="addPowerButton">Add New Power</button>
 
-            switch (type) {
-                case 'Warrior':
-                    hp = 10;
-                    ap = 15;
-                    break;
-                case 'Healer':
-                    hp = 8;
-                    ap = 20;
-                    break;
-                case 'Mage':
-                    hp = 6;
-                    ap = 30;
-                    break;
-                default:
-                    alert('Invalid character type!');
-                    return;
-            }
-
-            const newCharacter = { name, type, xp: 0, ap, hp };
-            let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters.push(newCharacter);
-            localStorage.setItem('characters', JSON.stringify(characters));
-            loadScoreboard();  // Update the table immediately
-            document.getElementById('addCharacterForm').reset();
-        }
-
-        function loadScoreboard() {
-            const tableBody = document.querySelector('#scoreboardTableBody');
-            tableBody.innerHTML = '';
-            const characters = JSON.parse(localStorage.getItem('characters')) || [];
-            
-            characters.forEach((char, index) => {
-                const row = document.createElement('tr');
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = char.name;
-                row.appendChild(nameCell);
-
-                const xpCell = document.createElement('td');
-                xpCell.textContent = char.xp;
-                row.appendChild(xpCell);
-
-                const apCell = document.createElement('td');
-                apCell.textContent = char.ap;
-                row.appendChild(apCell);
-
-                const hpCell = document.createElement('td');
-                hpCell.textContent = char.hp;
-                row.appendChild(hpCell);
-
-                // Add Actions cell
-                const actionsCell = document.createElement('td');
-
-                // Edit button
-                const editButton = document.createElement('button');
-                editButton.textContent = 'Edit';
-                editButton.addEventListener('click', () => editCharacter(index));
-                actionsCell.appendChild(editButton);
-
-                // Delete button
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.addEventListener('click', () => deleteCharacter(index));
-                actionsCell.appendChild(deleteButton);
-
-                row.appendChild(actionsCell);
-                tableBody.appendChild(row);
-            });
-        }
-
-        function editCharacter(index) {
-            const characters = JSON.parse(localStorage.getItem('characters')) || [];
-            const char = characters[index];
-
-            // Prompt user for new values
-            const newName = prompt("Edit Character Name:", char.name);
-            const newXP = prompt("Edit XP:", char.xp);
-            const newAP = prompt("Edit AP:", char.ap);
-            const newHP = prompt("Edit HP:", char.hp);
-
-            // Update the character with new values if confirmed
-            if (newName !== null && newXP !== null && newAP !== null && newHP !== null) {
-                char.name = newName.trim();
-                char.xp = parseInt(newXP);
-                char.ap = parseInt(newAP);
-                char.hp = parseInt(newHP);
-                characters[index] = char;
-                localStorage.setItem('characters', JSON.stringify(characters));
-                loadScoreboard();
-            }
-        }
-
-        function deleteCharacter(index) {
-            const confirmation = confirm("Are you sure you want to delete this character?");
-            if (confirmation) {
-                let characters = JSON.parse(localStorage.getItem('characters')) || [];
-                characters.splice(index, 1);
-                localStorage.setItem('characters', JSON.stringify(characters));
-                loadScoreboard();
-            }
-        }
-
-       function loadMessages() {
-    const messageTableBody = document.querySelector('#messageTable tbody');
-    messageTableBody.innerHTML = '';
-
-    const messages = JSON.parse(localStorage.getItem('messages')) || [];
-
-    messages.forEach((msg, index) => {
-        const row = document.createElement('tr');
-        const nameCell = document.createElement('td');
-        const descriptionCell = document.createElement('td');
-        const actionsCell = document.createElement('td');
-
-        // Style the name in bold and the description in a larger font
-        nameCell.innerHTML = `<strong>${msg.name}</strong>`;
-        descriptionCell.innerHTML = `<span style="font-size: larger;">${msg.description}</span>`;
-
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.onclick = () => deleteMessage(index);
-
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Edit';
-        editButton.onclick = () => editMessage(index);
-
-        const btnGroup = document.createElement('div');
-        btnGroup.classList.add('btn-group');
-        btnGroup.appendChild(editButton);
-        btnGroup.appendChild(deleteButton);
-
-        actionsCell.appendChild(btnGroup);
-
-        row.appendChild(nameCell);
-        row.appendChild(descriptionCell);
-        row.appendChild(actionsCell);
-
-        messageTableBody.appendChild(row);
-    });
-}
-
-function deleteMessage(index) {
-    if (confirm('Are you sure you want to delete this news item?')) {
-        let messages = JSON.parse(localStorage.getItem('messages')) || [];
-        messages.splice(index, 1);
-        localStorage.setItem('messages', JSON.stringify(messages));
-        loadMessages();
-    }
-}
-
-function editMessage(index) {
-    let messages = JSON.parse(localStorage.getItem('messages')) || [];
-    const msg = messages[index];
-
-    const newName = prompt('Edit Name:', msg.name);
-    const newDescription = prompt('Edit Description:', msg.description);
-
-    if (newName !== null && newDescription !== null) {
-        messages[index] = { name: newName.trim(), description: newDescription.trim() };
-        localStorage.setItem('messages', JSON.stringify(messages));
-        loadMessages();
-    }
-}
-
-document.querySelector('#messageForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    const messageName = document.querySelector('#messageName').value.trim();
-    const messageDescription = document.querySelector('#messageDescription').value.trim();
-
-    if (messageName && messageDescription) {
-        const messages = JSON.parse(localStorage.getItem('messages')) || [];
-
-        messages.push({
-            name: messageName,
-            description: messageDescription
-        });
-
-        localStorage.setItem('messages', JSON.stringify(messages));
-        loadMessages();
-
-        // Clear the form
-        document.querySelector('#messageForm').reset();
-    }
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    loadScoreboard();
-    loadMessages();
-        });
-    </script>
+    <script src="settings.js"></script>
 </body>
 </html>
