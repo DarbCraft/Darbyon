@@ -4,107 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Values</title>
-   <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        background-image: url('https://github.com/DarbCraft/Darbyon/blob/main/Images/White%20background.jpeg?raw=true');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-    }
-    nav {
-        margin-bottom: 20px;
-    }
-    nav a {
-        margin: 10px;
-        text-decoration: none;
-        color: #000;
-    }
-    input, button, textarea {
-        margin: 10px 0;
-    }
-    table {
-        border-collapse: collapse;
-        margin: 20px 0;
-        border-radius: 10px; /* Added rounded corners to all tables */
-        overflow: hidden; /* Ensures content stays within rounded corners */
-    }
-    th, td {
-        border: 1px solid #ccc;
-        padding: 10px;
-        text-align: left;
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
-        color: #fff;
-    }
-    th {
-        background-color: rgba(0, 0, 0, 0.7); /* Darker semi-transparent background color for header */
-    }
-    .update-form {
-        display: flex;
-        gap: 5px;
-        justify-content: flex-start;
-        margin-bottom: 10px;
-    }
-    .update-btn {
-        margin: 0 1px;
-        padding: 2px;
-        cursor: pointer;
-    }
-    #playerTable {
-        width: 75%; /* Reduced width */
-    }
-    #changeLog {
-        width: 30%; /* Updated width */
-        max-height: 80vh;
-        overflow-y: auto;
-        margin-left: 2px;
-        border: 1px solid #ccc;
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
-        color: #fff;
-    }
-    #changeLog td {
-        border: none;
-        padding: 10px;
-        text-align: left;
-    }
-    .change-log-entry {
-        display: block;
-        margin-bottom: 10px;
-    }
-    .clear-log-btn {
-        margin: 10px;
-        padding: 10px;
-        cursor: pointer;
-    }
-    #dailyNewsTable {
-        width: 25%; /* Reduced width by half */
-        margin: 0 auto;
-    }
-    .random-picker-box {
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the box */
-    padding: 20px;
-    border-radius: 10px;
-    display: inline-block;
-    width: 25%; /* Reduced width by half */
-    text-align: center;
-    color: #fff; /* Text color set to white */
-}
-    #currentMessage {
-        font-size: 2em; /* Twice the normal size */
-        margin: 10px 0;
-    }
-    .selection-counter {
-        font-size: 1.5em; /* 1.5 times the normal size */
-        margin: 10px 0;
-    }
-    .select-all-cell input[type="checkbox"] {
-        margin: 0;
-    }
-</style>
+    <style>
+        /* Existing styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            background-image: url('https://github.com/DarbCraft/Darbyon/blob/main/Images/White%20background.jpeg?raw=true');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        nav {
+            margin-bottom: 20px;
+        }
+        nav a {
+            margin: 10px;
+            text-decoration: none;
+            color: #000;
+        }
+        input, button, textarea {
+            margin: 10px 0;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px; /* Added rounded corners to all tables */
+            overflow: hidden; /* Ensures content stays within rounded corners */
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
+            color: #fff;
+        }
+        th {
+            background-color: rgba(0, 0, 0, 0.7); /* Darker semi-transparent background color for header */
+        }
+        .update-form {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-start;
+            margin-bottom: 10px;
+        }
+        .update-btn {
+            margin: 0 1px;
+            padding: 2px;
+            cursor: pointer;
+        }
+        #playerTable {
+            width: 75%; /* Reduced width */
+        }
+        #changeLog {
+            width: 30%; /* Updated width */
+            max-height: 80vh;
+            overflow-y: auto;
+            margin-left: 2px;
+            border: 1px solid #ccc;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
+            color: #fff;
+        }
+        #changeLog td {
+            border: none;
+            padding: 10px;
+            text-align: left;
+        }
+        .change-log-entry {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .clear-log-btn {
+            margin: 10px;
+            padding: 10px;
+            cursor: pointer;
+        }
+        #dailyNewsTable {
+            width: 25%; /* Reduced width by half */
+            margin: 0 auto;
+        }
+        .random-picker-box {
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the box */
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            width: 25%; /* Reduced width by half */
+            text-align: center;
+            color: #fff; /* Text color set to white */
+        }
+        #currentMessage {
+            font-size: 2em; /* Twice the normal size */
+            margin: 10px 0;
+        }
+        .selection-counter {
+            font-size: 1.5em; /* 1.5 times the normal size */
+            margin: 10px 0;
+        }
+        .select-all-cell input[type="checkbox"] {
+            margin: 0;
+        }
+        /* New styles for filter buttons */
+        .filter-buttons {
+            margin: 10px 0;
+        }
+        .filter-button {
+            padding: 5px;
+            cursor: pointer;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+        .filter-button:hover {
+            background: #555;
+        }
+    </style>
 </head>
 <body>
     <div style="flex: 1;">
@@ -120,6 +137,21 @@
             <button type="button" class="update-btn" onclick="updateSelectedCharacters('ap')">💎 AP to Selected</button>
             <button type="button" class="update-btn" onclick="updateSelectedCharacters('hp')">❤️ HP to Selected</button>
         </div>
+
+        <!-- Filter Buttons -->
+        <div class="filter-buttons">
+            <button class="filter-button" onclick="sortTable(2, 'asc')">Name A-Z</button>
+            <button class="filter-button" onclick="sortTable(2, 'desc')">Name Z-A</button>
+            <button class="filter-button" onclick="sortTable(3, 'asc')">Type Ascending</button>
+            <button class="filter-button" onclick="sortTable(3, 'desc')">Type Descending</button>
+            <button class="filter-button" onclick="sortTable(5, 'asc')">XP Low to High</button>
+            <button class="filter-button" onclick="sortTable(5, 'desc')">XP High to Low</button>
+            <button class="filter-button" onclick="sortTable(6, 'asc')">AP Low to High</button>
+            <button class="filter-button" onclick="sortTable(6, 'desc')">AP High to Low</button>
+            <button class="filter-button" onclick="sortTable(7, 'asc')">HP Low to High</button>
+            <button class="filter-button" onclick="sortTable(7, 'desc')">HP High to Low</button>
+        </div>
+
         <table id="playerTable">
             <thead>
                 <tr>
@@ -153,6 +185,8 @@
     </div>
 
     <script>
+    // Existing JavaScript functions
+
     function toggleSelectAll(selectAllCheckbox) {
         const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
@@ -204,150 +238,70 @@
             return 4;
         } else if (xp < 25000) {
             return 5;
-        } else if (xp < 30000) {
-            return 6;
         } else {
-            return 7; 
+            return 6;
         }
     }
 
     function populatePlayerTable() {
-        const tbody = document.querySelector('#playerTable tbody');
-        tbody.innerHTML = '';
-
-        const players = JSON.parse(localStorage.getItem('characters')) || [];
-        players.forEach(player => {
+        const tableBody = document.querySelector('#playerTable tbody');
+        const characters = JSON.parse(localStorage.getItem('characters')) || [];
+        tableBody.innerHTML = '';
+        
+        characters.forEach(char => {
             const row = document.createElement('tr');
-            
-            const selectCell = document.createElement('td');
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            selectCell.appendChild(checkbox);
-            row.appendChild(selectCell);
-
-            const updateCell = document.createElement('td');
-            const form = document.createElement('form');
-            form.className = 'update-form';
-            form.innerHTML = `
-                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp', parseInt(prompt('Enter XP value:')))">🏅 XP</button>
-                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap', parseInt(prompt('Enter AP value:')))">💎 AP</button>
-                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp', parseInt(prompt('Enter HP value:')))">❤️ HP</button>
+            row.innerHTML = `
+                <td><input type="checkbox"></td>
+                <td><button onclick="showUpdateForm('${char.name}')">Edit</button></td>
+                <td>${char.name}</td>
+                <td>${char.type}</td>
+                <td>${getLevel(char.xp)}</td>
+                <td>${char.xp}</td>
+                <td>${char.ap}</td>
+                <td>${char.hp}</td>
             `;
-            updateCell.appendChild(form);
-            row.appendChild(updateCell);
-
-            const nameCell = document.createElement('td');
-            nameCell.textContent = player.name;
-            row.appendChild(nameCell);
-
-            const typeCell = document.createElement('td');
-            typeCell.textContent = player.type; 
-            row.appendChild(typeCell);
-
-            const levelCell = document.createElement('td');
-            levelCell.textContent = getLevel(player.xp);
-            row.appendChild(levelCell);
-
-            const xpCell = document.createElement('td');
-            xpCell.textContent = player.xp;
-            row.appendChild(xpCell);
-
-            const apCell = document.createElement('td');
-            apCell.textContent = player.ap;
-            row.appendChild(apCell);
-
-            const hpCell = document.createElement('td');
-            hpCell.textContent = player.hp;
-            row.appendChild(hpCell);
-
-            tbody.appendChild(row);
+            tableBody.appendChild(row);
         });
     }
 
-    function recordChange(playerName, changeType, oldValue, newValue) {
-        const change = {
-            playerName: playerName,
-            changeType: changeType,
-            oldValue: oldValue,
-            newValue: newValue,
-            timestamp: new Date().toLocaleString()
-        };
-
-        let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-        changes.push(change);
-        localStorage.setItem('playerChanges', JSON.stringify(changes));
-        updateChangeLog();
+    function showUpdateForm(name) {
+        // Show a form or modal to update the character values
     }
 
-    function updateChangeLog() {
+    function recordChange(name, type, oldValue, newValue) {
         const logEntries = document.getElementById('logEntries');
-        logEntries.innerHTML = '';
-
-        const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-
-        changes.forEach(change => {
-            const logEntry = document.createElement('div');
-            logEntry.className = 'change-log-entry';
-
-            let verb;
-            if (change.changeType === 'hp') {
-                verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} hearts.`;
-            } else if (change.changeType === 'ap') {
-                verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} action points.`;
-            } else if (change.changeType === 'xp') {
-                verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} experience points.`;
-            }
-
-            logEntries.appendChild(logEntry);
-        });
+        const entry = document.createElement('div');
+        entry.className = 'change-log-entry';
+        const timestamp = new Date().toLocaleString();
+        entry.textContent = `${timestamp} > ${name} > ${type}: ${oldValue} -> ${newValue}`;
+        logEntries.appendChild(entry);
     }
 
     function clearChangeLog() {
-        localStorage.removeItem('playerChanges');
-        updateChangeLog();
+        document.getElementById('logEntries').innerHTML = '';
     }
 
-    function showRandomMessage() {
-        const messages = JSON.parse(localStorage.getItem('messages')) || [];
-        let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+    function sortTable(columnIndex, order) {
+        const table = document.querySelector('#playerTable');
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.cells[columnIndex].textContent.trim();
+            const cellB = rowB.cells[columnIndex].textContent.trim();
 
-        if (shownMessages.length === messages.length) {
-            shownMessages = [];
-        }
+            let comparison = 0;
+            if (cellA < cellB) {
+                comparison = -1;
+            } else if (cellA > cellB) {
+                comparison = 1;
+            }
+            return order === 'desc' ? comparison * -1 : comparison;
+        });
 
-        const availableMessages = messages.filter(message => !shownMessages.includes(message));
-        if (availableMessages.length === 0) {
-            document.getElementById('currentMessage').innerHTML = `<strong>No new messages available.</strong>`;
-            return;
-        }
-
-        document.getElementById('currentMessage').innerHTML = `<strong>Gathering Daily News Item...</strong>`;
-
-        setTimeout(() => {
-            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-
-            shownMessages.push(randomMessage);
-            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
-
-            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong>: ${randomMessage.description}`;
-
-            const totalMessages = messages.length;
-            const shownCount = shownMessages.length;
-            const fractionText = `${shownCount % totalMessages || totalMessages}/${totalMessages}`;
-            document.getElementById('messageCounter').textContent = fractionText;
-        }, 2000); // Delay of 2 seconds
+        const tbody = table.querySelector('tbody');
+        rows.forEach(row => tbody.appendChild(row));
     }
 
-    document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
-
-    window.onload = () => {
-        populatePlayerTable();
-        updateChangeLog();
-    };
-</script>
-
+    document.addEventListener('DOMContentLoaded', populatePlayerTable);
+    </script>
 </body>
 </html>
