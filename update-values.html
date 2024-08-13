@@ -302,7 +302,35 @@
         rows.forEach(row => table.querySelector('tbody').appendChild(row));
     }
 
-    document.addEventListener('DOMContentLoaded', populatePlayerTable);
-</script>
+    function showRandomMessage() {
+        const messages = JSON.parse(localStorage.getItem('messages')) || [];
+        if (messages.length > 0) {
+            const randomIndex = Math.floor(Math.random() * messages.length);
+            const selectedMessage = messages[randomIndex];
+            document.getElementById('currentMessage').innerHTML = `<strong>${selectedMessage.name}</strong>: ${selectedMessage.description}`;
+            document.getElementById('messageCounter').textContent = `${randomIndex + 1}/${messages.length}`;
+        } else {
+            document.getElementById('currentMessage').textContent = "No messages available.";
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if messages are already in localStorage
+        if (!localStorage.getItem('messages')) {
+            const messages = [
+                { name: "Message 1", description: "This is the first daily news message." },
+                { name: "Message 2", description: "This is the second daily news message." },
+                { name: "Message 3", description: "This is the third daily news message." }
+            ];
+            localStorage.setItem('messages', JSON.stringify(messages));
+        }
+        
+        // Initialize the showRandomMessage button
+        document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
+
+        // Populate player table or any other initialization logic
+        populatePlayerTable();
+    });
+    </script>
 </body>
 </html>
