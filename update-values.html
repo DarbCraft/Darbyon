@@ -104,6 +104,16 @@
     .select-all-cell input[type="checkbox"] {
         margin: 0;
     }
+    .filter-button {
+        border: none;
+        background: none;
+        color: #fff;
+        cursor: pointer;
+        font-size: 1.2em;
+    }
+    .filter-button:hover {
+        color: #ddd;
+    }
 </style>
 </head>
 <body>
@@ -127,12 +137,12 @@
                         <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)">
                     </th>
                     <th>Update</th>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Level</th>
-                    <th>XP</th>
-                    <th>AP</th>
-                    <th>HP</th>
+                    <th>Name <button class="filter-button" onclick="sortTable(2, 'asc')">&#x25BC;</button></th>
+                    <th>Type <button class="filter-button" onclick="sortTable(3, 'asc')">&#x25BC;</button></th>
+                    <th>Level <button class="filter-button" onclick="sortTable(4, 'asc')">&#x25BC;</button></th>
+                    <th>XP <button class="filter-button" onclick="sortTable(5, 'asc')">&#x25BC;</button></th>
+                    <th>AP <button class="filter-button" onclick="sortTable(6, 'asc')">&#x25BC;</button></th>
+                    <th>HP <button class="filter-button" onclick="sortTable(7, 'asc')">&#x25BC;</button></th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -229,9 +239,9 @@
             const form = document.createElement('form');
             form.className = 'update-form';
             form.innerHTML = `
-                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp', parseInt(prompt('Enter XP value:')))">🏅 XP</button>
-                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap', parseInt(prompt('Enter AP value:')))">💎 AP</button>
-                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp', parseInt(prompt('Enter HP value:')))">❤️ HP</button>
+                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp', parseInt(prompt('Enter XP value (positive/negative):')) || 0)">🏅 XP</button>
+                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap', parseInt(prompt('Enter AP value (positive/negative):')) || 0)">💎 AP</button>
+                <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp', parseInt(prompt('Enter HP value (positive/negative):')) || 0)">❤️ HP</button>
             `;
             updateCell.appendChild(form);
             row.appendChild(updateCell);
@@ -241,11 +251,12 @@
             row.appendChild(nameCell);
 
             const typeCell = document.createElement('td');
-            typeCell.textContent = player.type; 
+            typeCell.textContent = player.type;
             row.appendChild(typeCell);
 
             const levelCell = document.createElement('td');
-            levelCell.textContent = getLevel(player.xp);
+            const level = getLevel(player.xp);
+            levelCell.textContent = level;
             row.appendChild(levelCell);
 
             const xpCell = document.createElement('td');
@@ -264,90 +275,34 @@
         });
     }
 
-    function recordChange(playerName, changeType, oldValue, newValue) {
-        const change = {
-            playerName: playerName,
-            changeType: changeType,
-            oldValue: oldValue,
-            newValue: newValue,
-            timestamp: new Date().toLocaleString()
-        };
-
-        let changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-        changes.push(change);
-        localStorage.setItem('playerChanges', JSON.stringify(changes));
-        updateChangeLog();
-    }
-
-    function updateChangeLog() {
+    function recordChange(name, type, oldValue, newValue) {
         const logEntries = document.getElementById('logEntries');
-        logEntries.innerHTML = '';
-
-        const changes = JSON.parse(localStorage.getItem('playerChanges')) || [];
-
-        changes.forEach(change => {
-            const logEntry = document.createElement('div');
-            logEntry.className = 'change-log-entry';
-
-            let verb;
-            if (change.changeType === 'hp') {
-                verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} hearts.`;
-            } else if (change.changeType === 'ap') {
-                verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} action points.`;
-            } else if (change.changeType === 'xp') {
-                verb = change.newValue - change.oldValue < 0 ? 'lost' : 'gained';
-                logEntry.textContent = `${change.timestamp} > ${change.playerName} ${verb} ${Math.abs(change.newValue - change.oldValue)} experience points.`;
-            }
-
-            logEntries.appendChild(logEntry);
-        });
+        const timestamp = new Date().toLocaleString();
+        const logEntry = document.createElement('div');
+        logEntry.className = 'change-log-entry';
+        logEntry.textContent = `> ${name} / ${type.toUpperCase()} / ${oldValue} -> ${newValue} / ${timestamp}`;
+        logEntries.appendChild(logEntry);
     }
 
     function clearChangeLog() {
-        localStorage.removeItem('playerChanges');
-        updateChangeLog();
+        const logEntries = document.getElementById('logEntries');
+        logEntries.innerHTML = '';
     }
 
-    function showRandomMessage() {
-        const messages = JSON.parse(localStorage.getItem('messages')) || [];
-        let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+    function sortTable(columnIndex, order) {
+        const table = document.getElementById('playerTable');
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
 
-        if (shownMessages.length === messages.length) {
-            shownMessages = [];
-        }
+        rows.sort((a, b) => {
+            const aText = a.cells[columnIndex].textContent.trim();
+            const bText = b.cells[columnIndex].textContent.trim();
+            return (aText > bText ? 1 : -1) * (order === 'asc' ? 1 : -1);
+        });
 
-        const availableMessages = messages.filter(message => !shownMessages.includes(message));
-        if (availableMessages.length === 0) {
-            document.getElementById('currentMessage').innerHTML = `<strong>No new messages available.</strong>`;
-            return;
-        }
-
-        document.getElementById('currentMessage').innerHTML = `<strong>Gathering Daily News Item...</strong>`;
-
-        setTimeout(() => {
-            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-
-            shownMessages.push(randomMessage);
-            localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
-
-            document.getElementById('currentMessage').innerHTML = `<strong>${randomMessage.name}</strong>: ${randomMessage.description}`;
-
-            const totalMessages = messages.length;
-            const shownCount = shownMessages.length;
-            const fractionText = `${shownCount % totalMessages || totalMessages}/${totalMessages}`;
-            document.getElementById('messageCounter').textContent = fractionText;
-        }, 2000); // Delay of 2 seconds
+        rows.forEach(row => table.querySelector('tbody').appendChild(row));
     }
 
-    document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
-
-    window.onload = () => {
-        populatePlayerTable();
-        updateChangeLog();
-    };
+    document.addEventListener('DOMContentLoaded', populatePlayerTable);
 </script>
-
 </body>
 </html>
