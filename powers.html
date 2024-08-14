@@ -95,117 +95,125 @@
     </table>
 
     <script>
-        function loadPlayers() {
-            const playersTableBody = document.querySelector('#playersTableBody');
-            playersTableBody.innerHTML = '';
-            const characters = JSON.parse(localStorage.getItem('characters')) || [];
+       function loadPlayers() {
+    const playersTableBody = document.querySelector('#playersTableBody');
+    playersTableBody.innerHTML = '';
+    const characters = JSON.parse(localStorage.getItem('characters')) || [];
 
-            characters.forEach((char, index) => {
-                const row = document.createElement('tr');
+    characters.forEach((char, index) => {
+        const row = document.createElement('tr');
 
-                const nameCell = document.createElement('td');
-                nameCell.textContent = char.name;
-                row.appendChild(nameCell);
+        const nameCell = document.createElement('td');
+        nameCell.textContent = char.name;
+        row.appendChild(nameCell);
 
-                const typeCell = document.createElement('td');
-                typeCell.textContent = char.type;
-                row.appendChild(typeCell);
+        const typeCell = document.createElement('td');
+        typeCell.textContent = char.type;
+        row.appendChild(typeCell);
 
-                const levelCell = document.createElement('td');
-                levelCell.textContent = Math.floor(char.xp / 5000) + 1;
-                row.appendChild(levelCell);
+        const levelCell = document.createElement('td');
+        levelCell.textContent = Math.floor(char.xp / 5000) + 1;
+        row.appendChild(levelCell);
 
-                const xpCell = document.createElement('td');
-                xpCell.textContent = char.xp;
-                row.appendChild(xpCell);
+        const xpCell = document.createElement('td');
+        xpCell.textContent = char.xp;
+        row.appendChild(xpCell);
 
-                const apCell = document.createElement('td');
-                apCell.textContent = char.ap;
-                row.appendChild(apCell);
+        const apCell = document.createElement('td');
+        apCell.textContent = char.ap;
+        row.appendChild(apCell);
 
-                const hpCell = document.createElement('td');
-                hpCell.textContent = char.hp;
-                row.appendChild(hpCell);
+        const hpCell = document.createElement('td');
+        hpCell.textContent = char.hp;
+        row.appendChild(hpCell);
 
-                // Powers dropdown
-                const powersCell = document.createElement('td');
-                const powersDropdown = document.createElement('select');
-                const powers = JSON.parse(localStorage.getItem('powers')) || [];
+        // Powers dropdown
+        const powersCell = document.createElement('td');
+        const powersDropdown = document.createElement('select');
+        const powers = JSON.parse(localStorage.getItem('powers')) || [];
 
-                powers.forEach(power => {
-                    const option = document.createElement('option');
-                    option.value = power.name;
-                    option.textContent = power.name;
-                    powersDropdown.appendChild(option);
-                });
+        powers.forEach(power => {
+            const option = document.createElement('option');
+            option.value = power.name;
+            option.textContent = power.name;
+            powersDropdown.appendChild(option);
+        });
 
-                powersDropdown.addEventListener('change', () => applyPower(index, powersDropdown.value));
-                powersCell.appendChild(powersDropdown);
-                row.appendChild(powersCell);
+        powersDropdown.addEventListener('change', () => applyPower(index, powersDropdown.value));
+        powersCell.appendChild(powersDropdown);
+        row.appendChild(powersCell);
 
-                // Apply button
-                const actionsCell = document.createElement('td');
-                actionsCell.innerHTML = `<button onclick="applyPower(${index}, document.querySelector('#playersTableBody select').value)">Apply Power</button>`;
-                row.appendChild(actionsCell);
+        // Apply button
+        const actionsCell = document.createElement('td');
+        actionsCell.innerHTML = `<button onclick="applyPower(${index}, document.querySelector('#playersTableBody select').value)">Apply Power</button>`;
+        row.appendChild(actionsCell);
 
-                playersTableBody.appendChild(row);
-            });
-        }
+        playersTableBody.appendChild(row);
+    });
+}
 
-        function loadPowers() {
-            const powersTableBody = document.querySelector('#powersTableBody');
-            powersTableBody.innerHTML = '';
+function loadPowers() {
+    const powersTableBody = document.querySelector('#powersTableBody');
+    powersTableBody.innerHTML = '';
 
-            const powers = JSON.parse(localStorage.getItem('powers')) || [];
+    const powers = JSON.parse(localStorage.getItem('powers')) || [];
 
-            powers.forEach((power) => {
-                const row = document.createElement('tr');
+    powers.forEach((power) => {
+        const row = document.createElement('tr');
 
-                const nameCell = document.createElement('td');
-                nameCell.textContent = power.name;
-                row.appendChild(nameCell);
+        const nameCell = document.createElement('td');
+        nameCell.textContent = power.name;
+        row.appendChild(nameCell);
 
-                const effectCell = document.createElement('td');
-                effectCell.textContent = power.effect;
-                row.appendChild(effectCell);
+        const effectCell = document.createElement('td');
+        effectCell.textContent = `AP Cost: ${power.apCost}, XP Gain: ${power.gainXp}, AP Gain: ${power.gainAp}, HP Gain: ${power.gainHp}`;
+        row.appendChild(effectCell);
 
-                powersTableBody.appendChild(row);
-            });
-        }
+        powersTableBody.appendChild(row);
+    });
+}
 
-        function applyPower(playerIndex, powerName) {
-            const characters = JSON.parse(localStorage.getItem('characters')) || [];
-            const powers = JSON.parse(localStorage.getItem('powers')) || [];
-            const character = characters[playerIndex];
-            const power = powers.find(p => p.name === powerName);
+function applyPower(playerIndex, powerName) {
+    const characters = JSON.parse(localStorage.getItem('characters')) || [];
+    const powers = JSON.parse(localStorage.getItem('powers')) || [];
+    const character = characters[playerIndex];
+    const power = powers.find(p => p.name === powerName);
 
-            if (character && power) {
-                if (character.ap >= power.cost) {
-                    // Apply power effects
-                    character.ap -= power.cost;
+    if (character && power) {
+        console.log(`Attempting to apply power: ${powerName} to player: ${character.name}`);
+        console.log(`Current AP: ${character.ap}, Power Cost: ${power.apCost}`);
 
-                    if (power.effect.includes('XP')) {
-                        character.xp += power.xpEffect || 0;
-                    }
-                    if (power.effect.includes('HP')) {
-                        character.hp += power.hpEffect || 0;
-                    }
-                    if (power.effect.includes('AP')) {
-                        character.ap += power.apEffect || 0;
-                    }
+        if (character.ap >= power.apCost) {
+            // Apply power effects
+            character.ap -= power.apCost;
 
-                    localStorage.setItem('characters', JSON.stringify(characters));
-                    loadPlayers();
-                } else {
-                    alert('Not enough AP to use this power!');
-                }
+            if (power.gainXp) {
+                character.xp += power.gainXp;
             }
-        }
+            if (power.gainHp) {
+                character.hp += power.gainHp;
+            }
+            if (power.gainAp) {
+                character.ap += power.gainAp;
+            }
 
-        window.onload = () => {
+            console.log(`Applied effects - XP: ${power.gainXp}, AP: ${power.gainAp}, HP: ${power.gainHp}`);
+            console.log(`Updated Player - XP: ${character.xp}, AP: ${character.ap}, HP: ${character.hp}`);
+
+            localStorage.setItem('characters', JSON.stringify(characters));
             loadPlayers();
-            loadPowers();
-        };
+        } else {
+            alert('Not enough AP to use this power!');
+        }
+    } else {
+        alert('Invalid power or player!');
+    }
+}
+
+window.onload = () => {
+    loadPlayers();
+    loadPowers();
+};
     </script>
 </body>
 </html>
