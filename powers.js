@@ -53,7 +53,7 @@ function loadPlayers() {
         powersSelect.addEventListener('change', function() {
             const powerIndex = this.value;
             if (powerIndex) {
-                applyPowerToPlayer(index, powerIndex);
+                applyPowerToPlayer(index, parseInt(powerIndex));
             }
         });
 
@@ -102,7 +102,7 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     console.log(`Current AP: ${playerAP}, Power Cost: ${powerAPCost}`);
 
     // Check if the player has enough AP
-    if (playerAP < powerAPCost && powerAPCost > 0) {
+    if (playerAP < powerAPCost) {
         alert("Not enough AP to use this power!");
         return;
     }
@@ -111,7 +111,9 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     player.ap -= powerAPCost;
     player.xp += (power.gainXp || 0);
     player.hp += (power.gainHp || 0);
-    player.ap += (power.gainAp || 0);
+    player.ap += (power.gainAp || 0); // Ensure AP gain is applied after cost deduction
+
+    console.log(`Updated Player AP: ${player.ap}, XP: ${player.xp}, HP: ${player.hp}`);
 
     // If the power affects other players
     const powerEffects = document.querySelectorAll('.affect-select');
@@ -133,11 +135,6 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
         }
     });
 
-    localStorage.setItem('characters', JSON.stringify(players));
-    loadPlayers();
-}
-
-    // Save updated players data
     localStorage.setItem('characters', JSON.stringify(players));
     loadPlayers();
 }
