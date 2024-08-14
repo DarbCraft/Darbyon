@@ -70,32 +70,41 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const player = players[playerIndex];
     const power = powers[powerIndex];
 
-    // Ensure the player has enough AP to use the power
-    if (player.ap < power.apCost) {
-        alert(`${player.name} does not have enough AP to use ${power.name}!`);
+    // Ensure AP is an integer
+    const playerAP = parseInt(player.ap, 10);
+    const powerAPCost = parseInt(power.apCost, 10);
+
+    // Check if the player has enough AP
+    if (playerAP < powerAPCost) {
+        alert("Not enough AP to use this power!");
         return;
     }
 
     // Update player's stats based on the power effects
-    player.ap -= power.apCost;
+    player.ap -= powerAPCost;
     player.xp += power.gainXp;
     player.ap += power.gainAp;
     player.hp += power.gainHp;
 
     // If the power affects another player
-    if (power.affectPlayer) {
-        const targetPlayer = players.find(p => p.name === power.affectPlayer);
+    const powerEffects = document.querySelectorAll('.affect-select');
+    powerEffects.forEach(select => {
+        if (select.value) {
+            const targetPlayerName = select.value;
+            const targetPlayer = players.find(p => p.name === targetPlayerName);
 
-        if (targetPlayer) {
-            if (power.effectType === 'hp') {
-                targetPlayer.hp += power.effectAmount;
-            } else if (power.effectType === 'ap') {
-                targetPlayer.ap += power.effectAmount;
-            } else if (power.effectType === 'xp') {
-                targetPlayer.xp += power.effectAmount;
+            if (targetPlayer) {
+                const effectType = select.nextElementSibling.querySelector('.effect-type').value;
+                const effectAmount = parseInt(select.nextElementSibling.querySelector('.effect-amount').value, 10);
+
+                if (effectType === 'hp') {
+                    targetPlayer.hp += effectAmount;
+                } else if (effectType === 'ap') {
+                    targetPlayer.ap += effectAmount;
+                }
             }
         }
-    }
+    });
 
     localStorage.setItem('characters', JSON.stringify(players));
     loadPlayers();
