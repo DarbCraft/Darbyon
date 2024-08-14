@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     loadPlayers();
+    loadPowers();
 });
 
 function loadPlayers() {
@@ -63,6 +64,29 @@ function loadPlayers() {
     });
 }
 
+function loadPowers() {
+    const powersTableBody = document.querySelector('#powersTable tbody');
+    powersTableBody.innerHTML = '';
+
+    const powers = JSON.parse(localStorage.getItem('powers')) || [];
+
+    powers.forEach((power) => {
+        const row = document.createElement('tr');
+
+        // Power Name
+        const nameCell = document.createElement('td');
+        nameCell.textContent = power.name;
+        row.appendChild(nameCell);
+
+        // Power Effect
+        const effectCell = document.createElement('td');
+        effectCell.textContent = `AP Cost: ${power.apCost}, XP Gain: ${power.gainXp}, HP Effect: ${power.gainHp}, AP Effect: ${power.gainAp}`;
+        row.appendChild(effectCell);
+
+        powersTableBody.appendChild(row);
+    });
+}
+
 function applyPowerToPlayer(playerIndex, powerIndex) {
     const players = JSON.parse(localStorage.getItem('characters')) || [];
     const powers = JSON.parse(localStorage.getItem('powers')) || [];
@@ -70,7 +94,7 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const player = players[playerIndex];
     const power = powers[powerIndex];
 
-    // Ensure AP is an integer
+    // Ensure AP cost is an integer
     const playerAP = parseInt(player.ap, 10);
     const powerAPCost = parseInt(power.apCost, 10);
 
@@ -80,13 +104,13 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
         return;
     }
 
-    // Update player's stats based on the power effects
+    // Apply the power effects to the player
     player.ap -= powerAPCost;
-    player.xp += power.gainXp;
-    player.ap += power.gainAp;
-    player.hp += power.gainHp;
+    player.xp += (power.gainXp || 0);
+    player.hp += (power.gainHp || 0);
+    player.ap += (power.gainAp || 0);
 
-    // If the power affects another player
+    // If the power affects other players
     const powerEffects = document.querySelectorAll('.affect-select');
     powerEffects.forEach(select => {
         if (select.value) {
