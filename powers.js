@@ -94,15 +94,15 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const player = players[playerIndex];
     const power = powers[powerIndex];
 
-    // Ensure AP cost is an integer
+    // Ensure AP and power cost are integers
     const playerAP = parseInt(player.ap, 10);
     const powerAPCost = parseInt(power.apCost, 10);
 
-    console.log(`Player AP: ${playerAP}`);
-    console.log(`Power AP Cost: ${powerAPCost}`);
+    console.log(`Attempting to apply power: ${power.name} to player: ${player.name}`);
+    console.log(`Current AP: ${playerAP}, Power Cost: ${powerAPCost}`);
 
     // Check if the player has enough AP
-    if (playerAP < powerAPCost) {
+    if (playerAP < powerAPCost && powerAPCost > 0) {
         alert("Not enough AP to use this power!");
         return;
     }
@@ -132,6 +132,10 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
             }
         }
     });
+
+    localStorage.setItem('characters', JSON.stringify(players));
+    loadPlayers();
+}
 
     // Save updated players data
     localStorage.setItem('characters', JSON.stringify(players));
