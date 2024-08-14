@@ -98,6 +98,9 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const playerAP = parseInt(player.ap, 10);
     const powerAPCost = parseInt(power.apCost, 10);
 
+    console.log(`Player AP: ${playerAP}`);
+    console.log(`Power AP Cost: ${powerAPCost}`);
+
     // Check if the player has enough AP
     if (playerAP < powerAPCost) {
         alert("Not enough AP to use this power!");
@@ -130,6 +133,7 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
         }
     });
 
+    // Save updated players data
     localStorage.setItem('characters', JSON.stringify(players));
     loadPlayers();
 }
