@@ -39,42 +39,8 @@ function loadPowers() {
 
         // Affect Other Player?
         const affectCell = document.createElement('td');
-        const affectSelect = document.createElement('select');
-        affectSelect.classList.add('affect-select');
-
-        // Add a default option
-        const defaultOption = document.createElement('option');
-        defaultOption.text = 'Select player and effect';
-        defaultOption.value = '';
-        affectSelect.appendChild(defaultOption);
-
-        // Populate player options
-        const players = JSON.parse(localStorage.getItem('characters')) || [];
-        players.forEach(player => {
-            const option = document.createElement('option');
-            option.value = player.name;
-            option.text = player.name;
-            if (power.affectPlayer === player.name) {
-                option.selected = true;
-            }
-            affectSelect.appendChild(option);
-        });
-
-        // Add fields to define how it will affect the selected player
-        const effectDetails = document.createElement('div');
-        effectDetails.classList.add('effect-details');
-        effectDetails.innerHTML = `
-            <label for="effectType">Effect Type:</label>
-            <select class="effect-type">
-                <option value="none" ${power.effectType === 'none' ? 'selected' : ''}>None</option>
-                <option value="hp" ${power.effectType === 'hp' ? 'selected' : ''}>Add HP</option>
-                <option value="ap" ${power.effectType === 'ap' ? 'selected' : ''}>Add AP</option>
-            </select>
-            <label for="effectAmount">Amount:</label>
-            <input type="number" class="effect-amount" min="0" value="${power.effectAmount || 0}">
-        `;
-        affectCell.appendChild(affectSelect);
-        affectCell.appendChild(effectDetails);
+        affectCell.textContent = power.affectPlayer ? `Affects ${power.affectPlayer}` : 'None';
+        row.appendChild(affectCell);
 
         // Actions
         const actionsCell = document.createElement('td');
@@ -102,9 +68,12 @@ function addPower() {
     const gainXp = parseInt(prompt("Enter XP gain:"), 10);
     const gainAp = parseInt(prompt("Enter AP gain:"), 10);
     const gainHp = parseInt(prompt("Enter HP gain:"), 10);
+    const affectPlayer = prompt("Affects which player (leave blank if none):");
+    const effectType = affectPlayer ? prompt("Effect type (hp, ap, xp):").toLowerCase() : 'none';
+    const effectAmount = effectType !== 'none' ? parseInt(prompt("Effect amount:"), 10) : 0;
 
     if (name && !isNaN(apCost) && !isNaN(gainXp) && !isNaN(gainAp) && !isNaN(gainHp)) {
-        const newPower = { name, apCost, gainXp, gainAp, gainHp, affectPlayer: '', effectType: 'none', effectAmount: 0 };
+        const newPower = { name, apCost, gainXp, gainAp, gainHp, affectPlayer, effectType, effectAmount };
         let powers = JSON.parse(localStorage.getItem('powers')) || [];
         powers.push(newPower);
         localStorage.setItem('powers', JSON.stringify(powers));
@@ -123,6 +92,9 @@ function editPower(index) {
     const newGainXP = prompt("Edit Gain XP:", power.gainXp);
     const newGainAP = prompt("Edit Gain AP:", power.gainAp);
     const newGainHP = prompt("Edit Gain HP:", power.gainHp);
+    const newAffectPlayer = prompt("Affects which player (leave blank if none):", power.affectPlayer);
+    const newEffectType = newAffectPlayer ? prompt("Effect type (hp, ap, xp):", power.effectType).toLowerCase() : 'none';
+    const newEffectAmount = newEffectType !== 'none' ? parseInt(prompt("Effect amount:", power.effectAmount), 10) : 0;
 
     if (newName !== null && !isNaN(newAPCost) && !isNaN(newGainXP) && !isNaN(newGainAP) && !isNaN(newGainHP)) {
         power.name = newName.trim();
@@ -130,6 +102,9 @@ function editPower(index) {
         power.gainXp = parseInt(newGainXP, 10);
         power.gainAp = parseInt(newGainAP, 10);
         power.gainHp = parseInt(newGainHP, 10);
+        power.affectPlayer = newAffectPlayer;
+        power.effectType = newEffectType;
+        power.effectAmount = newEffectAmount;
         powers[index] = power;
         localStorage.setItem('powers', JSON.stringify(powers));
         loadPowers();
