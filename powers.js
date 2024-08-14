@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadPlayers() {
-    const playersTableBody = document.querySelector('#playersTable tbody');
+    const playersTableBody = document.querySelector('#playersTableBody');
     playersTableBody.innerHTML = '';
 
     const players = JSON.parse(localStorage.getItem('characters')) || [];
@@ -17,6 +17,16 @@ function loadPlayers() {
         const nameCell = document.createElement('td');
         nameCell.textContent = player.name;
         row.appendChild(nameCell);
+
+        // Type
+        const typeCell = document.createElement('td');
+        typeCell.textContent = player.type;
+        row.appendChild(typeCell);
+
+        // Level
+        const levelCell = document.createElement('td');
+        levelCell.textContent = player.level;
+        row.appendChild(levelCell);
 
         // XP
         const xpCell = document.createElement('td');
@@ -65,7 +75,7 @@ function loadPlayers() {
 }
 
 function loadPowers() {
-    const powersTableBody = document.querySelector('#powersTable tbody');
+    const powersTableBody = document.querySelector('#powersTableBody');
     powersTableBody.innerHTML = '';
 
     const powers = JSON.parse(localStorage.getItem('powers')) || [];
@@ -105,33 +115,32 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     if (playerAP >= powerAPCost) {
         // Apply the power
         player.ap -= powerAPCost;
-    } else {
-        alert("Not enough AP to use this power!");
-        return;
-    }
+        
+        // Apply the power effects to the player
+        player.xp += (power.gainXp || 0);
+        player.hp += (power.gainHp || 0);
+        player.ap += (power.gainAp || 0);
 
-    // Apply the power effects to the player
-    player.xp += (power.gainXp || 0);
-    player.hp += (power.gainHp || 0);
-    player.ap += (power.gainAp || 0);
-
-    // Check for any effects on another player
-    if (power.affectPlayer) {
-        const affectedPlayer = players.find(p => p.name === power.affectPlayer);
-        if (affectedPlayer) {
-            if (power.effectType === 'hp') {
-                affectedPlayer.hp += power.effectAmount;
-            } else if (power.effectType === 'ap') {
-                affectedPlayer.ap += power.effectAmount;
-            } else if (power.effectType === 'xp') {
-                affectedPlayer.xp += power.effectAmount;
+        // Check for any effects on another player
+        if (power.affectPlayer) {
+            const affectedPlayer = players.find(p => p.name === power.affectPlayer);
+            if (affectedPlayer) {
+                if (power.effectType === 'hp') {
+                    affectedPlayer.hp += power.effectAmount;
+                } else if (power.effectType === 'ap') {
+                    affectedPlayer.ap += power.effectAmount;
+                } else if (power.effectType === 'xp') {
+                    affectedPlayer.xp += power.effectAmount;
+                }
             }
         }
+
+        // Update the player data in localStorage
+        localStorage.setItem('characters', JSON.stringify(players));
+
+        // Reload the players table to reflect the changes
+        loadPlayers();
+    } else {
+        alert("Not enough AP to use this power!");
     }
-
-    // Update the player data in localStorage
-    localStorage.setItem('characters', JSON.stringify(players));
-
-    // Reload the players table to reflect the changes
-    loadPlayers();
 }
