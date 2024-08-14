@@ -105,14 +105,22 @@
         .select-all-cell input[type="checkbox"] {
             margin: 0;
         }
-        .filter-button {
+        th .filter-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        th .filter-button {
+            display: inline-block;
+            margin: 0;
+            padding: 0;
             border: none;
             background: none;
             color: #fff;
             cursor: pointer;
             font-size: 1.2em;
+            vertical-align: middle;
         }
-        .filter-button:hover {
+        th .filter-button:hover {
             color: #ddd;
         }
         .loading-spinner {
@@ -151,12 +159,42 @@
                         <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)">
                     </th>
                     <th>Update</th>
-                    <th>Name <button class="filter-button" onclick="sortTable(2, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(2, 'dsc')">&#x25BC;</button></th>
-                    <th>Type <button class="filter-button" onclick="sortTable(3, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(3, 'dsc')">&#x25BC;</button></th>
-                    <th>Level <button class="filter-button" onclick="sortTable(4, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(4, 'dsc')">&#x25BC;</button></th>
-                    <th>XP <button class="filter-button" onclick="sortTable(5, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(5, 'dsc')">&#x25BC;</button></th>
-                    <th>AP <button class="filter-button" onclick="sortTable(6, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(6, 'dsc')">&#x25BC;</button></th>
-                    <th>HP <button class="filter-button" onclick="sortTable(7, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(7, 'dsc')">&#x25BC;</button></th>
+                    <th>Name
+                        <div class="filter-buttons">
+                            <button class="filter-button" onclick="sortTable(2, 'asc')">&#x25B2;</button>
+                            <button class="filter-button" onclick="sortTable(2, 'dsc')">&#x25BC;</button>
+                        </div>
+                    </th>
+                    <th>Type
+                        <div class="filter-buttons">
+                            <button class="filter-button" onclick="sortTable(3, 'asc')">&#x25B2;</button>
+                            <button class="filter-button" onclick="sortTable(3, 'dsc')">&#x25BC;</button>
+                        </div>
+                    </th>
+                    <th>Level
+                        <div class="filter-buttons">
+                            <button class="filter-button" onclick="sortTable(4, 'asc')">&#x25B2;</button>
+                            <button class="filter-button" onclick="sortTable(4, 'dsc')">&#x25BC;</button>
+                        </div>
+                    </th>
+                    <th>XP
+                        <div class="filter-buttons">
+                            <button class="filter-button" onclick="sortTable(5, 'asc')">&#x25B2;</button>
+                            <button class="filter-button" onclick="sortTable(5, 'dsc')">&#x25BC;</button>
+                        </div>
+                    </th>
+                    <th>AP
+                        <div class="filter-buttons">
+                            <button class="filter-button" onclick="sortTable(6, 'asc')">&#x25B2;</button>
+                            <button class="filter-button" onclick="sortTable(6, 'dsc')">&#x25BC;</button>
+                        </div>
+                    </th>
+                    <th>HP
+                        <div class="filter-buttons">
+                            <button class="filter-button" onclick="sortTable(7, 'asc')">&#x25B2;</button>
+                            <button class="filter-button" onclick="sortTable(7, 'dsc')">&#x25BC;</button>
+                        </div>
+                    </th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -208,129 +246,120 @@
         }
 
         function updateSelectedCharacters(type) {
-            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10);
-            if (isNaN(value)) {
-                alert('Please enter a valid number.');
-                return;
+            let value = parseInt(prompt(`Enter the amount to add/subtract for ${type.toUpperCase()}:`));
+            if (!isNaN(value)) {
+                const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
+                checkboxes.forEach(checkbox => {
+                    let row = checkbox.closest('tr');
+                    let name = row.querySelector('td:nth-child(3)').textContent;
+                    updateCharacter(name, type, value);
+                });
             }
-            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
-            
-            checkboxes.forEach(checkbox => {
-                const row = checkbox.closest('tr');
-                const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
-                updateCharacter(name, type, value);
+        }
+
+        function recordChange(name, type, oldValue, newValue) {
+            let changeLog = JSON.parse(localStorage.getItem('changeLog')) || [];
+            let timestamp = new Date().toLocaleString();
+            changeLog.push(`${timestamp} > ${name} > ${type.toUpperCase()} changed from ${oldValue} to ${newValue}`);
+            localStorage.setItem('changeLog', JSON.stringify(changeLog));
+            updateChangeLogDisplay();
+        }
+
+        function updateChangeLogDisplay() {
+            let changeLog = JSON.parse(localStorage.getItem('changeLog')) || [];
+            let logEntries = document.getElementById('logEntries');
+            logEntries.innerHTML = '';
+            changeLog.forEach(entry => {
+                let div = document.createElement('div');
+                div.className = 'change-log-entry';
+                div.textContent = entry;
+                logEntries.appendChild(div);
             });
         }
 
-        function getLevel(xp) {
-            if (xp < 5000) {
-                return 1;
-            } else if (xp < 10000) {
-                return 2;
-            } else if (xp < 15000) {
-                return 3;
-            } else if (xp < 20000) {
-                return 4;
-            } else {
-                return 5;
-            }
+        function clearChangeLog() {
+            localStorage.removeItem('changeLog');
+            updateChangeLogDisplay();
         }
 
         function populatePlayerTable() {
-            let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            const tbody = document.querySelector('#playerTable tbody');
+            let players = JSON.parse(localStorage.getItem('characters')) || [];
+            let tbody = document.querySelector('#playerTable tbody');
             tbody.innerHTML = '';
 
-            characters.forEach(char => {
-                const row = document.createElement('tr');
+            players.forEach(player => {
+                let row = document.createElement('tr');
                 row.innerHTML = `
                     <td><input type="checkbox"></td>
-                    <td><button onclick="updateCharacterPrompt('${char.name}')">Update</button></td>
-                    <td>${char.name}</td>
-                    <td>${char.type}</td>
-                    <td>${getLevel(char.xp)}</td>
-                    <td>${char.xp}</td>
-                    <td>${char.ap}</td>
-                    <td>${char.hp}</td>
+                    <td><button onclick="showEditForm('${player.name}')">Edit</button></td>
+                    <td>${player.name}</td>
+                    <td>${player.type}</td>
+                    <td>${player.level}</td>
+                    <td>${player.xp}</td>
+                    <td>${player.ap}</td>
+                    <td>${player.hp}</td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        function updateCharacterPrompt(name) {
-            const xp = parseInt(prompt('Enter XP value:'), 10);
-            const ap = parseInt(prompt('Enter AP value:'), 10);
-            const hp = parseInt(prompt('Enter HP value:'), 10);
+        function showEditForm(name) {
+            let characters = JSON.parse(localStorage.getItem('characters')) || [];
+            let player = characters.find(char => char.name === name);
+            if (player) {
+                let newValue = prompt(`Edit ${name}'s values:\nXP: ${player.xp}\nAP: ${player.ap}\nHP: ${player.hp}`);
+                if (newValue) {
+                    // Assuming the prompt allows input in a specific format like "XP:5000,AP:100,HP:50"
+                    let values = newValue.split(',').reduce((acc, item) => {
+                        let [key, value] = item.split(':');
+                        acc[key.toLowerCase()] = parseInt(value) || 0;
+                        return acc;
+                    }, {});
 
-            if (!isNaN(xp)) updateCharacter(name, 'xp', xp);
-            if (!isNaN(ap)) updateCharacter(name, 'ap', ap);
-            if (!isNaN(hp)) updateCharacter(name, 'hp', hp);
+                    updateCharacter(name, 'xp', values.xp - player.xp);
+                    updateCharacter(name, 'ap', values.ap - player.ap);
+                    updateCharacter(name, 'hp', values.hp - player.hp);
+                }
+            }
         }
 
-        function recordChange(name, type, oldValue, newValue) {
-            const timestamp = new Date().toLocaleString();
-            const logEntry = `${timestamp} | ${name} | ${type.toUpperCase()} changed from ${oldValue} to ${newValue}`;
-            
-            const logEntries = document.getElementById('logEntries');
-            const entry = document.createElement('div');
-            entry.className = 'change-log-entry';
-            entry.textContent = logEntry;
-            logEntries.appendChild(entry);
-        }
-
-        function clearChangeLog() {
-            document.getElementById('logEntries').innerHTML = '';
-        }
-
-        function getRandomMessage() {
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            const counter = JSON.parse(localStorage.getItem('messageCounter')) || { count: 0 };
-            const messageIndex = counter.count % messages.length;
-            
-            return messages[messageIndex];
-        }
-
-        function showRandomMessage() {
-            const spinner = document.getElementById('loadingSpinner');
-            const messageElement = document.getElementById('currentMessage');
-            const counterElement = document.getElementById('messageCounter');
+        document.getElementById('generateMessageButton').addEventListener('click', function() {
+            let spinner = document.getElementById('loadingSpinner');
+            let currentMessage = document.getElementById('currentMessage');
+            let messageCounter = document.getElementById('messageCounter');
 
             spinner.style.display = 'block';
+            currentMessage.textContent = 'Gathering Daily News Item...';
 
-            setTimeout(() => {
+            setTimeout(function() {
                 spinner.style.display = 'none';
-                const message = getRandomMessage();
-                messageElement.textContent = message;
-                
-                let counter = JSON.parse(localStorage.getItem('messageCounter')) || { count: 0 };
-                counter.count = (counter.count + 1) % (JSON.parse(localStorage.getItem('messages')) || []).length;
-                localStorage.setItem('messageCounter', JSON.stringify(counter));
-                
-                counterElement.textContent = `${counter.count + 1}/${JSON.parse(localStorage.getItem('messages')).length}`;
+                currentMessage.textContent = 'Generated Daily News Message'; // Placeholder for actual message
+                // Update messageCounter based on the number of messages shown
             }, 2000);
+        });
+
+        document.getElementById('resetDailyEventsButton').addEventListener('click', function() {
+            // Functionality to reset daily events
+        });
+
+        function sortTable(columnIndex, order) {
+            let table = document.getElementById('playerTable');
+            let rows = Array.from(table.querySelectorAll('tbody tr'));
+            rows.sort((rowA, rowB) => {
+                let cellA = rowA.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim();
+                let cellB = rowB.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim();
+                if (order === 'asc') {
+                    return cellA > cellB ? 1 : -1;
+                } else {
+                    return cellA < cellB ? 1 : -1;
+                }
+            });
+            rows.forEach(row => table.querySelector('tbody').appendChild(row));
         }
 
-        function resetDailyEvents() {
-            localStorage.setItem('messageCounter', JSON.stringify({ count: 0 }));
-            showRandomMessage();
-        }
-
-        function sortTable(column, order) {
-            const table = document.getElementById('playerTable');
-            const rows = Array.from(table.querySelectorAll('tbody tr'));
-            const compare = (a, b) => {
-                const aText = a.children[column].textContent.trim();
-                const bText = b.children[column].textContent.trim();
-                return order === 'asc' ? aText.localeCompare(bText) : bText.localeCompare(aText);
-            };
-
-            rows.sort(compare).forEach(row => table.querySelector('tbody').appendChild(row));
-        }
-
-        document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
-        document.getElementById('resetDailyEventsButton').addEventListener('click', resetDailyEvents);
-
-        document.addEventListener('DOMContentLoaded', populatePlayerTable);
+        // Initialize
+        populatePlayerTable();
+        updateChangeLogDisplay();
     </script>
 </body>
 </html>
