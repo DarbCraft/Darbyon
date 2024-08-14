@@ -102,37 +102,36 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     console.log(`Current AP: ${playerAP}, Power Cost: ${powerAPCost}`);
 
     // Check if the player has enough AP
-    if (playerAP < powerAPCost && powerAPCost > 0) {
+    if (playerAP >= powerAPCost) {
+        // Apply the power
+        player.ap -= powerAPCost;
+    } else {
         alert("Not enough AP to use this power!");
         return;
     }
 
     // Apply the power effects to the player
-    player.ap -= powerAPCost;
     player.xp += (power.gainXp || 0);
     player.hp += (power.gainHp || 0);
     player.ap += (power.gainAp || 0);
 
-    // If the power affects other players
-    const powerEffects = document.querySelectorAll('.affect-select');
-    powerEffects.forEach(select => {
-        if (select.value) {
-            const targetPlayerName = select.value;
-            const targetPlayer = players.find(p => p.name === targetPlayerName);
-
-            if (targetPlayer) {
-                const effectType = select.nextElementSibling.querySelector('.effect-type').value;
-                const effectAmount = parseInt(select.nextElementSibling.querySelector('.effect-amount').value, 10);
-
-                if (effectType === 'hp') {
-                    targetPlayer.hp += effectAmount;
-                } else if (effectType === 'ap') {
-                    targetPlayer.ap += effectAmount;
-                }
+    // Check for any effects on another player
+    if (power.affectPlayer) {
+        const affectedPlayer = players.find(p => p.name === power.affectPlayer);
+        if (affectedPlayer) {
+            if (power.effectType === 'hp') {
+                affectedPlayer.hp += power.effectAmount;
+            } else if (power.effectType === 'ap') {
+                affectedPlayer.ap += power.effectAmount;
+            } else if (power.effectType === 'xp') {
+                affectedPlayer.xp += power.effectAmount;
             }
         }
-    });
+    }
 
+    // Update the player data in localStorage
     localStorage.setItem('characters', JSON.stringify(players));
+
+    // Reload the players table to reflect the changes
     loadPlayers();
 }
