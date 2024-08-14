@@ -9,6 +9,14 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+        nav {
+            margin-bottom: 20px;
+        }
+        nav a {
+            margin: 10px;
+            text-decoration: none;
+            color: #000;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -24,23 +32,44 @@
             background-color: #666;
             color: white;
         }
-        tr:nth-child(even) {
+        tr:nth-child(even):not(:nth-child(1)) {
             background-color: rgba(255, 255, 255, 0.6);
         }
         tr:nth-child(odd) {
             background-color: rgba(211, 211, 211, 0.6);
         }
-        .powers-select {
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        label, input, button {
+            margin: 5px 0;
+        }
+        .full-width {
             width: 100%;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+        }
+        .btn-group button {
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
     <h1>Powers</h1>
-    <table id="playerTable">
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="update-values.html">Update Values</a>
+        <a href="settings.html">Settings</a>
+    </nav>
+
+    <h2>Player List</h2>
+    <table class="styled-table">
         <thead>
             <tr>
-                <th>Select</th>
                 <th>Name</th>
                 <th>Type</th>
                 <th>Level</th>
@@ -48,13 +77,135 @@
                 <th>AP</th>
                 <th>HP</th>
                 <th>Powers</th>
+                <th>Actions</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Player rows will be populated by JavaScript -->
-        </tbody>
+        <tbody id="playersTableBody"></tbody>
     </table>
 
-    <script src="powers.js"></script>
+    <h2>Powers List</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Power Name</th>
+                <th>Effect</th>
+            </tr>
+        </thead>
+        <tbody id="powersTableBody"></tbody>
+    </table>
+
+    <script>
+        function loadPlayers() {
+            const playersTableBody = document.querySelector('#playersTableBody');
+            playersTableBody.innerHTML = '';
+            const characters = JSON.parse(localStorage.getItem('characters')) || [];
+
+            characters.forEach((char, index) => {
+                const row = document.createElement('tr');
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = char.name;
+                row.appendChild(nameCell);
+
+                const typeCell = document.createElement('td');
+                typeCell.textContent = char.type;
+                row.appendChild(typeCell);
+
+                const levelCell = document.createElement('td');
+                levelCell.textContent = Math.floor(char.xp / 5000) + 1;
+                row.appendChild(levelCell);
+
+                const xpCell = document.createElement('td');
+                xpCell.textContent = char.xp;
+                row.appendChild(xpCell);
+
+                const apCell = document.createElement('td');
+                apCell.textContent = char.ap;
+                row.appendChild(apCell);
+
+                const hpCell = document.createElement('td');
+                hpCell.textContent = char.hp;
+                row.appendChild(hpCell);
+
+                // Powers dropdown
+                const powersCell = document.createElement('td');
+                const powersDropdown = document.createElement('select');
+                const powers = JSON.parse(localStorage.getItem('powers')) || [];
+
+                powers.forEach(power => {
+                    const option = document.createElement('option');
+                    option.value = power.name;
+                    option.textContent = power.name;
+                    powersDropdown.appendChild(option);
+                });
+
+                powersDropdown.addEventListener('change', () => applyPower(index, powersDropdown.value));
+                powersCell.appendChild(powersDropdown);
+                row.appendChild(powersCell);
+
+                // Apply button
+                const actionsCell = document.createElement('td');
+                actionsCell.innerHTML = `<button onclick="applyPower(${index}, document.querySelector('#playersTableBody select').value)">Apply Power</button>`;
+                row.appendChild(actionsCell);
+
+                playersTableBody.appendChild(row);
+            });
+        }
+
+        function loadPowers() {
+            const powersTableBody = document.querySelector('#powersTableBody');
+            powersTableBody.innerHTML = '';
+
+            const powers = JSON.parse(localStorage.getItem('powers')) || [];
+
+            powers.forEach((power) => {
+                const row = document.createElement('tr');
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = power.name;
+                row.appendChild(nameCell);
+
+                const effectCell = document.createElement('td');
+                effectCell.textContent = power.effect;
+                row.appendChild(effectCell);
+
+                powersTableBody.appendChild(row);
+            });
+        }
+
+        function applyPower(playerIndex, powerName) {
+            const characters = JSON.parse(localStorage.getItem('characters')) || [];
+            const powers = JSON.parse(localStorage.getItem('powers')) || [];
+            const character = characters[playerIndex];
+            const power = powers.find(p => p.name === powerName);
+
+            if (character && power) {
+                if (character.ap >= power.cost) {
+                    // Apply power effects
+                    character.ap -= power.cost;
+
+                    if (power.effect.includes('XP')) {
+                        character.xp += power.xpEffect || 0;
+                    }
+                    if (power.effect.includes('HP')) {
+                        character.hp += power.hpEffect || 0;
+                    }
+                    if (power.effect.includes('AP')) {
+                        character.ap += power.apEffect || 0;
+                    }
+
+                    localStorage.setItem('characters', JSON.stringify(characters));
+                    loadPlayers();
+                } else {
+                    alert('Not enough AP to use this power!');
+                }
+            }
+        }
+
+        window.onload = () => {
+            loadPlayers();
+            loadPowers();
+        };
+    </script>
 </body>
 </html>
