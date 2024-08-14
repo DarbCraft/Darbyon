@@ -104,9 +104,9 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const player = players[playerIndex];
     const power = powers[powerIndex];
 
-    // Ensure AP and power cost are integers
-    const playerAP = parseInt(player.ap, 10);
-    const powerAPCost = parseInt(power.apCost, 10);
+    // Ensure AP and power cost are numbers
+    const playerAP = parseInt(player.ap, 10) || 0;
+    const powerAPCost = parseInt(power.apCost, 10) || 0;
 
     console.log(`Attempting to apply power: ${power.name} to player: ${player.name}`);
     console.log(`Current AP: ${playerAP}, Power Cost: ${powerAPCost}`);
@@ -126,11 +126,11 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
             const affectedPlayer = players.find(p => p.name === power.affectPlayer);
             if (affectedPlayer) {
                 if (power.effectType === 'hp') {
-                    affectedPlayer.hp += power.effectAmount;
+                    affectedPlayer.hp += power.effectAmount || 0;
                 } else if (power.effectType === 'ap') {
-                    affectedPlayer.ap += power.effectAmount;
+                    affectedPlayer.ap += power.effectAmount || 0;
                 } else if (power.effectType === 'xp') {
-                    affectedPlayer.xp += power.effectAmount;
+                    affectedPlayer.xp += power.effectAmount || 0;
                 }
             }
         }
