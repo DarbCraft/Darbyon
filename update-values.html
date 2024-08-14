@@ -342,6 +342,19 @@ function resetDailyEvents() {
     showRandomMessage(); // Show the first message after resetting
 }
 
+function increaseAPDaily() {
+    const players = JSON.parse(localStorage.getItem('characters')) || [];
+
+    players.forEach(player => {
+        const initialAP = player.initialAP; // Ensure this is set when the player is created
+        const newAP = Math.min(player.ap + 2, initialAP); // Add 2 AP, but don't exceed initialAP
+        player.ap = newAP;
+    });
+
+    localStorage.setItem('characters', JSON.stringify(players));
+    populatePlayerTable(); // Refresh the table to show updated values
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Check if messages are already in localStorage
     if (!localStorage.getItem('messages')) {
@@ -351,6 +364,20 @@ document.addEventListener('DOMContentLoaded', function() {
             { name: "Shuffle!", description: "Leave your chair where it is and move to another desk. Run and you lose HP" }
         ];
         localStorage.setItem('messages', JSON.stringify(messages));
+        function scheduleAPIncrease() {
+    const now = new Date();
+    const targetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 0, 0, 0); // 8:00 AM today
+
+    if (now > targetTime) {
+        targetTime.setDate(targetTime.getDate() + 1); // Schedule for tomorrow if 8:00 AM has passed today
+    }
+
+    const timeUntil8AM = targetTime - now;
+
+    setTimeout(function() {
+        increaseAPDaily();
+        setInterval(increaseAPDaily, 24 * 60 * 60 * 1000); // Repeat every 24 hours
+    }, timeUntil8AM);
     }
     
     // Initialize the showRandomMessage button
