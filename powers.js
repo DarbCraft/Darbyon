@@ -18,16 +18,6 @@ function loadPlayers() {
         nameCell.textContent = player.name;
         row.appendChild(nameCell);
 
-        // Type
-        const typeCell = document.createElement('td');
-        typeCell.textContent = player.type;
-        row.appendChild(typeCell);
-
-        // Level
-        const levelCell = document.createElement('td');
-        levelCell.textContent = player.level;
-        row.appendChild(levelCell);
-
         // XP
         const xpCell = document.createElement('td');
         xpCell.textContent = player.xp;
@@ -104,6 +94,9 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const player = players[playerIndex];
     const power = powers[powerIndex];
 
+    // Log retrieved power data
+    console.log('Power data:', power);
+
     // Ensure AP and power cost are numbers
     const playerAP = parseInt(player.ap, 10) || 0;
     const powerAPCost = parseInt(power.apCost, 10) || 0;
@@ -115,8 +108,6 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     if (playerAP >= powerAPCost) {
         // Apply the power
         player.ap -= powerAPCost;
-        
-        // Apply the power effects to the player
         player.xp += (power.gainXp || 0);
         player.hp += (power.gainHp || 0);
         player.ap += (power.gainAp || 0);
@@ -126,11 +117,11 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
             const affectedPlayer = players.find(p => p.name === power.affectPlayer);
             if (affectedPlayer) {
                 if (power.effectType === 'hp') {
-                    affectedPlayer.hp += power.effectAmount || 0;
+                    affectedPlayer.hp += power.effectAmount;
                 } else if (power.effectType === 'ap') {
-                    affectedPlayer.ap += power.effectAmount || 0;
+                    affectedPlayer.ap += power.effectAmount;
                 } else if (power.effectType === 'xp') {
-                    affectedPlayer.xp += power.effectAmount || 0;
+                    affectedPlayer.xp += power.effectAmount;
                 }
             }
         }
