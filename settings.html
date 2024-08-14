@@ -114,6 +114,48 @@
         </thead>
         <tbody></tbody>
     </table>
+    <h2>Add New Power</h2>
+    <form id="powerForm">
+        <label for="powerName">Power Name:</label>
+        <input type="text" id="powerName" name="powerName" required>
+
+        <label for="powerXP">XP Change:</label>
+        <input type="number" id="powerXP" name="powerXP" required>
+
+        <label for="powerAP">AP Change:</label>
+        <input type="number" id="powerAP" name="powerAP" required>
+
+        <label for="powerHP">HP Change:</label>
+        <input type="number" id="powerHP" name="powerHP" required>
+
+        <label for="otherPlayerXP">Other Player XP Change:</label>
+        <input type="number" id="otherPlayerXP" name="otherPlayerXP">
+
+        <label for="otherPlayerAP">Other Player AP Change:</label>
+        <input type="number" id="otherPlayerAP" name="otherPlayerAP">
+
+        <label for="otherPlayerHP">Other Player HP Change:</label>
+        <input type="number" id="otherPlayerHP" name="otherPlayerHP">
+
+        <button type="submit">Add Power</button>
+    </form>
+
+    <h2>Powers List</h2>
+    <table id="powersTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>XP Change</th>
+                <th>AP Change</th>
+                <th>HP Change</th>
+                <th>Other Player XP Change</th>
+                <th>Other Player AP Change</th>
+                <th>Other Player HP Change</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
     <script>
         function addCharacter() {
@@ -303,6 +345,123 @@
             loadScoreboard();
             loadMessages();
         };
+         // Load powers from localStorage and display in the table
+        function loadPowers() {
+            const powersTableBody = document.querySelector('#powersTable tbody');
+            powersTableBody.innerHTML = '';
+
+            const powers = JSON.parse(localStorage.getItem('powers')) || [];
+
+            powers.forEach((power, index) => {
+                const row = document.createElement('tr');
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = power.name;
+                row.appendChild(nameCell);
+
+                const xpCell = document.createElement('td');
+                xpCell.textContent = power.xp;
+                row.appendChild(xpCell);
+
+                const apCell = document.createElement('td');
+                apCell.textContent = power.ap;
+                row.appendChild(apCell);
+
+                const hpCell = document.createElement('td');
+                hpCell.textContent = power.hp;
+                row.appendChild(hpCell);
+
+                const otherXPCell = document.createElement('td');
+                otherXPCell.textContent = power.otherPlayerXP || 0;
+                row.appendChild(otherXPCell);
+
+                const otherAPCell = document.createElement('td');
+                otherAPCell.textContent = power.otherPlayerAP || 0;
+                row.appendChild(otherAPCell);
+
+                const otherHPCell = document.createElement('td');
+                otherHPCell.textContent = power.otherPlayerHP || 0;
+                row.appendChild(otherHPCell);
+
+                const actionsCell = document.createElement('td');
+
+                // Edit and delete buttons
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.addEventListener('click', () => editPower(index));
+                actionsCell.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => deletePower(index));
+                actionsCell.appendChild(deleteButton);
+
+                row.appendChild(actionsCell);
+
+                powersTableBody.appendChild(row);
+            });
+        }
+
+        function editPower(index) {
+            const powers = JSON.parse(localStorage.getItem('powers')) || [];
+            const power = powers[index];
+
+            const newName = prompt("Edit Power Name:", power.name);
+            const newXP = prompt("Edit XP Change:", power.xp);
+            const newAP = prompt("Edit AP Change:", power.ap);
+            const newHP = prompt("Edit HP Change:", power.hp);
+            const newOtherXP = prompt("Edit Other Player XP Change:", power.otherPlayerXP || 0);
+            const newOtherAP = prompt("Edit Other Player AP Change:", power.otherPlayerAP || 0);
+            const newOtherHP = prompt("Edit Other Player HP Change:", power.otherPlayerHP || 0);
+
+            if (newName !== null && newXP !== null && newAP !== null && newHP !== null) {
+                power.name = newName.trim();
+                power.xp = parseInt(newXP);
+                power.ap = parseInt(newAP);
+                power.hp = parseInt(newHP);
+                power.otherPlayerXP = parseInt(newOtherXP);
+                power.otherPlayerAP = parseInt(newOtherAP);
+                power.otherPlayerHP = parseInt(newOtherHP);
+                powers[index] = power;
+                localStorage.setItem('powers', JSON.stringify(powers));
+                loadPowers();
+            }
+        }
+
+        function deletePower(index) {
+            const confirmation = confirm("Are you sure you want to delete this power?");
+            if (confirmation) {
+                let powers = JSON.parse(localStorage.getItem('powers')) || [];
+                powers.splice(index, 1);
+                localStorage.setItem('powers', JSON.stringify(powers));
+                loadPowers();
+            }
+        }
+
+        document.getElementById('powerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('powerName').value.trim();
+            const xp = parseInt(document.getElementById('powerXP').value);
+            const ap = parseInt(document.getElementById('powerAP').value);
+            const hp = parseInt(document.getElementById('powerHP').value);
+            const otherXP = parseInt(document.getElementById('otherPlayerXP').value || 0);
+            const otherAP = parseInt(document.getElementById('otherPlayerAP').value || 0);
+            const otherHP = parseInt(document.getElementById('otherPlayerHP').value || 0);
+
+            if (name && !isNaN(xp) && !isNaN(ap) && !isNaN(hp)) {
+                const newPower = { name, xp, ap, hp, otherPlayerXP: otherXP, otherPlayerAP: otherAP, otherPlayerHP: otherHP };
+
+                const powers = JSON.parse(localStorage.getItem('powers')) || [];
+                powers.push(newPower);
+                localStorage.setItem('powers', JSON.stringify(powers));
+
+                document.getElementById('powerForm').reset();
+                loadPowers();
+            }
+        });
+
+        loadPowers();
     </script>
 </body>
 </html>
