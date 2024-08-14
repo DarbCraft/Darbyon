@@ -54,6 +54,9 @@ function loadPowers() {
             const option = document.createElement('option');
             option.value = player.name;
             option.text = player.name;
+            if (power.affectPlayer === player.name) {
+                option.selected = true;
+            }
             affectSelect.appendChild(option);
         });
 
@@ -63,12 +66,12 @@ function loadPowers() {
         effectDetails.innerHTML = `
             <label for="effectType">Effect Type:</label>
             <select class="effect-type">
-                <option value="none">None</option>
-                <option value="hp">Add HP</option>
-                <option value="ap">Add AP</option>
+                <option value="none" ${power.effectType === 'none' ? 'selected' : ''}>None</option>
+                <option value="hp" ${power.effectType === 'hp' ? 'selected' : ''}>Add HP</option>
+                <option value="ap" ${power.effectType === 'ap' ? 'selected' : ''}>Add AP</option>
             </select>
             <label for="effectAmount">Amount:</label>
-            <input type="number" class="effect-amount" min="0" value="0">
+            <input type="number" class="effect-amount" min="0" value="${power.effectAmount || 0}">
         `;
         affectCell.appendChild(affectSelect);
         affectCell.appendChild(effectDetails);
@@ -101,7 +104,7 @@ function addPower() {
     const gainHp = parseInt(prompt("Enter HP gain:"), 10);
 
     if (name && !isNaN(apCost) && !isNaN(gainXp) && !isNaN(gainAp) && !isNaN(gainHp)) {
-        const newPower = { name, apCost, gainXp, gainAp, gainHp };
+        const newPower = { name, apCost, gainXp, gainAp, gainHp, affectPlayer: '', effectType: 'none', effectAmount: 0 };
         let powers = JSON.parse(localStorage.getItem('powers')) || [];
         powers.push(newPower);
         localStorage.setItem('powers', JSON.stringify(powers));
