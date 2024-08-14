@@ -63,6 +63,7 @@
     <nav>
         <a href="index.html">Home</a>
         <a href="update-values.html">Update Values</a>
+        <a href="powers.html">Powers</a>
     </nav>
 
     <form id="addCharacterForm">
@@ -222,94 +223,86 @@
             }
         }
 
-       function loadMessages() {
-    const messageTableBody = document.querySelector('#messageTable tbody');
-    messageTableBody.innerHTML = '';
+        function loadMessages() {
+            const messageTableBody = document.querySelector('#messageTable tbody');
+            messageTableBody.innerHTML = '';
 
-    const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
 
-    messages.forEach((msg, index) => {
-        const row = document.createElement('tr');
-        const nameCell = document.createElement('td');
-        const descriptionCell = document.createElement('td');
-        const actionsCell = document.createElement('td');
+            messages.forEach((msg, index) => {
+                const row = document.createElement('tr');
+                const nameCell = document.createElement('td');
+                const descriptionCell = document.createElement('td');
+                const actionsCell = document.createElement('td');
 
-        // Style the name in bold and the description in a larger font
-        nameCell.innerHTML = `<strong>${msg.name}</strong>`;
-        descriptionCell.innerHTML = `<span style="font-size: larger;">${msg.description}</span>`;
+                // Style the name in bold and the description in a larger font
+                nameCell.innerHTML = `<strong>${msg.name}</strong>`;
+                descriptionCell.innerHTML = `<span style="font-size: larger;">${msg.description}</span>`;
 
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.onclick = () => deleteMessage(index);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deleteMessage(index);
 
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Edit';
-        editButton.onclick = () => editMessage(index);
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.onclick = () => editMessage(index);
 
-        const btnGroup = document.createElement('div');
-        btnGroup.classList.add('btn-group');
-        btnGroup.appendChild(editButton);
-        btnGroup.appendChild(deleteButton);
+                const btnGroup = document.createElement('div');
+                btnGroup.classList.add('btn-group');
+                btnGroup.appendChild(editButton);
+                btnGroup.appendChild(deleteButton);
 
-        actionsCell.appendChild(btnGroup);
+                actionsCell.appendChild(btnGroup);
 
-        row.appendChild(nameCell);
-        row.appendChild(descriptionCell);
-        row.appendChild(actionsCell);
+                row.appendChild(nameCell);
+                row.appendChild(descriptionCell);
+                row.appendChild(actionsCell);
 
-        messageTableBody.appendChild(row);
-    });
-}
+                messageTableBody.appendChild(row);
+            });
+        }
 
-function deleteMessage(index) {
-    if (confirm('Are you sure you want to delete this news item?')) {
-        let messages = JSON.parse(localStorage.getItem('messages')) || [];
-        messages.splice(index, 1);
-        localStorage.setItem('messages', JSON.stringify(messages));
-        loadMessages();
-    }
-}
+        function deleteMessage(index) {
+            if (confirm('Are you sure you want to delete this news item?')) {
+                let messages = JSON.parse(localStorage.getItem('messages')) || [];
+                messages.splice(index, 1);
+                localStorage.setItem('messages', JSON.stringify(messages));
+                loadMessages();
+            }
+        }
 
-function editMessage(index) {
-    let messages = JSON.parse(localStorage.getItem('messages')) || [];
-    const msg = messages[index];
+        function editMessage(index) {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const msg = messages[index];
 
-    const newName = prompt('Edit Name:', msg.name);
-    const newDescription = prompt('Edit Description:', msg.description);
+            const newName = prompt('Edit Name:', msg.name);
+            const newDescription = prompt('Edit Description:', msg.description);
 
-    if (newName !== null && newDescription !== null) {
-        messages[index] = { name: newName.trim(), description: newDescription.trim() };
-        localStorage.setItem('messages', JSON.stringify(messages));
-        loadMessages();
-    }
-}
+            if (newName !== null && newDescription !== null) {
+                messages[index] = { name: newName, description: newDescription };
+                localStorage.setItem('messages', JSON.stringify(messages));
+                loadMessages();
+            }
+        }
 
-document.querySelector('#messageForm').addEventListener('submit', function(event) {
-    event.preventDefault();
+        document.getElementById('messageForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const name = document.getElementById('messageName').value;
+            const description = document.getElementById('messageDescription').value;
 
-    const messageName = document.querySelector('#messageName').value.trim();
-    const messageDescription = document.querySelector('#messageDescription').value.trim();
-
-    if (messageName && messageDescription) {
-        const messages = JSON.parse(localStorage.getItem('messages')) || [];
-
-        messages.push({
-            name: messageName,
-            description: messageDescription
+            const newMessage = { name, description };
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.push(newMessage);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            loadMessages();
+            document.getElementById('messageForm').reset();
         });
 
-        localStorage.setItem('messages', JSON.stringify(messages));
-        loadMessages();
-
-        // Clear the form
-        document.querySelector('#messageForm').reset();
-    }
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    loadScoreboard();
-    loadMessages();
-        });
+        // Load data on page load
+        window.onload = () => {
+            loadScoreboard();
+            loadMessages();
+        };
     </script>
 </body>
 </html>
