@@ -4,131 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Values</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            background-image: url('https://github.com/DarbCraft/Darbyon/blob/main/Images/White%20background.jpeg?raw=true');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        nav {
-            margin-bottom: 20px;
-        }
-        nav a {
-            margin: 10px;
-            text-decoration: none;
-            color: #000;
-        }
-        input, button, textarea {
-            margin: 10px 0;
-        }
-        table {
-            border-collapse: collapse;
-            margin: 20px 0;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: left;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: #fff;
-        }
-        th {
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-        .update-form {
-            display: flex;
-            gap: 5px;
-            justify-content: flex-start;
-            margin-bottom: 10px;
-        }
-        .update-btn {
-            margin: 0 1px;
-            padding: 2px;
-            cursor: pointer;
-        }
-        #playerTable {
-            width: 75%;
-        }
-        #changeLog {
-            width: 30%;
-            max-height: 80vh;
-            overflow-y: auto;
-            margin-left: 2px;
-            border: 1px solid #ccc;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: #fff;
-            border-radius: 10px;
-        }
-        #changeLog td {
-            border: none;
-            padding: 10px;
-            text-align: left;
-        }
-        .change-log-entry {
-            display: block;
-            margin-bottom: 10px;
-        }
-        .clear-log-btn {
-            margin: 10px;
-            padding: 10px;
-            cursor: pointer;
-        }
-        #dailyNewsTable {
-            width: 25%;
-            margin: 0 auto;
-        }
-        .random-picker-box {
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 10px;
-            display: inline-block;
-            width: 25%;
-            text-align: center;
-            color: #fff;
-        }
-        #currentMessage {
-            font-size: 2em;
-            margin: 10px 0;
-        }
-        .selection-counter {
-            font-size: 1.5em;
-            margin: 10px 0;
-        }
-        .select-all-cell input[type="checkbox"] {
-            margin: 0;
-        }
-        .filter-button {
-            border: none;
-            background: none;
-            color: #fff;
-            cursor: pointer;
-            font-size: 1.2em;
-        }
-        .filter-button:hover {
-            color: #ddd;
-        }
-        .loading-spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left: 4px solid #fff;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            margin: 0 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+   <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        background-image: url('https://github.com/DarbCraft/Darbyon/blob/main/Images/White%20background.jpeg?raw=true');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    nav {
+        margin-bottom: 20px;
+    }
+    nav a {
+        margin: 10px;
+        text-decoration: none;
+        color: #000;
+    }
+    input, button, textarea {
+        margin: 10px 0;
+    }
+    table {
+        border-collapse: collapse;
+        margin: 20px 0;
+        border-radius: 10px; /* Added rounded corners to all tables */
+        overflow: hidden; /* Ensures content stays within rounded corners */
+    }
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: left;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
+        color: #fff;
+    }
+    th {
+        background-color: rgba(0, 0, 0, 0.7); /* Darker semi-transparent background color for header */
+    }
+    .update-form {
+        display: flex;
+        gap: 5px;
+        justify-content: flex-start;
+        margin-bottom: 10px;
+    }
+    .update-btn {
+        margin: 0 1px;
+        padding: 2px;
+        cursor: pointer;
+    }
+    #playerTable {
+        width: 75%; /* Reduced width */
+    }
+    #changeLog {
+        width: 30%; /* Updated width */
+        max-height: 80vh;
+        overflow-y: auto;
+        margin-left: 2px;
+        border: 1px solid #ccc;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background color */
+        color: #fff;
+    }
+    #changeLog td {
+        border: none;
+        padding: 10px;
+        text-align: left;
+    }
+    .change-log-entry {
+        display: block;
+        margin-bottom: 10px;
+    }
+    .clear-log-btn {
+        margin: 10px;
+        padding: 10px;
+        cursor: pointer;
+    }
+    #dailyNewsTable {
+        width: 25%; /* Reduced width by half */
+        margin: 0 auto;
+    }
+    .random-picker-box {
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the box */
+    padding: 20px;
+    border-radius: 10px;
+    display: inline-block;
+    width: 25%; /* Reduced width by half */
+    text-align: center;
+    color: #fff; /* Text color set to white */
+}
+    #currentMessage {
+        font-size: 2em; /* Twice the normal size */
+        margin: 10px 0;
+    }
+    .selection-counter {
+        font-size: 1.5em; /* 1.5 times the normal size */
+        margin: 10px 0;
+    }
+    .select-all-cell input[type="checkbox"] {
+        margin: 0;
+    }
+    .filter-button {
+        border: none;
+        background: none;
+        color: #fff;
+        cursor: pointer;
+        font-size: 1.2em;
+    }
+    .filter-button:hover {
+        color: #ddd;
+    }
+</style>
 </head>
 <body>
     <div style="flex: 1;">
@@ -151,12 +137,12 @@
                         <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)">
                     </th>
                     <th>Update</th>
-                    <th>Name <button class="filter-button" onclick="sortTable(2, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(2, 'dsc')">&#x25BC;</button></th>
-                    <th>Type <button class="filter-button" onclick="sortTable(3, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(3, 'dsc')">&#x25BC;</button></th>
-                    <th>Level <button class="filter-button" onclick="sortTable(4, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(4, 'dsc')">&#x25BC;</button></th>
-                    <th>XP <button class="filter-button" onclick="sortTable(5, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(5, 'dsc')">&#x25BC;</button></th>
-                    <th>AP <button class="filter-button" onclick="sortTable(6, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(6, 'dsc')">&#x25BC;</button></th>
-                    <th>HP <button class="filter-button" onclick="sortTable(7, 'asc')">&#x25B2;</button><button class="filter-button" onclick="sortTable(7, 'dsc')">&#x25BC;</button></th>
+                    <th>Name <button class="filter-button" onclick="sortTable(2, 'dsc')">&#x25BC;</button></th>
+                    <th>Type <button class="filter-button" onclick="sortTable(3, 'dsc')">&#x25BC;</button></th>
+                    <th>Level <button class="filter-button" onclick="sortTable(4, 'dsc')">&#x25BC;</button></th>
+                    <th>XP <button class="filter-button" onclick="sortTable(5, 'dsc')">&#x25BC;</button></th>
+                    <th>AP <button class="filter-button" onclick="sortTable(6, 'dsc')">&#x25BC;</button></th>
+                    <th>HP <button class="filter-button" onclick="sortTable(7, 'dsc')">&#x25BC;</button></th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -164,9 +150,8 @@
 
         <h2>Generate Daily News</h2>
         <div class="random-picker-box">
-            <button type="button" id="generateMessageButton" aria-label="Show Daily News">Show Daily News</button>
-            <button type="button" id="resetDailyEventsButton" aria-label="Reset Daily Events">Reset Daily Events</button>
-            <div id="loadingSpinner" class="loading-spinner" style="display: none;"></div>
+            <button type="button" id="generateMessageButton">Show Daily News</button>
+            <button type="button" id="resetDailyEventsButton">Reset Daily Events</button>
             <p id="currentMessage">Generate Daily News</p>
             <p class="selection-counter">Messages shown: <span id="messageCounter">0/0</span></p>
         </div>
@@ -177,160 +162,204 @@
         <div id="logEntries"></div>
     </div>
 
-    <script>
-        function toggleSelectAll(selectAllCheckbox) {
-            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = selectAllCheckbox.checked;
-            });
-        }
+   <script>
+function toggleSelectAll(selectAllCheckbox) {
+    const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+}
 
-        function updateCharacter(name, type, value) {
-            let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters = characters.map(char => {
-                if (char.name === name) {
-                    let oldValue = char[type];
-                    let newValue = oldValue + value;
+function updateCharacter(name, type, value) {
+    let characters = JSON.parse(localStorage.getItem('characters')) || [];
+    characters = characters.map(char => {
+        if (char.name === name) {
+            let oldValue = char[type];
+            let newValue = oldValue + value;
 
-                    // Ensure the value does not go below 0
-                    if (type === 'ap' || type === 'hp') {
-                        newValue = Math.max(newValue, 0);
-                    }
-
-                    char[type] = newValue;
-                    recordChange(name, type, oldValue, char[type]);
-                }
-                return char;
-            });
-
-            localStorage.setItem('characters', JSON.stringify(characters));
-            populatePlayerTable();
-        }
-
-        function updateSelectedCharacters(type) {
-            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10);
-            if (isNaN(value)) {
-                alert('Please enter a valid number.');
-                return;
+            // Ensure the value does not go below 0
+            if (type === 'ap' || type === 'hp') {
+                newValue = Math.max(newValue, 0);
             }
-            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
-            
-            checkboxes.forEach(checkbox => {
-                const row = checkbox.closest('tr');
-                const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
-                updateCharacter(name, type, value);
-            });
+
+            char[type] = newValue;
+            recordChange(name, type, oldValue, char[type]);
+        }
+        return char;
+    });
+
+    localStorage.setItem('characters', JSON.stringify(characters));
+    populatePlayerTable();
+}
+
+function updateSelectedCharacters(type) {
+    const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
+    const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
+    
+    checkboxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
+        updateCharacter(name, type, value);
+    });
+}
+
+function getLevel(xp) {
+    if (xp < 5000) {
+        return 1;
+    } else if (xp < 10000) {
+        return 2;
+    } else if (xp < 15000) {
+        return 3;
+    } else if (xp < 20000) {
+        return 4;
+    } else if (xp < 25000) {
+        return 5;
+    } else if (xp < 30000) {
+        return 6;
+    } else {
+        return 7; 
+    }
+}
+
+function populatePlayerTable() {
+    const tbody = document.querySelector('#playerTable tbody');
+    tbody.innerHTML = '';
+
+    const players = JSON.parse(localStorage.getItem('characters')) || [];
+    players.forEach(player => {
+        const row = document.createElement('tr');
+        
+        const selectCell = document.createElement('td');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        selectCell.appendChild(checkbox);
+        row.appendChild(selectCell);
+
+        const updateCell = document.createElement('td');
+        const form = document.createElement('form');
+        form.className = 'update-form';
+        form.innerHTML = `
+            <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp', parseInt(prompt('Enter XP value (positive/negative):')) || 0)">🏅 XP</button>
+            <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap', parseInt(prompt('Enter AP value (positive/negative):')) || 0)">💎 AP</button>
+            <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp', parseInt(prompt('Enter HP value (positive/negative):')) || 0)">❤️ HP</button>
+        `;
+        updateCell.appendChild(form);
+        row.appendChild(updateCell);
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = player.name;
+        row.appendChild(nameCell);
+
+        const typeCell = document.createElement('td');
+        typeCell.textContent = player.type;
+        row.appendChild(typeCell);
+
+        const levelCell = document.createElement('td');
+        const level = getLevel(player.xp);
+        levelCell.textContent = level;
+        row.appendChild(levelCell);
+
+        const xpCell = document.createElement('td');
+        xpCell.textContent = player.xp;
+        row.appendChild(xpCell);
+
+        const apCell = document.createElement('td');
+        apCell.textContent = player.ap;
+        row.appendChild(apCell);
+
+        const hpCell = document.createElement('td');
+        hpCell.textContent = player.hp;
+        row.appendChild(hpCell);
+
+        tbody.appendChild(row);
+    });
+}
+
+function recordChange(name, type, oldValue, newValue) {
+    const logEntries = document.getElementById('logEntries');
+    const timestamp = new Date().toLocaleString();
+    const logEntry = document.createElement('div');
+    logEntry.className = 'change-log-entry';
+    logEntry.textContent = `> ${name} / ${type.toUpperCase()} / ${oldValue} -> ${newValue} / ${timestamp}`;
+    logEntries.appendChild(logEntry);
+}
+
+function clearChangeLog() {
+    const logEntries = document.getElementById('logEntries');
+    logEntries.innerHTML = '';
+}
+
+function sortTable(columnIndex, order) {
+    const table = document.getElementById('playerTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    rows.sort((a, b) => {
+        const aText = a.cells[columnIndex].textContent.trim();
+        const bText = b.cells[columnIndex].textContent.trim();
+        let comparison = 0;
+
+        // Determine the type of data and compare accordingly
+        if (!isNaN(aText) && !isNaN(bText)) {
+            // If both values are numbers
+            comparison = parseFloat(aText) - parseFloat(bText);
+        } else {
+            // If values are strings
+            comparison = aText.localeCompare(bText);
         }
 
-        function getLevel(xp) {
-            if (xp < 5000) {
-                return 1;
-            } else if (xp < 10000) {
-                return 2;
-            } else if (xp < 15000) {
-                return 3;
-            } else if (xp < 20000) {
-                return 4;
-            } else {
-                return 5;
-            }
+        // If sorting in descending order, invert the comparison
+        if (order === 'dsc') {
+            comparison *= -1;
         }
 
-        function populatePlayerTable() {
-            let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            const tbody = document.querySelector('#playerTable tbody');
-            tbody.innerHTML = '';
+        return comparison;
+    });
 
-            characters.forEach(char => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><input type="checkbox"></td>
-                    <td><button onclick="updateCharacterPrompt('${char.name}')">Update</button></td>
-                    <td>${char.name}</td>
-                    <td>${char.type}</td>
-                    <td>${getLevel(char.xp)}</td>
-                    <td>${char.xp}</td>
-                    <td>${char.ap}</td>
-                    <td>${char.hp}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
+    // Append sorted rows to the table body
+    rows.forEach(row => tbody.appendChild(row));
+}
 
-        function updateCharacterPrompt(name) {
-            const xp = parseInt(prompt('Enter XP value:'), 10);
-            const ap = parseInt(prompt('Enter AP value:'), 10);
-            const hp = parseInt(prompt('Enter HP value:'), 10);
+function showRandomMessage() {
+    const messages = JSON.parse(localStorage.getItem('messages')) || [];
+    let currentIndex = parseInt(localStorage.getItem('currentMessageIndex'), 10) || 0;
 
-            if (!isNaN(xp)) updateCharacter(name, 'xp', xp);
-            if (!isNaN(ap)) updateCharacter(name, 'ap', ap);
-            if (!isNaN(hp)) updateCharacter(name, 'hp', hp);
-        }
+    if (messages.length > 0) {
+        const selectedMessage = messages[currentIndex];
+        document.getElementById('currentMessage').innerHTML = `<strong>${selectedMessage.name}</strong>: ${selectedMessage.description}`;
+        document.getElementById('messageCounter').textContent = `${currentIndex + 1}/${messages.length}`;
 
-        function recordChange(name, type, oldValue, newValue) {
-            const timestamp = new Date().toLocaleString();
-            const logEntry = `${timestamp} | ${name} | ${type.toUpperCase()} changed from ${oldValue} to ${newValue}`;
-            
-            const logEntries = document.getElementById('logEntries');
-            const entry = document.createElement('div');
-            entry.className = 'change-log-entry';
-            entry.textContent = logEntry;
-            logEntries.appendChild(entry);
-        }
+        // Update index for next message
+        currentIndex = (currentIndex + 1) % messages.length;
+        localStorage.setItem('currentMessageIndex', currentIndex);
+    } else {
+        document.getElementById('currentMessage').textContent = "No messages available.";
+    }
+}
 
-        function clearChangeLog() {
-            document.getElementById('logEntries').innerHTML = '';
-        }
+function resetDailyEvents() {
+    localStorage.removeItem('currentMessageIndex');
+    showRandomMessage(); // Show the first message after resetting
+}
 
-        function getRandomMessage() {
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            const counter = JSON.parse(localStorage.getItem('messageCounter')) || { count: 0 };
-            const messageIndex = counter.count % messages.length;
-            
-            return messages[messageIndex];
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if messages are already in localStorage
+    if (!localStorage.getItem('messages')) {
+        const messages = [
+            { name: "Electrical Storm", description: "Everyone loses 2 HP" },
+            { name: "Sunny Day Feeling", description: "Everyone gains 100XP" },
+            { name: "Shuffle!", description: "Leave your chair where it is and move to another desk. Run and you lose HP" }
+        ];
+        localStorage.setItem('messages', JSON.stringify(messages));
+    }
+    
+    // Initialize the showRandomMessage button
+    document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
+    document.getElementById('resetDailyEventsButton').addEventListener('click', resetDailyEvents);
 
-        function showRandomMessage() {
-            const spinner = document.getElementById('loadingSpinner');
-            const messageElement = document.getElementById('currentMessage');
-            const counterElement = document.getElementById('messageCounter');
-
-            spinner.style.display = 'block';
-
-            setTimeout(() => {
-                spinner.style.display = 'none';
-                const message = getRandomMessage();
-                messageElement.textContent = message;
-                
-                let counter = JSON.parse(localStorage.getItem('messageCounter')) || { count: 0 };
-                counter.count = (counter.count + 1) % (JSON.parse(localStorage.getItem('messages')) || []).length;
-                localStorage.setItem('messageCounter', JSON.stringify(counter));
-                
-                counterElement.textContent = `${counter.count + 1}/${JSON.parse(localStorage.getItem('messages')).length}`;
-            }, 2000);
-        }
-
-        function resetDailyEvents() {
-            localStorage.setItem('messageCounter', JSON.stringify({ count: 0 }));
-            showRandomMessage();
-        }
-
-        function sortTable(column, order) {
-            const table = document.getElementById('playerTable');
-            const rows = Array.from(table.querySelectorAll('tbody tr'));
-            const compare = (a, b) => {
-                const aText = a.children[column].textContent.trim();
-                const bText = b.children[column].textContent.trim();
-                return order === 'asc' ? aText.localeCompare(bText) : bText.localeCompare(aText);
-            };
-
-            rows.sort(compare).forEach(row => table.querySelector('tbody').appendChild(row));
-        }
-
-        document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
-        document.getElementById('resetDailyEventsButton').addEventListener('click', resetDailyEvents);
-
-        document.addEventListener('DOMContentLoaded', populatePlayerTable);
-    </script>
+    // Populate player table or any other initialization logic
+    populatePlayerTable();
+});
+</script>
 </body>
 </html>
