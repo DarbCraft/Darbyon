@@ -23,7 +23,7 @@ function loadPlayers() {
         xpCell.textContent = player.xp;
         row.appendChild(xpCell);
 
-        // AP
+        // ap
         const apCell = document.createElement('td');
         apCell.textContent = player.ap;
         row.appendChild(apCell);
@@ -80,7 +80,7 @@ function loadPowers() {
 
         // Power Effect
         const effectCell = document.createElement('td');
-        effectCell.textContent = `AP Cost: ${power.apCost || 0}, XP Gain: ${power.gainXp || 0}, HP Effect: ${power.gainHp || 0}, AP Effect: ${power.gainAp || 0}`;
+        effectCell.textContent = `ap Cost: ${power.apCost || 0}, XP Gain: ${power.gainxp || 0}, HP Effect: ${power.gainhp || 0}, ap Effect: ${power.gainap || 0}`;
         row.appendChild(effectCell);
 
         powersTableBody.appendChild(row);
@@ -97,20 +97,20 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     // Log retrieved power data
     console.log('Power data:', power);
 
-    // Ensure AP and power cost are numbers
-    const playerAP = parseInt(player.ap, 10) || 0;
-    const powerAPCost = parseInt(power.apCost, 10) || 0;
+    // Ensure ap and power cost are numbers
+    const playerap = parseInt(player.ap, 10) || 0;
+    const powerapCost = parseInt(power.apCost, 10) || 0;
 
     console.log(`Attempting to apply power: ${power.name} to player: ${player.name}`);
-    console.log(`Current AP: ${playerAP}, Power Cost: ${powerAPCost}`);
+    console.log(`Current ap: ${playerap}, Power Cost: ${powerapCost}`);
 
-    // Check if the player has enough AP
-    if (playerAP >= powerAPCost) {
-        // Apply the power
-        player.ap -= powerAPCost;
+    // Check if the player has enough ap
+    if (playerap >= powerapCost) {
+        // apply the power
+        player.ap -= powerapCost;
         player.xp += (power.gainXp || 0);
         player.hp += (power.gainHp || 0);
-        player.ap += (power.gainAp || 0);
+        player.ap += (power.gainap || 0);
 
         // Check for any effects on another player
         if (power.affectPlayer) {
