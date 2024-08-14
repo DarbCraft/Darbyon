@@ -323,23 +323,55 @@
             }
         }
 
+         }
+
+        function loadDailyMessages() {
+            let messages = JSON.parse(localStorage.getItem('dailyMessages')) || [];
+            return messages;
+        }
+
+        function showRandomMessage() {
+            let messages = loadDailyMessages();
+            if (messages.length === 0) {
+                document.getElementById('currentMessage').textContent = 'No messages available.';
+                return;
+            }
+
+            let randomIndex = Math.floor(Math.random() * messages.length);
+            let message = messages[randomIndex];
+            document.getElementById('currentMessage').textContent = message.text;
+
+            let messageCounter = document.getElementById('messageCounter');
+            let count = parseInt(localStorage.getItem('messageCount')) || 0;
+            count += 1;
+            localStorage.setItem('messageCount', count);
+            messageCounter.textContent = `${count}/${messages.length}`;
+        }
+
         document.getElementById('generateMessageButton').addEventListener('click', function() {
             let spinner = document.getElementById('loadingSpinner');
             let currentMessage = document.getElementById('currentMessage');
-            let messageCounter = document.getElementById('messageCounter');
 
             spinner.style.display = 'block';
             currentMessage.textContent = 'Gathering Daily News Item...';
 
             setTimeout(function() {
                 spinner.style.display = 'none';
-                currentMessage.textContent = 'Generated Daily News Message'; // Placeholder for actual message
-                // Update messageCounter based on the number of messages shown
+                showRandomMessage();
             }, 2000);
         });
 
         document.getElementById('resetDailyEventsButton').addEventListener('click', function() {
-            // Functionality to reset daily events
+            localStorage.removeItem('messageCount');
+            document.getElementById('messageCounter').textContent = '0/0';
+            document.getElementById('currentMessage').textContent = 'Daily Events Reset';
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePlayerTable();
+            let messageCount = parseInt(localStorage.getItem('messageCount')) || 0;
+            let messages = loadDailyMessages();
+            document.getElementById('messageCounter').textContent = `${messageCount}/${messages.length}`;
         });
 
         function sortTable(columnIndex, order) {
