@@ -94,9 +94,6 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const player = players[playerIndex];
     const power = powers[powerIndex];
 
-    // Log retrieved power data
-    console.log('Power data:', power);
-
     // Ensure ap and power cost are numbers
     const playerap = parseInt(player.ap, 10) || 0;
     const powerapCost = parseInt(power.apCost, 10) || 0;
@@ -106,11 +103,11 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
 
     // Check if the player has enough ap
     if (playerap >= powerapCost) {
-        // apply the power
-        player.ap -= powerapCost;
-        player.xp += (power.gainXp || 0);
-        player.hp += (power.gainHp || 0);
-        player.ap += (power.gainap || 0);
+        // Apply the power
+        player.ap = (playerap - powerapCost).toString(); // Convert back to string for storage
+        player.xp = (player.xp + (power.gainXp || 0)).toString();
+        player.hp = (player.hp + (power.gainHp || 0)).toString();
+        player.ap = (player.ap + (power.gainap || 0)).toString();
 
         // Check for any effects on another player
         if (power.affectPlayer) {
