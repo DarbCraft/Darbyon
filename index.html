@@ -174,33 +174,32 @@
             return 7; 
         }
 
-        function pickRandomPlayer() {
-            const players = JSON.parse(localStorage.getItem('characters')) || [];
-            let shownPlayers = JSON.parse(localStorage.getItem('shownPlayers')) || [];
+       function pickRandomPlayer() {
+    const players = JSON.parse(localStorage.getItem('characters')) || [];
+    let shownPlayers = JSON.parse(localStorage.getItem('shownPlayers')) || [];
 
-            if (shownPlayers.length === players.length) {
-                shownPlayers = [];
-            }
+    if (shownPlayers.length === players.length) {
+        shownPlayers = [];
+    }
 
-            const availablePlayers = players.filter(player => !shownPlayers.includes(player.name));
-            if (availablePlayers.length === 0) {
-                document.getElementById('selectedPlayer').textContent = 'No new players available.';
-                return;
-            }
+    const availablePlayers = players.filter(player => !shownPlayers.includes(player.name));
+    if (availablePlayers.length === 0) {
+        document.getElementById('selectedPlayer').textContent = 'No new players available.';
+        return;
+    }
 
-            const randomPlayer = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
-            shownPlayers.push(randomPlayer.name);
-            localStorage.setItem('shownPlayers', JSON.stringify(shownPlayers));
+    const randomIndex = Math.floor(Math.random() * availablePlayers.length);
+    const randomPlayer = availablePlayers[randomIndex];
+    shownPlayers.push(randomPlayer.name);
+    localStorage.setItem('shownPlayers', JSON.stringify(shownPlayers));
 
-            document.getElementById('playerName').textContent = randomPlayer.name;
+    document.getElementById('playerName').textContent = randomPlayer.name;
 
-            // Update the counter
-            const totalPlayers = players.length;
-            const shownCount = shownPlayers.length;
-            const fractionText = `${shownCount % totalPlayers || totalPlayers}/${totalPlayers}`;
-            document.getElementById('selectionCounter').textContent = fractionText;
-        }
-
+    // Update the counter
+    const totalPlayers = players.length;
+    const shownCount = shownPlayers.length;
+    document.getElementById('selectionCounter').textContent = `${shownCount}/${totalPlayers}`;
+}
         function resetPicker() {
             localStorage.removeItem('shownPlayers');
             document.getElementById('playerName').textContent = 'None';
