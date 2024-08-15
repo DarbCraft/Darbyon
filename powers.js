@@ -107,7 +107,7 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
         player.ap = (playerap - powerapCost).toString(); // Convert back to string for storage
         player.xp = (parseInt(player.xp, 10) + (power.gainXp || 0)).toString();
         player.hp = (player.hp + (power.gainHp || 0)).toString();
-        player.ap = (player.ap + (power.gainap || 0)).toString();
+        player.ap = (playerap + (power.gainap || 0)).toString();
 
         // Check for any effects on another player
         if (power.affectPlayer) {
