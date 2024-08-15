@@ -105,8 +105,8 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     if (playerap >= powerapCost) {
         // Apply the power
         player.ap = (playerap - powerapCost).toString(); // Convert back to string for storage
-        player.xp = (parseInt(player.xp, 10) + (power.gainXp || 0)).toString();
-        player.hp = (player.hp + (power.gainHp || 0)).toString();
+        player.xp = (parseInt(player.xp, 10) + (power.gainxp || 0)).toString();
+        player.hp = (parseInt(player.hp, 10) + (power.gainhp || 0)).toString();
         player.ap = (playerap + (power.gainap || 0)).toString();
 
         // Check for any effects on another player
@@ -114,11 +114,11 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
             const affectedPlayer = players.find(p => p.name === power.affectPlayer);
             if (affectedPlayer) {
                 if (power.effectType === 'hp') {
-                    affectedPlayer.hp += power.effectAmount;
+                    affectedPlayer.hp = (parseInt(affectedPlayer.hp, 10) + power.effectAmount).toString();
                 } else if (power.effectType === 'ap') {
-                    affectedPlayer.ap += power.effectAmount;
+                    affectedPlayer.ap = (parseInt(affectedPlayer.ap, 10) + power.effectAmount).toString();
                 } else if (power.effectType === 'xp') {
-                    affectedPlayer.xp += power.effectAmount;
+                    affectedPlayer.xp = (parseInt(affectedPlayer.xp, 10) + power.effectAmount).toString();
                 }
             }
         }
