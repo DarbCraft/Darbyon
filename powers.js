@@ -18,6 +18,14 @@ function loadPlayers() {
         nameCell.textContent = player.name;
         row.appendChild(nameCell);
 
+        const nameCell = document.createElement('td');
+        nameCell.textContent = player.type;
+        row.appendChild(nameCell);
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = player.level;
+        row.appendChild(nameCell);
+
         // XP
         const xpCell = document.createElement('td');
         xpCell.textContent = player.xp;
