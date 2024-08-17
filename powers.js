@@ -18,20 +18,22 @@ function loadPlayers() {
         nameCell.textContent = player.name;
         row.appendChild(nameCell);
 
-        const nameCell = document.createElement('td');
-        nameCell.textContent = player.type;
-        row.appendChild(nameCell);
+        // Player Type
+        const typeCell = document.createElement('td');
+        typeCell.textContent = player.type;
+        row.appendChild(typeCell);
 
-        const nameCell = document.createElement('td');
-        nameCell.textContent = player.level;
-        row.appendChild(nameCell);
+        // Player Level
+        const levelCell = document.createElement('td');
+        levelCell.textContent = player.level;
+        row.appendChild(levelCell);
 
         // XP
         const xpCell = document.createElement('td');
         xpCell.textContent = player.xp;
         row.appendChild(xpCell);
 
-        // ap
+        // AP
         const apCell = document.createElement('td');
         apCell.textContent = player.ap;
         row.appendChild(apCell);
@@ -102,20 +104,22 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const player = players[playerIndex];
     const power = powers[powerIndex];
 
-    // Ensure ap and power cost are numbers
-    const playerap = parseInt(player.ap, 10) || 0;
-    const powerapCost = parseInt(power.apCost, 10) || 0;
+    // Ensure AP and power cost are numbers
+    const playerAP = parseInt(player.ap, 10) || 0;
+    const powerAPCost = parseInt(power.apCost, 10) || 0;
 
     console.log(`Attempting to apply power: ${power.name} to player: ${player.name}`);
-    console.log(`Current ap: ${playerap}, Power Cost: ${powerapCost}`);
+    console.log(`Current AP: ${playerAP}, Power Cost: ${powerAPCost}`);
 
-    // Check if the player has enough ap
-    if (playerap >= powerapCost) {
-        // Apply the power
-        player.ap = (playerap - powerapCost).toString(); // Convert back to string for storage
+    // Check if the player has enough AP
+    if (playerAP >= powerAPCost) {
+        // Subtract the AP cost
+        player.ap = (playerAP - powerAPCost).toString();
+
+        // Apply the power's effects
         player.xp = (parseInt(player.xp, 10) + (power.gainxp || 0)).toString();
         player.hp = (parseInt(player.hp, 10) + (power.gainhp || 0)).toString();
-        player.ap = (playerap + (power.gainap || 0)).toString();
+        player.ap = (parseInt(player.ap, 10) + (power.gainap || 0)).toString();
 
         // Check for any effects on another player
         if (power.affectPlayer) {
