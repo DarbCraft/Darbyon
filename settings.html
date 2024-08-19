@@ -345,99 +345,62 @@
             loadScoreboard();
             loadMessages();
         };
-         function loadPowers() {
-    const powersTableBody = document.querySelector('#powersTable tbody');
-    powersTableBody.innerHTML = '';
+         // Load powers from localStorage and display in the table
+        function loadPowers() {
+            const powersTableBody = document.querySelector('#powersTable tbody');
+            powersTableBody.innerHTML = '';
 
-    const powers = JSON.parse(localStorage.getItem('powers')) || [];
+            const powers = JSON.parse(localStorage.getItem('powers')) || [];
 
-    powers.forEach((power, index) => {
-        const row = document.createElement('tr');
+            powers.forEach((power, index) => {
+                const row = document.createElement('tr');
 
-        const nameCell = document.createElement('td');
-        nameCell.textContent = power.name;
-        row.appendChild(nameCell);
+                const nameCell = document.createElement('td');
+                nameCell.textContent = power.name;
+                row.appendChild(nameCell);
 
-        const xpCell = document.createElement('td');
-        xpCell.textContent = power.xp;
-        row.appendChild(xpCell);
+                const xpCell = document.createElement('td');
+                xpCell.textContent = power.xp;
+                row.appendChild(xpCell);
 
-        const apCell = document.createElement('td');
-        apCell.textContent = power.ap;
-        row.appendChild(apCell);
+                const apCell = document.createElement('td');
+                apCell.textContent = power.ap;
+                row.appendChild(apCell);
 
-        const hpCell = document.createElement('td');
-        hpCell.textContent = power.hp;
-        row.appendChild(hpCell);
+                const hpCell = document.createElement('td');
+                hpCell.textContent = power.hp;
+                row.appendChild(hpCell);
 
-        const otherPlayerXPCell = document.createElement('td');
-        otherPlayerXPCell.textContent = power.otherPlayerXP || 'N/A';
-        row.appendChild(otherPlayerXPCell);
+                const otherXPCell = document.createElement('td');
+                otherXPCell.textContent = power.otherPlayerXP || 0;
+                row.appendChild(otherXPCell);
 
-        const otherPlayerAPCell = document.createElement('td');
-        otherPlayerAPCell.textContent = power.otherPlayerAP || 'N/A';
-        row.appendChild(otherPlayerAPCell);
+                const otherAPCell = document.createElement('td');
+                otherAPCell.textContent = power.otherPlayerAP || 0;
+                row.appendChild(otherAPCell);
 
-        const otherPlayerHPCell = document.createElement('td');
-        otherPlayerHPCell.textContent = power.otherPlayerHP || 'N/A';
-        row.appendChild(otherPlayerHPCell);
+                const otherHPCell = document.createElement('td');
+                otherHPCell.textContent = power.otherPlayerHP || 0;
+                row.appendChild(otherHPCell);
 
-        // New cell to indicate if the power requires a target
-        const hasTargetCell = document.createElement('td');
-        hasTargetCell.textContent = power.hasTarget ? 'Yes' : 'No';
-        row.appendChild(hasTargetCell);
+                const actionsCell = document.createElement('td');
 
-        // Actions cell
-        const actionsCell = document.createElement('td');
+                // Edit and delete buttons
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.addEventListener('click', () => editPower(index));
+                actionsCell.appendChild(editButton);
 
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.onclick = () => deletePower(index);
-        actionsCell.appendChild(deleteButton);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => deletePower(index));
+                actionsCell.appendChild(deleteButton);
 
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Edit';
-        editButton.onclick = () => editPower(index);
-        actionsCell.appendChild(editButton);
+                row.appendChild(actionsCell);
 
-        row.appendChild(actionsCell);
-
-        powersTableBody.appendChild(row);
+                powersTableBody.appendChild(row);
             });
-            <form id="powerForm">
-    <!-- Existing fields -->
-    <label for="powerName">Power Name:</label>
-    <input type="text" id="powerName" name="powerName" required>
-
-    <label for="powerXP">XP Change:</label>
-    <input type="number" id="powerXP" name="powerXP" required>
-
-    <label for="powerAP">AP Change:</label>
-    <input type="number" id="powerAP" name="powerAP" required>
-
-    <label for="powerHP">HP Change:</label>
-    <input type="number" id="powerHP" name="powerHP" required>
-
-    <!-- New field for 'Has Target' -->
-    <label for="hasTarget">Requires Target:</label>
-    <input type="checkbox" id="hasTarget" name="hasTarget">
-
-    <!-- Fields for other player changes -->
-    <label for="otherPlayerXP">Other Player XP Change:</label>
-    <input type="number" id="otherPlayerXP" name="otherPlayerXP">
-
-    <label for="otherPlayerAP">Other Player AP Change:</label>
-    <input type="number" id="otherPlayerAP" name="otherPlayerAP">
-
-    <label for="otherPlayerHP">Other Player HP Change:</label>
-    <input type="number" id="otherPlayerHP" name="otherPlayerHP">
-
-    <button type="submit">Add Power</button>
-</form>
-
         }
-       
-
 
         function editPower(index) {
             const powers = JSON.parse(localStorage.getItem('powers')) || [];
