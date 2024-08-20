@@ -97,6 +97,108 @@
     <label for="teamName">Team Name:</label>
     <input type="text" id="teamName" name="teamName" required>
     <button type="submit">Add Team</button>
+    <script>
+    // Function to handle adding a new team
+    document.getElementById('teamForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        const teamName = document.getElementById('teamName').value.trim();
+        if (teamName === '') {
+            alert('Please enter a team name.');
+            return;
+        }
+
+        // Get the existing teams from localStorage or initialize as an empty array
+        let teams = JSON.parse(localStorage.getItem('teams')) || [];
+        
+        // Check if the team name already exists
+        if (teams.some(team => team.name === teamName)) {
+            alert('This team already exists.');
+            return;
+        }
+
+        // Add the new team to the array
+        teams.push({ name: teamName, members: [] });
+
+        // Save the updated teams array to localStorage
+        localStorage.setItem('teams', JSON.stringify(teams));
+
+        // Reload the teams table to include the new team
+        loadTeams();
+
+        // Reset the form
+        document.getElementById('teamForm').reset();
+    });
+
+    // Function to load and display teams in the teams table
+    function loadTeams() {
+        const teamsTableBody = document.querySelector('#teamsTable tbody');
+        teamsTableBody.innerHTML = ''; // Clear the table body
+
+        // Get the teams from localStorage
+        const teams = JSON.parse(localStorage.getItem('teams')) || [];
+
+        // Populate the table with the teams
+        teams.forEach((team, index) => {
+            const row = document.createElement('tr');
+
+            const nameCell = document.createElement('td');
+            nameCell.textContent = team.name;
+            row.appendChild(nameCell);
+
+            const membersCell = document.createElement('td');
+            membersCell.textContent = team.members.join(', '); // Display members
+            row.appendChild(membersCell);
+
+            // Add Actions cell
+            const actionsCell = document.createElement('td');
+
+            // Edit button
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit';
+            editButton.addEventListener('click', () => editTeam(index));
+            actionsCell.appendChild(editButton);
+
+            // Delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.addEventListener('click', () => deleteTeam(index));
+            actionsCell.appendChild(deleteButton);
+
+            row.appendChild(actionsCell);
+
+            teamsTableBody.appendChild(row);
+        });
+    }
+
+    // Function to delete a team
+    function deleteTeam(index) {
+        if (confirm('Are you sure you want to delete this team?')) {
+            let teams = JSON.parse(localStorage.getItem('teams')) || [];
+            teams.splice(index, 1);
+            localStorage.setItem('teams', JSON.stringify(teams));
+            loadTeams();
+        }
+    }
+
+    // Function to edit a team (e.g., changing the team name or managing members)
+    function editTeam(index) {
+        let teams = JSON.parse(localStorage.getItem('teams')) || [];
+        const team = teams[index];
+
+        const newTeamName = prompt('Edit Team Name:', team.name);
+        if (newTeamName !== null && newTeamName.trim() !== '') {
+            team.name = newTeamName.trim();
+            teams[index] = team;
+            localStorage.setItem('teams', JSON.stringify(teams));
+            loadTeams();
+        }
+    }
+
+    // Load the teams when the page is loaded
+    document.addEventListener('DOMContentLoaded', loadTeams);
+</script>
+
 </form>
 
 <h2>Teams List</h2>
@@ -253,36 +355,37 @@
             });
         }
 
-        function editCharacter(index) {
-            const characters = JSON.parse(localStorage.getItem('characters')) || [];
-            const char = characters[index];
+       function editCharacter(index) {
+    const characters = JSON.parse(localStorage.getItem('characters')) || [];
+    const char = characters[index];
 
-            // Prompt user for new values
-            const newName = prompt("Edit Character Name:", char.name);
-            const newXP = prompt("Edit XP:", char.xp);
-            const newAP = prompt("Edit AP:", char.ap);
-            const newHP = prompt("Edit HP:", char.hp);
+    const newName = prompt("Edit Character Name:", char.name);
+    if (newName !== null && newName.trim() !== "") {
+        char.name = newName.trim();
+    }
 
-            // Update the character with new values if confirmed
-            if (newName !== null && newXP !== null && newAP !== null && newHP !== null) {
-                char.name = newName.trim();
-                char.xp = parseInt(newXP);
-                char.ap = parseInt(newAP);
-                char.hp = parseInt(newHP);
-                characters[index] = char;
-                localStorage.setItem('characters', JSON.stringify(characters));
-                loadScoreboard();
-            }
-        }
+    const newType = prompt("Edit Character Type (Warrior, Healer, Mage):", char.type);
+    if (newType !== null && newType.trim() !== "") {
+        char.type = newType.trim();
+    }
 
-        function deleteCharacter(index) {
-            const confirmation = confirm("Are you sure you want to delete this character?");
-            if (confirmation) {
-                let characters = JSON.parse(localStorage.getItem('characters')) || [];
-                characters.splice(index, 1);
-                localStorage.setItem('characters', JSON.stringify(characters));
-                loadScoreboard();
-            }
+    characters[index] = char;
+    localStorage.setItem('characters', JSON.stringify(characters));
+    loadScoreboard();
+}
+
+function deleteCharacter(index) {
+    if (confirm("Are you sure you want to delete this character?")) {
+        let characters = JSON.parse(localStorage.getItem('characters')) || [];
+        characters.splice(index, 1);
+        localStorage.setItem('characters', JSON.stringify(characters));
+        loadScoreboard();
+    }
+}
+
+// Load the character list when the page is loaded
+document.addEventListener('DOMContentLoaded', loadScoreboard);
+
         }
 
         function loadMessages() {
