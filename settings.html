@@ -310,6 +310,37 @@
             loadScoreboard();  // Update the table immediately
             document.getElementById('addCharacterForm').reset();
         }
+        function editCharacter(index) {
+    const characters = JSON.parse(localStorage.getItem('characters')) || [];
+    const char = characters[index];
+
+    const newName = prompt("Edit Character Name:", char.name);
+    if (newName !== null && newName.trim() !== "") {
+        char.name = newName.trim();
+    }
+
+    const newType = prompt("Edit Character Type (Warrior, Healer, Mage):", char.type);
+    if (newType !== null && newType.trim() !== "") {
+        char.type = newType.trim();
+    }
+
+    characters[index] = char;
+    localStorage.setItem('characters', JSON.stringify(characters));
+    loadScoreboard();
+}
+
+function deleteCharacter(index) {
+    if (confirm("Are you sure you want to delete this character?")) {
+        let characters = JSON.parse(localStorage.getItem('characters')) || [];
+        characters.splice(index, 1);
+        localStorage.setItem('characters', JSON.stringify(characters));
+        loadScoreboard();
+    }
+}
+
+// Load the character list when the page is loaded
+document.addEventListener('DOMContentLoaded', loadScoreboard);
+
 
         function loadScoreboard() {
             const tableBody = document.querySelector('#scoreboardTableBody');
