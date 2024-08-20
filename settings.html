@@ -83,6 +83,8 @@
         <thead>
             <tr>
                 <th>Name</th>
+                <th>Team</th>
+                <th>Class</th>
                 <th>XP</th>
                 <th>AP</th>
                 <th>HP</th>
@@ -446,6 +448,13 @@ function deleteCharacter(index) {
 document.addEventListener('DOMContentLoaded', loadScoreboard);
 
         }
+        function assignTeam(charIndex, teamName) {
+    let characters = JSON.parse(localStorage.getItem('characters')) || [];
+    characters[charIndex].team = teamName;
+    localStorage.setItem('characters', JSON.stringify(characters));
+    loadScoreboard();  // Optionally reload the scoreboard to reflect changes
+}
+
 
         function loadMessages() {
             const messageTableBody = document.querySelector('#messageTable tbody');
