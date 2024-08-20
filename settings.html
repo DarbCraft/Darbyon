@@ -535,6 +535,33 @@ window.onload = () => {
     loadMessages();
     loadTeams();
 };
+            function assignToTeam(charIndex) {
+    const teams = JSON.parse(localStorage.getItem('teams')) || [];
+    const characters = JSON.parse(localStorage.getItem('characters')) || [];
+    const char = characters[charIndex];
+
+    if (teams.length === 0) {
+        alert("No teams available. Please create a team first.");
+        return;
+    }
+
+    const teamName = prompt("Enter team name to assign the character:");
+    const team = teams.find(t => t.name === teamName);
+
+    if (team) {
+        team.members.push(char.name);
+        localStorage.setItem('teams', JSON.stringify(teams));
+        loadTeams(); // Refresh the teams list
+    } else {
+        alert("Team not found.");
+    }
+}
+
+// Add an "Assign" button in the loadScoreboard function
+const assignButton = document.createElement('button');
+assignButton.textContent = 'Assign to Team';
+assignButton.addEventListener('click', () => assignToTeam(index));
+actionsCell.appendChild(assignButton);
         });
 
         loadPowers();
