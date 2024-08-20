@@ -345,47 +345,73 @@ document.addEventListener('DOMContentLoaded', loadScoreboard);
 
 
         function loadScoreboard() {
-            const tableBody = document.querySelector('#scoreboardTableBody');
-            tableBody.innerHTML = '';
-            const characters = JSON.parse(localStorage.getItem('characters')) || [];
-            
-            characters.forEach((char, index) => {
-                const row = document.createElement('tr');
+    const tableBody = document.querySelector('#scoreboardTableBody');
+    tableBody.innerHTML = '';
+    const characters = JSON.parse(localStorage.getItem('characters')) || [];
+    const teams = JSON.parse(localStorage.getItem('teams')) || []; // Load teams
 
-                const nameCell = document.createElement('td');
-                nameCell.textContent = char.name;
-                row.appendChild(nameCell);
+    characters.forEach((char, index) => {
+        const row = document.createElement('tr');
 
-                const xpCell = document.createElement('td');
-                xpCell.textContent = char.xp;
-                row.appendChild(xpCell);
+        const nameCell = document.createElement('td');
+        nameCell.textContent = char.name;
+        row.appendChild(nameCell);
 
-                const apCell = document.createElement('td');
-                apCell.textContent = char.ap;
-                row.appendChild(apCell);
+        const xpCell = document.createElement('td');
+        xpCell.textContent = char.xp;
+        row.appendChild(xpCell);
 
-                const hpCell = document.createElement('td');
-                hpCell.textContent = char.hp;
-                row.appendChild(hpCell);
+        const apCell = document.createElement('td');
+        apCell.textContent = char.ap;
+        row.appendChild(apCell);
 
-                // Add Actions cell
-                const actionsCell = document.createElement('td');
+        const hpCell = document.createElement('td');
+        hpCell.textContent = char.hp;
+        row.appendChild(hpCell);
 
-                // Edit button
-                const editButton = document.createElement('button');
-                editButton.textContent = 'Edit';
-                editButton.addEventListener('click', () => editCharacter(index));
-                actionsCell.appendChild(editButton);
+        // Team selection dropdown
+        const teamCell = document.createElement('td');
+        const teamSelect = document.createElement('select');
+        
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Select Team';
+        teamSelect.appendChild(defaultOption);
 
-                // Delete button
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.addEventListener('click', () => deleteCharacter(index));
-                actionsCell.appendChild(deleteButton);
+        teams.forEach(team => {
+            const option = document.createElement('option');
+            option.value = team.name;
+            option.textContent = team.name;
+            if (char.team === team.name) {
+                option.selected = true;
+            }
+            teamSelect.appendChild(option);
+        });
 
-                row.appendChild(actionsCell);
-                tableBody.appendChild(row);
-            });
+        teamSelect.addEventListener('change', () => {
+            assignTeam(index, teamSelect.value);
+        });
+
+        teamCell.appendChild(teamSelect);
+        row.appendChild(teamCell);
+
+        // Add Actions cell
+        const actionsCell = document.createElement('td');
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => editCharacter(index));
+        actionsCell.appendChild(editButton);
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => deleteCharacter(index));
+        actionsCell.appendChild(deleteButton);
+
+        row.appendChild(actionsCell);
+        tableBody.appendChild(row);
+    });
+}
+
         }
 
        function editCharacter(index) {
