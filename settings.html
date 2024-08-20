@@ -428,7 +428,6 @@ document.addEventListener('DOMContentLoaded', loadScoreboard);
     const newType = prompt("Edit Character Type (Warrior, Healer, Mage):", char.type);
     if (newType !== null && newType.trim() !== "") {
         char.type = newType.trim();
-    }
 
     characters[index] = char;
     localStorage.setItem('characters', JSON.stringify(characters));
