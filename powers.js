@@ -43,7 +43,7 @@ function loadPlayers() {
         hpCell.textContent = player.hp;
         row.appendChild(hpCell);
 
-        // Powers
+        // Powers dropdown
         const powersCell = document.createElement('td');
         const powersSelect = document.createElement('select');
         powersSelect.classList.add('powers-select');
@@ -59,6 +59,38 @@ function loadPlayers() {
             option.text = power.name;
             powersSelect.appendChild(option);
         });
+
+        powersSelect.addEventListener('change', function() {
+            const powerIndex = this.value;
+            if (powerIndex) {
+                applyPowerToPlayer(index, powerIndex);
+            }
+        });
+
+        powersCell.appendChild(powersSelect);
+        row.appendChild(powersCell);
+
+        // Actions column with "Apply Power" button
+        const actionsCell = document.createElement('td');
+        const applyButton = document.createElement('button');
+        applyButton.textContent = 'Apply Power';
+
+        // Add event listener to apply the selected power
+        applyButton.addEventListener('click', function() {
+            const selectedPowerIndex = powersSelect.value;
+            if (selectedPowerIndex) {
+                applyPowerToPlayer(index, selectedPowerIndex);
+            } else {
+                alert("Please select a power first!");
+            }
+        });
+
+        actionsCell.appendChild(applyButton);
+        row.appendChild(actionsCell);
+
+        playersTableBody.appendChild(row);
+    });
+}
 
         powersSelect.addEventListener('change', function() {
             const powerIndex = this.value;
