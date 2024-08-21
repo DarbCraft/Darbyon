@@ -359,6 +359,10 @@ document.addEventListener('DOMContentLoaded', loadScoreboard);
         nameCell.textContent = char.name;
         row.appendChild(nameCell);
 
+        const typeCell = document.createElement('td');
+        typeCell.textContent = char.type;
+        row.appendChild(typeCell);
+
         const xpCell = document.createElement('td');
         xpCell.textContent = char.xp;
         row.appendChild(xpCell);
