@@ -60,13 +60,6 @@ function loadPlayers() {
             powersSelect.appendChild(option);
         });
 
-        powersSelect.addEventListener('change', function() {
-            const powerIndex = this.value;
-            if (powerIndex) {
-                applyPowerToPlayer(index, powerIndex);
-            }
-        });
-
         powersCell.appendChild(powersSelect);
         row.appendChild(powersCell);
 
@@ -92,20 +85,6 @@ function loadPlayers() {
     });
 }
 
-        powersSelect.addEventListener('change', function() {
-            const powerIndex = this.value;
-            if (powerIndex) {
-                applyPowerToPlayer(index, powerIndex);
-            }
-        });
-
-        powersCell.appendChild(powersSelect);
-        row.appendChild(powersCell);
-
-        playersTableBody.appendChild(row);
-    });
-}
-
 function loadPowers() {
     const powersTableBody = document.querySelector('#powersTableBody');
     powersTableBody.innerHTML = '';
@@ -122,7 +101,7 @@ function loadPowers() {
 
         // Power Effect
         const effectCell = document.createElement('td');
-        effectCell.textContent = `ap Cost: ${power.apCost || 0}, XP Gain: ${power.gainxp || 0}, HP Effect: ${power.gainhp || 0}, ap Effect: ${power.gainap || 0}`;
+        effectCell.textContent = `AP Cost: ${power.apCost || 0}, XP Gain: ${power.gainxp || 0}, HP Effect: ${power.gainhp || 0}, AP Effect: ${power.gainap || 0}`;
         row.appendChild(effectCell);
 
         powersTableBody.appendChild(row);
@@ -136,38 +115,39 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const player = players[playerIndex];
     const power = powers[powerIndex];
 
-    // Ensure AP and power cost are numbers
     const playerAP = parseInt(player.ap, 10) || 0;
     const powerAPCost = parseInt(power.apCost, 10) || 0;
 
-    console.log(`Attempting to apply power: ${power.name} to player: ${player.name}`);
-    console.log(`Current AP: ${playerAP}, Power Cost: ${powerAPCost}`);
-
-    // Check if the player has enough AP
     if (playerAP >= powerAPCost) {
-        // Subtract the AP cost
+        // Subtract AP cost and apply power effects
         player.ap = (playerAP - powerAPCost).toString();
-
-        // Apply the power's effects
         player.xp = (parseInt(player.xp, 10) + (power.gainxp || 0)).toString();
         player.hp = (parseInt(player.hp, 10) + (power.gainhp || 0)).toString();
         player.ap = (parseInt(player.ap, 10) + (power.gainap || 0)).toString();
 
-        // Check for any effects on another player
+        // Check and apply power effects to other players if needed
         if (power.affectPlayer) {
             const affectedPlayer = players.find(p => p.name === power.affectPlayer);
             if (affectedPlayer) {
-                if (power.effectType === 'hp') {
-                    affectedPlayer.hp = (parseInt(affectedPlayer.hp, 10) + power.effectAmount).toString();
-                } else if (power.effectType === 'ap') {
-                    affectedPlayer.ap = (parseInt(affectedPlayer.ap, 10) + power.effectAmount).toString();
-                } else if (power.effectType === 'xp') {
-                    affectedPlayer.xp = (parseInt(affectedPlayer.xp, 10) + power.effectAmount).toString();
+                const effectAmount = parseInt(power.effectAmount, 10) || 0;
+
+                switch (power.effectType) {
+                    case 'hp':
+                        affectedPlayer.hp = (parseInt(affectedPlayer.hp, 10) + effectAmount).toString();
+                        break;
+                    case 'ap':
+                        affectedPlayer.ap = (parseInt(affectedPlayer.ap, 10) + effectAmount).toString();
+                        break;
+                    case 'xp':
+                        affectedPlayer.xp = (parseInt(affectedPlayer.xp, 10) + effectAmount).toString();
+                        break;
                 }
+            } else {
+                console.error(`Player ${power.affectPlayer} not found!`);
             }
         }
 
-        // Update the player data in localStorage
+        // Save updated player data to localStorage
         localStorage.setItem('characters', JSON.stringify(players));
 
         // Reload the players table to reflect the changes
