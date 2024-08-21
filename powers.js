@@ -13,41 +13,19 @@ function loadPlayers() {
     players.forEach((player, index) => {
         const row = document.createElement('tr');
 
-        // Player Name
-        const nameCell = document.createElement('td');
-        nameCell.textContent = player.name;
-        row.appendChild(nameCell);
-
-        // Player Type
-        const typeCell = document.createElement('td');
-        typeCell.textContent = player.type;
-        row.appendChild(typeCell);
-
-        // Player Level
-        const levelCell = document.createElement('td');
-        levelCell.textContent = player.level;
-        row.appendChild(levelCell);
-
-        // XP
-        const xpCell = document.createElement('td');
-        xpCell.textContent = player.xp;
-        row.appendChild(xpCell);
-
-        // AP
-        const apCell = document.createElement('td');
-        apCell.textContent = player.ap;
-        row.appendChild(apCell);
-
-        // HP
-        const hpCell = document.createElement('td');
-        hpCell.textContent = player.hp;
-        row.appendChild(hpCell);
+        // Player details
+        const details = ['name', 'type', 'level', 'xp', 'ap', 'hp'];
+        details.forEach(detail => {
+            const cell = document.createElement('td');
+            cell.textContent = player[detail];
+            row.appendChild(cell);
+        });
 
         // Powers dropdown
         const powersCell = document.createElement('td');
         const powersSelect = document.createElement('select');
         powersSelect.classList.add('powers-select');
-
+        
         const defaultOption = document.createElement('option');
         defaultOption.text = 'Select power';
         defaultOption.value = '';
@@ -68,7 +46,6 @@ function loadPlayers() {
         const applyButton = document.createElement('button');
         applyButton.textContent = 'Apply Power';
 
-        // Add event listener to apply the selected power
         applyButton.addEventListener('click', function() {
             const selectedPowerIndex = powersSelect.value;
             if (selectedPowerIndex) {
@@ -91,7 +68,7 @@ function loadPowers() {
 
     const powers = JSON.parse(localStorage.getItem('powers')) || [];
 
-    powers.forEach((power) => {
+    powers.forEach(power => {
         const row = document.createElement('tr');
 
         // Power Name
@@ -119,39 +96,21 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const powerAPCost = parseInt(power.apCost, 10) || 0;
 
     if (playerAP >= powerAPCost) {
-        // Subtract AP cost and apply power effects
+        // Apply power effects
         player.ap = (playerAP - powerAPCost).toString();
         player.xp = (parseInt(player.xp, 10) + (power.gainxp || 0)).toString();
         player.hp = (parseInt(player.hp, 10) + (power.gainhp || 0)).toString();
         player.ap = (parseInt(player.ap, 10) + (power.gainap || 0)).toString();
 
-        // Check and apply power effects to other players if needed
-        if (power.affectPlayer) {
-            const affectedPlayer = players.find(p => p.name === power.affectPlayer);
-            if (affectedPlayer) {
-                const effectAmount = parseInt(power.effectAmount, 10) || 0;
-
-                switch (power.effectType) {
-                    case 'hp':
-                        affectedPlayer.hp = (parseInt(affectedPlayer.hp, 10) + effectAmount).toString();
-                        break;
-                    case 'ap':
-                        affectedPlayer.ap = (parseInt(affectedPlayer.ap, 10) + effectAmount).toString();
-                        break;
-                    case 'xp':
-                        affectedPlayer.xp = (parseInt(affectedPlayer.xp, 10) + effectAmount).toString();
-                        break;
-                }
-            } else {
-                console.error(`Player ${power.affectPlayer} not found!`);
-            }
-        }
-
         // Save updated player data to localStorage
         localStorage.setItem('characters', JSON.stringify(players));
 
-        // Reload the players table to reflect the changes
-        loadPlayers();
+        // Update the player row in the table
+        const playerRow = document.querySelector(`#playersTableBody tr:nth-child(${playerIndex + 1})`);
+        const cells = playerRow.getElementsByTagName('td');
+        cells[3].textContent = player.xp;  // XP
+        cells[4].textContent = player.ap;  // AP
+        cells[5].textContent = player.hp;  // HP
     } else {
         alert("Not enough AP to use this power!");
     }
