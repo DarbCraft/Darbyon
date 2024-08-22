@@ -97,10 +97,10 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
 
     if (playerAP >= powerAPCost) {
         // Apply power effects
-        player.ap = (playerAP - powerAPCost).toString();
-        player.xp = (parseInt(player.xp, 10) + (power.gainxp || 0)).toString();
-        player.hp = (parseInt(player.hp, 10) + (power.gainhp || 0)).toString();
-        player.ap = (parseInt(player.ap, 10) + (power.gainap || 0)).toString();
+        player.ap = (playerAP - powerAPCost).toInt();
+        player.xp = (parseInt(player.xp, 10) + (power.gainxp || 0)).toInt(); // testing Int Val, was toString
+        player.hp = (parseInt(player.hp, 10) + (power.gainhp || 0)).toInt();
+        player.ap = (parseInt(player.ap, 10) + (power.gainap || 0)).toInt();
 
         // Save updated player data to localStorage
         localStorage.setItem('characters', JSON.stringify(players));
