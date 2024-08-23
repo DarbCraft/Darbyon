@@ -99,14 +99,20 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const power = powers[powerIndex];
 
     const playerAP = parseInt(player.ap, 10) || 0;
-    const powerAPCost = parseInt(power.apCost, 10) || 0;
+    const powerAPCost = parseInt(power.ap, 10) || 0;
 
     if (playerAP >= powerAPCost) {
-        // Apply power effects
-        player.ap = playerAP - powerAPCost;  // Subtract the AP cost
-        player.xp = (parseInt(player.xp, 10) + (power.gainxp || 0));  // Add XP
-        player.hp = (parseInt(player.hp, 10) + (power.gainhp || 0));  // Modify HP
-        player.ap = (parseInt(player.ap, 10) + (power.gainap || 0));  // Modify AP, after cost
+        // Apply power effects to the player
+        player.ap = playerAP - powerAPCost;  // Subtract AP cost
+        player.xp = (parseInt(player.xp, 10) + (power.xp || 0));  // Add XP
+        player.hp = (parseInt(player.hp, 10) + (power.hp || 0));  // Modify HP
+        player.ap = (parseInt(player.ap, 10) + (power.otherPlayerAP || 0));  // Modify AP, after cost
+
+        // Check if the power affects other players and apply effects if applicable
+        if (power.otherPlayerXP || power.otherPlayerHP || power.otherPlayerAP) {
+            // You can implement logic to apply effects to another player if needed.
+            // Example: applyPowerToAnotherPlayer(playerIndex, power);
+        }
 
         // Save updated player data to localStorage
         localStorage.setItem('characters', JSON.stringify(players));
@@ -121,3 +127,4 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
         alert("Not enough AP to use this power!");
     }
 }
+
