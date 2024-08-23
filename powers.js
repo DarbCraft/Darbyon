@@ -49,7 +49,7 @@ function loadPlayers() {
         powersCell.appendChild(powersSelect);
         row.appendChild(powersCell);
 
-        // Actions column with "Apply Power" and "Target Player" (if necessary) button
+        // Actions column with "Apply Power" button
         const actionsCell = document.createElement('td');
         const applyButton = document.createElement('button');
         applyButton.textContent = 'Apply Power';
@@ -62,6 +62,7 @@ function loadPlayers() {
         defaultTargetOption.value = '';
         targetPlayerSelect.appendChild(defaultTargetOption);
 
+        // Populate target player dropdown
         players.forEach((targetPlayer, targetIndex) => {
             if (targetIndex !== index) {  // Don't allow self-targeting for other powers
                 const targetOption = document.createElement('option');
@@ -77,12 +78,15 @@ function loadPlayers() {
 
             if (selectedPowerIndex) {
                 const power = powers[selectedPowerIndex];
+                
                 if (power.target === 'self') {
                     applyPowerToPlayer(index, selectedPowerIndex);
-                } else if (power.target === 'other' && selectedTargetIndex) {
-                    applyPowerToPlayer(index, selectedPowerIndex, selectedTargetIndex);
-                } else {
-                    alert("Please select a valid target for this power!");
+                } else if (power.target === 'other') {
+                    if (selectedTargetIndex) {
+                        applyPowerToPlayer(index, selectedPowerIndex, selectedTargetIndex);
+                    } else {
+                        alert("Please select a valid target for this power!");
+                    }
                 }
             } else {
                 alert("Please select a power first!");
@@ -90,7 +94,7 @@ function loadPlayers() {
         });
 
         actionsCell.appendChild(applyButton);
-        actionsCell.appendChild(targetPlayerSelect);  // Only display for target powers
+        actionsCell.appendChild(targetPlayerSelect);  // Display target dropdown
         row.appendChild(actionsCell);
 
         playersTableBody.appendChild(row);
@@ -130,7 +134,6 @@ function loadPowers() {
     });
 }
 
-
 function applyPowerToPlayer(playerIndex, powerIndex, targetIndex = null) {
     const players = JSON.parse(localStorage.getItem('characters')) || [];
     const powers = JSON.parse(localStorage.getItem('powers')) || [];
@@ -155,7 +158,7 @@ function applyPowerToPlayer(playerIndex, powerIndex, targetIndex = null) {
         }
 
         // Apply power effects to the target player (if it's a team-based power)
-        if (targetIndex !== null && power.target === 'other') {
+        if (power.target === 'other' && targetIndex !== null) {
             const targetPlayer = players[targetIndex];
             targetPlayer.xp = (parseInt(targetPlayer.xp, 10) + (power.otherPlayerXP || 0));
             targetPlayer.ap = (parseInt(targetPlayer.ap, 10) + (power.otherPlayerAP || 0));
@@ -174,7 +177,6 @@ function applyPowerToPlayer(playerIndex, powerIndex, targetIndex = null) {
         alert("Not enough AP to use this power!");
     }
 }
-
 
 function updatePlayerRow(playerIndex, player) {
     const playerRow = document.querySelector(`#playersTableBody tr:nth-child(${playerIndex + 1})`);
