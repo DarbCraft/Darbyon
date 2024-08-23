@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadPlayers();
     loadPowers();
 });
@@ -41,21 +41,48 @@ function loadPlayers() {
         powersCell.appendChild(powersSelect);
         row.appendChild(powersCell);
 
-        // Actions column with "Apply Power" button
+        // Actions column with "Apply Power" and "Target Player" (if necessary) button
         const actionsCell = document.createElement('td');
         const applyButton = document.createElement('button');
         applyButton.textContent = 'Apply Power';
 
-        applyButton.addEventListener('click', function() {
+        const targetPlayerSelect = document.createElement('select');
+        targetPlayerSelect.classList.add('target-player-select');
+
+        const defaultTargetOption = document.createElement('option');
+        defaultTargetOption.text = 'Select target player';
+        defaultTargetOption.value = '';
+        targetPlayerSelect.appendChild(defaultTargetOption);
+
+        players.forEach((targetPlayer, targetIndex) => {
+            if (targetIndex !== index) {  // Don't allow self-targeting for other powers
+                const targetOption = document.createElement('option');
+                targetOption.value = targetIndex;
+                targetOption.text = targetPlayer.name;
+                targetPlayerSelect.appendChild(targetOption);
+            }
+        });
+
+        applyButton.addEventListener('click', function () {
             const selectedPowerIndex = powersSelect.value;
+            const selectedTargetIndex = targetPlayerSelect.value;
+
             if (selectedPowerIndex) {
-                applyPowerToPlayer(index, selectedPowerIndex);
+                const power = powers[selectedPowerIndex];
+                if (power.target === 'self') {
+                    applyPowerToPlayer(index, selectedPowerIndex);
+                } else if (power.target === 'other' && selectedTargetIndex) {
+                    applyPowerToPlayer(index, selectedPowerIndex, selectedTargetIndex);
+                } else {
+                    alert("Please select a valid target for this power!");
+                }
             } else {
                 alert("Please select a power first!");
             }
         });
 
         actionsCell.appendChild(applyButton);
+        actionsCell.appendChild(targetPlayerSelect);  // Only display for target powers
         row.appendChild(actionsCell);
 
         playersTableBody.appendChild(row);
@@ -91,7 +118,7 @@ function loadPowers() {
     });
 }
 
-function applyPowerToPlayer(playerIndex, powerIndex) {
+function applyPowerToPlayer(playerIndex, powerIndex, targetIndex = null) {
     const players = JSON.parse(localStorage.getItem('characters')) || [];
     const powers = JSON.parse(localStorage.getItem('powers')) || [];
 
@@ -105,32 +132,40 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     const powerAPCost = parseInt(power.ap, 10) || 0;
 
     if (playerAP >= powerAPCost) {
-        // Apply power effects to the player
-        player.ap = playerAP - powerAPCost;  // Subtract AP cost
-        player.xp = (parseInt(player.xp, 10) + (power.xp || 0));  // Add XP
-        player.hp = (parseInt(player.hp, 10) + (power.hp || 0));  // Modify HP
-        player.ap = (parseInt(player.ap, 10) + (power.otherPlayerAP || 0));  // Modify AP, after cost
+        // Deduct the AP cost
+        player.ap = playerAP - powerAPCost;
 
-        // Check if the power affects other players and apply effects if applicable
-        if (power.otherPlayerXP || power.otherPlayerHP || power.otherPlayerAP) {
-            // You can implement logic to apply effects to another player if needed.
-            // Example: applyPowerToAnotherPlayer(playerIndex, power);
+        // Apply power effects to the player
+        if (power.target === 'self') {
+            player.xp = (parseInt(player.xp, 10) + (power.xp || 0));
+            player.hp = (parseInt(player.hp, 10) + (power.hp || 0));
+        }
+
+        // Apply power effects to the target player (if it's an "other" power)
+        if (targetIndex !== null && power.target === 'other') {
+            const targetPlayer = players[targetIndex];
+            targetPlayer.xp = (parseInt(targetPlayer.xp, 10) + (power.otherPlayerXP || 0));
+            targetPlayer.ap = (parseInt(targetPlayer.ap, 10) + (power.otherPlayerAP || 0));
+            targetPlayer.hp = (parseInt(targetPlayer.hp, 10) + (power.otherPlayerHP || 0));
         }
 
         // Save updated player data to localStorage
         localStorage.setItem('characters', JSON.stringify(players));
 
         // Update the player row in the table
-        const playerRow = document.querySelector(`#playersTableBody tr:nth-child(${playerIndex + 1})`);
-        const cells = playerRow.getElementsByTagName('td');
-        cells[3].textContent = player.xp;  // XP
-        cells[4].textContent = player.ap;  // AP
-        cells[5].textContent = player.hp;  // HP
+        updatePlayerRow(playerIndex, players[playerIndex]);
+        if (targetIndex !== null) {
+            updatePlayerRow(targetIndex, players[targetIndex]);
+        }
     } else {
         alert("Not enough AP to use this power!");
     }
-    
 }
 
-
-
+function updatePlayerRow(playerIndex, player) {
+    const playerRow = document.querySelector(`#playersTableBody tr:nth-child(${playerIndex + 1})`);
+    const cells = playerRow.getElementsByTagName('td');
+    cells[3].textContent = player.xp;  // XP
+    cells[4].textContent = player.ap;  // AP
+    cells[5].textContent = player.hp;  // HP
+}
