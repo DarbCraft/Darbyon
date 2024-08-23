@@ -241,29 +241,36 @@
     </table>
     <h2>Add New Power</h2>
     <form id="powerForm">
-        <label for="powerName">Power Name:</label>
-        <input type="text" id="powerName" name="powerName" required>
+     <label for="powerName">Power Name:</label>
+    <input type="text" id="powerName" name="powerName" required><br>
 
-        <label for="powerXP">XP Change:</label>
-        <input type="number" id="powerXP" name="powerXP" required>
+    <label for="powerType">Power Type:</label>
+    <select id="powerType" name="powerType" required>
+        <option value="self">Self-Directed</option>
+        <option value="team">Team-Based</option>
+    </select><br>
 
-        <label for="powerAP">AP Change:</label>
-        <input type="number" id="powerAP" name="powerAP" required>
+    <label for="xpEffect">XP Gain:</label>
+    <input type="number" id="xpEffect" name="xpEffect"><br>
 
-        <label for="powerHP">HP Change:</label>
-        <input type="number" id="powerHP" name="powerHP" required>
+    <label for="apEffect">AP Cost:</label>
+    <input type="number" id="apEffect" name="apEffect"><br>
 
-        <label for="otherPlayerXP">Other Player XP Change:</label>
-        <input type="number" id="otherPlayerXP" name="otherPlayerXP">
+    <label for="hpEffect">HP Effect:</label>
+    <input type="number" id="hpEffect" name="hpEffect"><br>
 
-        <label for="otherPlayerAP">Other Player AP Change:</label>
-        <input type="number" id="otherPlayerAP" name="otherPlayerAP">
+    <label for="otherPlayerEffect">Team Effects (only for Team-Based):</label><br>
+    <label for="otherPlayerXP">Other Player XP:</label>
+    <input type="number" id="otherPlayerXP" name="otherPlayerXP"><br>
 
-        <label for="otherPlayerHP">Other Player HP Change:</label>
-        <input type="number" id="otherPlayerHP" name="otherPlayerHP">
+    <label for="otherPlayerAP">Other Player AP:</label>
+    <input type="number" id="otherPlayerAP" name="otherPlayerAP"><br>
 
-        <button type="submit">Add Power</button>
-    </form>
+    <label for="otherPlayerHP">Other Player HP:</label>
+    <input type="number" id="otherPlayerHP" name="otherPlayerHP"><br>
+
+    <button type="submit">Add Power</button>
+</form>
 
     <h2>Powers List</h2>
     <table id="powersTable">
