@@ -154,7 +154,7 @@ function applyPowerToPlayer(playerIndex, powerIndex, targetIndex = null) {
             player.hp = (parseInt(player.hp, 10) + (power.hp || 0));
         }
 
-        // Apply power effects to the target player (if it's an "other" power)
+        // Apply power effects to the target player (if it's a team-based power)
         if (targetIndex !== null && power.target === 'other') {
             const targetPlayer = players[targetIndex];
             targetPlayer.xp = (parseInt(targetPlayer.xp, 10) + (power.otherPlayerXP || 0));
@@ -174,6 +174,7 @@ function applyPowerToPlayer(playerIndex, powerIndex, targetIndex = null) {
         alert("Not enough AP to use this power!");
     }
 }
+
 
 function updatePlayerRow(playerIndex, player) {
     const playerRow = document.querySelector(`#playersTableBody tr:nth-child(${playerIndex + 1})`);
