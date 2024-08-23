@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     loadPowers();
-    document.getElementById('addPowerButton').addEventListener('click', addPower);
+    document.getElementById('powerForm').addEventListener('submit', addPower);
 });
 
 function loadPowers() {
@@ -62,24 +62,38 @@ function loadPowers() {
     });
 }
 
-function addPower() {
-    const name = prompt("Enter power name:");
-    const apCost = parseInt(prompt("Enter AP cost:"), 10);
-    const gainXp = parseInt(prompt("Enter XP gain:"), 10);
-    const gainAp = parseInt(prompt("Enter AP gain:"), 10);
-    const gainHp = parseInt(prompt("Enter HP gain:"), 10);
-    const affectPlayer = prompt("Affects which player (leave blank if none):");
-    const effectType = affectPlayer ? prompt("Effect type (hp, ap, xp):").toLowerCase() : 'none';
-    const effectAmount = effectType !== 'none' ? parseInt(prompt("Effect amount:"), 10) : 0;
+function addPower(event) {
+    event.preventDefault();
 
-    if (name && !isNaN(apCost) && !isNaN(gainXp) && !isNaN(gainAp) && !isNaN(gainHp)) {
-        const newPower = { name, apCost, gainXp, gainAp, gainHp, affectPlayer, effectType, effectAmount };
-        let powers = JSON.parse(localStorage.getItem('powers')) || [];
+    const name = document.getElementById('powerName').value.trim();
+    const type = document.getElementById('powerType').value;
+    const xp = parseInt(document.getElementById('xpEffect').value) || 0;
+    const ap = parseInt(document.getElementById('apEffect').value) || 0;
+    const hp = parseInt(document.getElementById('hpEffect').value) || 0;
+    const otherXP = parseInt(document.getElementById('otherPlayerXP').value) || 0;
+    const otherAP = parseInt(document.getElementById('otherPlayerAP').value) || 0;
+    const otherHP = parseInt(document.getElementById('otherPlayerHP').value) || 0;
+
+    if (name && !isNaN(xp) && !isNaN(ap) && !isNaN(hp)) {
+        const newPower = { 
+            name, 
+            type, 
+            xpEffect: xp, 
+            apEffect: ap, 
+            hpEffect: hp, 
+            otherPlayerXP: type === 'team' ? otherXP : undefined, 
+            otherPlayerAP: type === 'team' ? otherAP : undefined, 
+            otherPlayerHP: type === 'team' ? otherHP : undefined 
+        };
+
+        const powers = JSON.parse(localStorage.getItem('powers')) || [];
         powers.push(newPower);
         localStorage.setItem('powers', JSON.stringify(powers));
+
+        document.getElementById('powerForm').reset();
         loadPowers();
     } else {
-        alert("Invalid input!");
+        alert("Please fill out all required fields correctly.");
     }
 }
 
@@ -88,23 +102,24 @@ function editPower(index) {
     const power = powers[index];
 
     const newName = prompt("Edit Power Name:", power.name);
-    const newAPCost = prompt("Edit AP Cost:", power.apCost);
-    const newGainXP = prompt("Edit Gain XP:", power.gainXp);
-    const newGainAP = prompt("Edit Gain AP:", power.gainAp);
-    const newGainHP = prompt("Edit Gain HP:", power.gainHp);
-    const newAffectPlayer = prompt("Affects which player (leave blank if none):", power.affectPlayer);
-    const newEffectType = newAffectPlayer ? prompt("Effect type (hp, ap, xp):", power.effectType).toLowerCase() : 'none';
-    const newEffectAmount = newEffectType !== 'none' ? parseInt(prompt("Effect amount:", power.effectAmount), 10) : 0;
+    const newType = prompt("Edit Power Type:", power.type);
+    const newXP = prompt("Edit XP Effect:", power.xpEffect);
+    const newAP = prompt("Edit AP Effect:", power.apEffect);
+    const newHP = prompt("Edit HP Effect:", power.hpEffect);
+    const newOtherXP = prompt("Edit Other Player XP:", power.otherPlayerXP);
+    const newOtherAP = prompt("Edit Other Player AP:", power.otherPlayerAP);
+    const newOtherHP = prompt("Edit Other Player HP:", power.otherPlayerHP);
 
-    if (newName !== null && !isNaN(newAPCost) && !isNaN(newGainXP) && !isNaN(newGainAP) && !isNaN(newGainHP)) {
+    if (newName !== null && !isNaN(newXP) && !isNaN(newAP) && !isNaN(newHP)) {
         power.name = newName.trim();
-        power.apCost = parseInt(newAPCost, 10);
-        power.gainXp = parseInt(newGainXP, 10);
-        power.gainAp = parseInt(newGainAP, 10);
-        power.gainHp = parseInt(newGainHP, 10);
-        power.affectPlayer = newAffectPlayer;
-        power.effectType = newEffectType;
-        power.effectAmount = newEffectAmount;
+        power.type = newType;
+        power.xpEffect = parseInt(newXP, 10);
+        power.apEffect = parseInt(newAP, 10);
+        power.hpEffect = parseInt(newHP, 10);
+        power.otherPlayerXP = newType === 'team' ? parseInt(newOtherXP, 10) : undefined;
+        power.otherPlayerAP = newType === 'team' ? parseInt(newOtherAP, 10) : undefined;
+        power.otherPlayerHP = newType === 'team' ? parseInt(newOtherHP, 10) : undefined;
+
         powers[index] = power;
         localStorage.setItem('powers', JSON.stringify(powers));
         loadPowers();
