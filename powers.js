@@ -106,25 +106,30 @@ function loadPowers() {
     powers.forEach(power => {
         const row = document.createElement('tr');
 
-        // Create the name cell
         const nameCell = document.createElement('td');
         nameCell.textContent = power.name;
         row.appendChild(nameCell);
 
-        // Create the effects cell
+        const typeCell = document.createElement('td');
+        typeCell.textContent = power.type === 'team' ? 'Team-Based' : 'Self-Directed';
+        row.appendChild(typeCell);
+
         const effectCell = document.createElement('td');
         effectCell.textContent = `XP Gain: ${power.xp || 0}, AP Cost: ${power.ap || 0}, HP Effect: ${power.hp || 0}`;
         row.appendChild(effectCell);
 
-        // Create the cell for effects on other players
         const otherEffectCell = document.createElement('td');
-        otherEffectCell.textContent = `Other XP: ${power.otherPlayerXP || 0}, Other AP: ${power.otherPlayerAP || 0}, Other HP: ${power.otherPlayerHP || 0}`;
+        if (power.type === 'team') {
+            otherEffectCell.textContent = `Other XP: ${power.otherPlayerXP || 0}, Other AP: ${power.otherPlayerAP || 0}, Other HP: ${power.otherPlayerHP || 0}`;
+        } else {
+            otherEffectCell.textContent = 'N/A';
+        }
         row.appendChild(otherEffectCell);
 
-        // Append the row to the table
         powersTableBody.appendChild(row);
     });
 }
+
 
 function applyPowerToPlayer(playerIndex, powerIndex, targetIndex = null) {
     const players = JSON.parse(localStorage.getItem('characters')) || [];
