@@ -97,6 +97,9 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
 
     const player = players[playerIndex];
     const power = powers[powerIndex];
+    
+    console.log("Applying power to player:", player);
+    console.log("Selected power:", power);
 
     const playerAP = parseInt(player.ap, 10) || 0;
     const powerAPCost = parseInt(power.ap, 10) || 0;
@@ -126,5 +129,8 @@ function applyPowerToPlayer(playerIndex, powerIndex) {
     } else {
         alert("Not enough AP to use this power!");
     }
+    
 }
+
+
 
