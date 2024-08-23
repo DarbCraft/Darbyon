@@ -64,23 +64,29 @@ function loadPlayers() {
 
 function loadPowers() {
     const powersTableBody = document.querySelector('#powersTableBody');
-    powersTableBody.innerHTML = '';
+    powersTableBody.innerHTML = '';  // Clear the table before adding new rows
 
     const powers = JSON.parse(localStorage.getItem('powers')) || [];
-
+    
     powers.forEach(power => {
         const row = document.createElement('tr');
 
-        // Power Name
+        // Create the name cell
         const nameCell = document.createElement('td');
         nameCell.textContent = power.name;
         row.appendChild(nameCell);
 
-        // Power Effect
+        // Create the effects cell
         const effectCell = document.createElement('td');
-        effectCell.textContent = `AP Cost: ${power.apCost || 0}, XP Gain: ${power.gainxp || 0}, HP Effect: ${power.gainhp || 0}, AP Effect: ${power.gainap || 0}`;
+        effectCell.textContent = `XP Gain: ${power.xp || 0}, AP Cost: ${power.ap || 0}, HP Effect: ${power.hp || 0}`;
         row.appendChild(effectCell);
 
+        // Create the cell for effects on other players
+        const otherEffectCell = document.createElement('td');
+        otherEffectCell.textContent = `Other XP: ${power.otherPlayerXP || 0}, Other AP: ${power.otherPlayerAP || 0}, Other HP: ${power.otherPlayerHP || 0}`;
+        row.appendChild(otherEffectCell);
+
+        // Append the row to the table
         powersTableBody.appendChild(row);
     });
 }
