@@ -162,162 +162,204 @@
         <div id="logEntries"></div>
     </div>
 
-    <script>
-        function toggleSelectAll(selectAllCheckbox) {
-            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = selectAllCheckbox.checked;
-            });
-        }
+   <script>
+function toggleSelectAll(selectAllCheckbox) {
+    const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+}
 
-        function updateCharacter(name, type, value) {
-            let characters = JSON.parse(localStorage.getItem('characters')) || [];
-            characters = characters.map(char => {
-                if (char.name === name) {
-                    let oldValue = char[type];
-                    let newValue = oldValue + value;
+function updateCharacter(name, type, value) {
+    let characters = JSON.parse(localStorage.getItem('characters')) || [];
+    characters = characters.map(char => {
+        if (char.name === name) {
+            let oldValue = char[type];
+            let newValue = oldValue + value;
 
-                    // Ensure the value does not go below 0
-                    if (type === 'ap' || type === 'hp') {
-                        newValue = Math.max(newValue, 0);
-                    }
-
-                    char[type] = newValue;
-                    recordChange(name, type, oldValue, char[type]);
-                }
-                return char;
-            });
-
-            localStorage.setItem('characters', JSON.stringify(characters));
-            populatePlayerTable();
-        }
-
-        function updateSelectedCharacters(type) {
-            const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
-            const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
-            
-            checkboxes.forEach(checkbox => {
-                const row = checkbox.closest('tr');
-                const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
-                updateCharacter(name, type, value);
-            });
-        }
-
-        function getLevel(xp) {
-            if (xp < 5000) {
-                return 1;
-            } else if (xp < 10000) {
-                return 2;
-            } else if (xp < 15000) {
-                return 3;
-            } else if (xp < 20000) {
-                return 4;
-            } else if (xp < 25000) {
-                return 5;
-            } else if (xp < 30000) {
-                return 6;
-            } else {
-                return 7; 
+            // Ensure the value does not go below 0
+            if (type === 'ap' || type === 'hp') {
+                newValue = Math.max(newValue, 0);
             }
+
+            char[type] = newValue;
+            recordChange(name, type, oldValue, char[type]);
+        }
+        return char;
+    });
+
+    localStorage.setItem('characters', JSON.stringify(characters));
+    populatePlayerTable();
+}
+
+function updateSelectedCharacters(type) {
+    const value = parseInt(prompt(`Enter ${type.toUpperCase()} value (positive/negative):`), 10) || 0;
+    const checkboxes = document.querySelectorAll('#playerTable tbody input[type="checkbox"]:checked');
+    
+    checkboxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const name = row.querySelector('td:nth-child(3)').textContent; // Assuming name is in the third column
+        updateCharacter(name, type, value);
+    });
+}
+
+function getLevel(xp) {
+    if (xp < 5000) {
+        return 1;
+    } else if (xp < 10000) {
+        return 2;
+    } else if (xp < 15000) {
+        return 3;
+    } else if (xp < 20000) {
+        return 4;
+    } else if (xp < 25000) {
+        return 5;
+    } else if (xp < 30000) {
+        return 6;
+    } else {
+        return 7; 
+    }
+}
+
+function populatePlayerTable() {
+    const tbody = document.querySelector('#playerTable tbody');
+    tbody.innerHTML = '';
+
+    const players = JSON.parse(localStorage.getItem('characters')) || [];
+    players.forEach(player => {
+        const row = document.createElement('tr');
+        
+        const selectCell = document.createElement('td');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        selectCell.appendChild(checkbox);
+        row.appendChild(selectCell);
+
+        const updateCell = document.createElement('td');
+        const form = document.createElement('form');
+        form.className = 'update-form';
+        form.innerHTML = `
+            <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp', parseInt(prompt('Enter XP value (positive/negative):')) || 0)">🏅 XP</button>
+            <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap', parseInt(prompt('Enter AP value (positive/negative):')) || 0)">💎 AP</button>
+            <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp', parseInt(prompt('Enter HP value (positive/negative):')) || 0)">❤️ HP</button>
+        `;
+        updateCell.appendChild(form);
+        row.appendChild(updateCell);
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = player.name;
+        row.appendChild(nameCell);
+
+        const typeCell = document.createElement('td');
+        typeCell.textContent = player.type;
+        row.appendChild(typeCell);
+
+        const levelCell = document.createElement('td');
+        const level = getLevel(player.xp);
+        levelCell.textContent = level;
+        row.appendChild(levelCell);
+
+        const xpCell = document.createElement('td');
+        xpCell.textContent = player.xp;
+        row.appendChild(xpCell);
+
+        const apCell = document.createElement('td');
+        apCell.textContent = player.ap;
+        row.appendChild(apCell);
+
+        const hpCell = document.createElement('td');
+        hpCell.textContent = player.hp;
+        row.appendChild(hpCell);
+
+        tbody.appendChild(row);
+    });
+}
+
+function recordChange(name, type, oldValue, newValue) {
+    const logEntries = document.getElementById('logEntries');
+    const timestamp = new Date().toLocaleString();
+    const logEntry = document.createElement('div');
+    logEntry.className = 'change-log-entry';
+    logEntry.textContent = `> ${name} / ${type.toUpperCase()} / ${oldValue} -> ${newValue} / ${timestamp}`;
+    logEntries.appendChild(logEntry);
+}
+
+function clearChangeLog() {
+    const logEntries = document.getElementById('logEntries');
+    logEntries.innerHTML = '';
+}
+
+function sortTable(columnIndex, order) {
+    const table = document.getElementById('playerTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    rows.sort((a, b) => {
+        const aText = a.cells[columnIndex].textContent.trim();
+        const bText = b.cells[columnIndex].textContent.trim();
+        let comparison = 0;
+
+        // Determine the type of data and compare accordingly
+        if (!isNaN(aText) && !isNaN(bText)) {
+            // If both values are numbers
+            comparison = parseFloat(aText) - parseFloat(bText);
+        } else {
+            // If values are strings
+            comparison = aText.localeCompare(bText);
         }
 
-        function populatePlayerTable() {
-            const tbody = document.querySelector('#playerTable tbody');
-            tbody.innerHTML = '';
-
-            const players = JSON.parse(localStorage.getItem('characters')) || [];
-            players.forEach(player => {
-                const row = document.createElement('tr');
-                
-                const selectCell = document.createElement('td');
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                selectCell.appendChild(checkbox);
-                row.appendChild(selectCell);
-
-                const updateCell = document.createElement('td');
-                const form = document.createElement('form');
-                form.className = 'update-form';
-                form.innerHTML = `
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'xp', parseInt(prompt('Enter XP value (positive/negative):')) || 0)">🏅 XP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'ap', parseInt(prompt('Enter AP value (positive/negative):')) || 0)">💎 AP</button>
-                    <button type="button" class="update-btn" onclick="updateCharacter('${player.name}', 'hp', parseInt(prompt('Enter HP value (positive/negative):')) || 0)">❤️ HP</button>
-                `;
-                updateCell.appendChild(form);
-                row.appendChild(updateCell);
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = player.name;
-                row.appendChild(nameCell);
-
-                const typeCell = document.createElement('td');
-                typeCell.textContent = player.type;
-                row.appendChild(typeCell);
-
-                const levelCell = document.createElement('td');
-                const level = getLevel(player.xp);
-                levelCell.textContent = level;
-                row.appendChild(levelCell);
-
-                const xpCell = document.createElement('td');
-                xpCell.textContent = player.xp;
-                row.appendChild(xpCell);
-
-                const apCell = document.createElement('td');
-                apCell.textContent = player.ap;
-                row.appendChild(apCell);
-
-                const hpCell = document.createElement('td');
-                hpCell.textContent = player.hp;
-                row.appendChild(hpCell);
-
-                tbody.appendChild(row);
-            });
+        // If sorting in descending order, invert the comparison
+        if (order === 'dsc') {
+            comparison *= -1;
         }
 
-        function recordChange(name, type, oldValue, newValue) {
-            const logEntries = document.getElementById('logEntries');
-            const timestamp = new Date().toLocaleString();
-            const logEntry = document.createElement('div');
-            logEntry.className = 'change-log-entry';
-            logEntry.textContent = `> ${name} / ${type.toUpperCase()} / ${oldValue} -> ${newValue} / ${timestamp}`;
-            logEntries.appendChild(logEntry);
-        }
+        return comparison;
+    });
 
-        function clearChangeLog() {
-            const logEntries = document.getElementById('logEntries');
-            logEntries.innerHTML = '';
-        }
+    // Append sorted rows to the table body
+    rows.forEach(row => tbody.appendChild(row));
+}
 
-        function sortTable(columnIndex, order) {
-            const table = document.getElementById('playerTable');
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
+function showRandomMessage() {
+    const messages = JSON.parse(localStorage.getItem('messages')) || [];
+    let currentIndex = parseInt(localStorage.getItem('currentMessageIndex'), 10) || 0;
 
-            rows.sort((a, b) => {
-                const aText = a.cells[columnIndex].textContent.trim();
-                const bText = b.cells[columnIndex].textContent.trim();
-                let comparison = 0;
+    if (messages.length > 0) {
+        const selectedMessage = messages[currentIndex];
+        document.getElementById('currentMessage').innerHTML = `<strong>${selectedMessage.name}</strong>: ${selectedMessage.description}`;
+        document.getElementById('messageCounter').textContent = `${currentIndex + 1}/${messages.length}`;
 
-                if (!isNaN(aText) && !isNaN(bText)) {
-                    comparison = parseFloat(aText) - parseFloat(bText);
-                } else {
-                    comparison = aText.localeCompare(bText);
-                }
+        // Update index for next message
+        currentIndex = (currentIndex + 1) % messages.length;
+        localStorage.setItem('currentMessageIndex', currentIndex);
+    } else {
+        document.getElementById('currentMessage').textContent = "No messages available.";
+    }
+}
 
-                if (order === 'dsc') {
-                    comparison *= -1;
-                }
+function resetDailyEvents() {
+    localStorage.removeItem('currentMessageIndex');
+    showRandomMessage(); // Show the first message after resetting
+}
 
-                return comparison;
-            });
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if messages are already in localStorage
+    if (!localStorage.getItem('messages')) {
+        const messages = [
+            { name: "Electrical Storm", description: "Everyone loses 2 HP" },
+            { name: "Sunny Day Feeling", description: "Everyone gains 100XP" },
+            { name: "Shuffle!", description: "Leave your chair where it is and move to another desk. Run and you lose HP" }
+        ];
+        localStorage.setItem('messages', JSON.stringify(messages));
+    }
+    
+    // Initialize the showRandomMessage button
+    document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
+    document.getElementById('resetDailyEventsButton').addEventListener('click', resetDailyEvents);
 
-            rows.forEach(row => tbody.appendChild(row));
-        }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            populatePlayerTable();  // Populate the table when the page loads
-        });
-    </script>
+    // Populate player table or any other initialization logic
+    populatePlayerTable();
+});
+</script>
 </body>
 </html>
