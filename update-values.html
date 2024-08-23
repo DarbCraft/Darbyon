@@ -149,12 +149,12 @@
         </table>
 
         <h2>Generate Daily News</h2>
-        <div class="random-picker-box">
-            <button type="button" id="generateMessageButton">Show Daily News</button>
-            <button type="button" id="resetDailyEventsButton">Reset Daily Events</button>
-            <p id="currentMessage">Generate Daily News</p>
-            <p class="selection-counter">Messages shown: <span id="messageCounter">0/0</span></p>
-        </div>
+<div class="random-picker-box">
+    <button type="button" id="generateMessageButton">Show Daily News</button>
+    <button type="button" id="resetDailyEventsButton">Reset Daily Events</button>
+    <p id="currentMessage">Generate Daily News</p>
+    <p class="selection-counter">Messages shown: <span id="messageCounter">0/0</span></p>
+</div>
     </div>
 
     <div id="changeLog">
@@ -320,22 +320,67 @@ function sortTable(columnIndex, order) {
     rows.forEach(row => tbody.appendChild(row));
 }
 
-function showRandomMessage() {
-    const messages = JSON.parse(localStorage.getItem('messages')) || [];
-    let currentIndex = parseInt(localStorage.getItem('currentMessageIndex'), 10) || 0;
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Initialize the counter when the page loads
+    initializeMessageCounter();
 
-    if (messages.length > 0) {
-        const selectedMessage = messages[currentIndex];
-        document.getElementById('currentMessage').innerHTML = `<strong>${selectedMessage.name}</strong>: ${selectedMessage.description}`;
-        document.getElementById('messageCounter').textContent = `${currentIndex + 1}/${messages.length}`;
+    // Event listener for "Show Daily News" button
+    document.getElementById("generateMessageButton").addEventListener("click", showRandomMessage);
 
-        // Update index for next message
-        currentIndex = (currentIndex + 1) % messages.length;
-        localStorage.setItem('currentMessageIndex', currentIndex);
-    } else {
-        document.getElementById('currentMessage').textContent = "No messages available.";
-    }
+    // Event listener for "Reset Daily Events" button
+    document.getElementById("resetDailyEventsButton").addEventListener("click", resetDailyEvents);
+});
+
+function initializeMessageCounter() {
+    const messages = JSON.parse(localStorage.getItem('dailyMessages')) || [];
+    const shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+
+    const totalMessages = messages.length;
+    const totalShown = shownMessages.length;
+
+    // Update the message counter immediately
+    document.getElementById("messageCounter").textContent = `${totalShown}/${totalMessages}`;
 }
+
+function showRandomMessage() {
+    const messages = JSON.parse(localStorage.getItem('dailyMessages')) || [];
+    let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+
+    if (shownMessages.length === messages.length) {
+        alert("All messages have been shown.");
+        return;
+    }
+
+    // Generate a random message that hasn't been shown yet
+    let message;
+    do {
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        message = messages[randomIndex];
+    } while (shownMessages.includes(message));
+
+    // Add the message to shownMessages and save it
+    shownMessages.push(message);
+    localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
+
+    // Display the message
+    document.getElementById("currentMessage").textContent = message;
+
+    // Update the message counter
+    initializeMessageCounter();
+}
+
+function resetDailyEvents() {
+    // Clear the shown messages
+    localStorage.removeItem('shownMessages');
+
+    // Reset the message display
+    document.getElementById("currentMessage").textContent = "Generate Daily News";
+
+    // Re-initialize the counter
+    initializeMessageCounter();
+}
+</script>
 
 function resetDailyEvents() {
     localStorage.removeItem('currentMessageIndex');
