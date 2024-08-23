@@ -1,6 +1,14 @@
+let historyStack = [];  // Stack to store previous states
+
 document.addEventListener('DOMContentLoaded', function () {
     loadPlayers();
     loadPowers();
+    
+    // Add undo button functionality
+    const undoButton = document.querySelector('#undoButton');
+    if (undoButton) {
+        undoButton.addEventListener('click', undoLastAction);
+    }
 });
 
 function loadPlayers() {
@@ -122,12 +130,12 @@ function applyPowerToPlayer(playerIndex, powerIndex, targetIndex = null) {
     const players = JSON.parse(localStorage.getItem('characters')) || [];
     const powers = JSON.parse(localStorage.getItem('powers')) || [];
 
+    // Push current state to history stack before applying the power
+    historyStack.push(JSON.parse(JSON.stringify(players)));
+
     const player = players[playerIndex];
     const power = powers[powerIndex];
     
-    console.log("Applying power to player:", player);
-    console.log("Selected power:", power);
-
     const playerAP = parseInt(player.ap, 10) || 0;
     const powerAPCost = parseInt(power.ap, 10) || 0;
 
@@ -168,4 +176,17 @@ function updatePlayerRow(playerIndex, player) {
     cells[3].textContent = player.xp;  // XP
     cells[4].textContent = player.ap;  // AP
     cells[5].textContent = player.hp;  // HP
+}
+
+function undoLastAction() {
+    if (historyStack.length > 0) {
+        const previousState = historyStack.pop();
+        localStorage.setItem('characters', JSON.stringify(previousState));
+
+        // Reload players from the previous state
+        loadPlayers();
+        alert("Last action undone.");
+    } else {
+        alert("No actions to undo.");
+    }
 }
