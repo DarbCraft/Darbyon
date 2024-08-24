@@ -638,142 +638,165 @@ document.addEventListener('DOMContentLoaded', loadScoreboard);
         }
 
        document.getElementById('powerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        e.preventDefault();
 
-            const nameElement = document.getElementById('powerName');
-            const xpElement = document.getElementById('powerXP');
-            const apElement = document.getElementById('powerAP');
-            const hpElement = document.getElementById('powerHP');
-            const otherXPElement = document.getElementById('otherPlayerXP');
-            const otherAPElement = document.getElementById('otherPlayerAP');
-            const otherHPElement = document.getElementById('otherPlayerHP');
+        const nameElement = document.getElementById('powerName');
+        const xpElement = document.getElementById('powerXP');
+        const apElement = document.getElementById('powerAP');
+        const hpElement = document.getElementById('powerHP');
+        const otherXPElement = document.getElementById('otherPlayerXP');
+        const otherAPElement = document.getElementById('otherPlayerAP');
+        const otherHPElement = document.getElementById('otherPlayerHP');
 
-            if (!nameElement || !xpElement || !apElement || !hpElement) {
-                console.error('One or more elements are missing');
-                return;
-            }
+        // Step 1: Console logging the elements
+        console.log('nameElement:', nameElement);
+        console.log('xpElement:', xpElement);
+        console.log('apElement:', apElement);
+        console.log('hpElement:', hpElement);
 
-            const name = nameElement.value.trim();
-            const xp = parseInt(xpElement.value);
-            const ap = parseInt(apElement.value);
-            const hp = parseInt(hpElement.value);
-            const otherXP = parseInt(otherXPElement.value || 0);
-            const otherAP = parseInt(otherAPElement.value || 0);
-            const otherHP = parseInt(otherHPElement.value || 0);
+        if (!nameElement || !xpElement || !apElement || !hpElement) {
+            console.error('One or more elements are missing');
+            return;
+        }
 
-            if (name && !isNaN(xp) && !isNaN(ap) && !isNaN(hp)) {
-                const newPower = { name, xp, ap, hp, otherPlayerXP: otherXP, otherPlayerAP: otherAP, otherPlayerHP: otherHP };
+        const name = nameElement.value.trim();
+        const xp = parseInt(xpElement.value);
+        const ap = parseInt(apElement.value);
+        const hp = parseInt(hpElement.value);
+        const otherXP = parseInt(otherXPElement.value || 0);
+        const otherAP = parseInt(otherAPElement.value || 0);
+        const otherHP = parseInt(otherHPElement.value || 0);
 
-                const powers = JSON.parse(localStorage.getItem('powers')) || [];
-                powers.push(newPower);
-                localStorage.setItem('powers', JSON.stringify(powers));
+        // Step 2: Add more logging for values
+        console.log('Name:', name);
+        console.log('XP:', xp);
+        console.log('AP:', ap);
+        console.log('HP:', hp);
+        console.log('Other XP:', otherXP);
+        console.log('Other AP:', otherAP);
+        console.log('Other HP:', otherHP);
 
-                document.getElementById('powerForm').reset();
-                loadPowers();
-            } else {
-                alert('Please fill out all required fields correctly.');
-            }
-        });
+        if (name && !isNaN(xp) && !isNaN(ap) && !isNaN(hp)) {
+            const newPower = { 
+                name, 
+                xp, 
+                ap, 
+                hp, 
+                otherPlayerXP: otherXP, 
+                otherPlayerAP: otherAP, 
+                otherPlayerHP: otherHP 
+            };
 
-        function loadTeams() {
-            const teamsTableBody = document.querySelector('#teamsTable tbody');
-            teamsTableBody.innerHTML = '';
-            const teams = JSON.parse(localStorage.getItem('teams')) || [];
+            const powers = JSON.parse(localStorage.getItem('powers')) || [];
+            powers.push(newPower);
+            localStorage.setItem('powers', JSON.stringify(powers));
+
+            document.getElementById('powerForm').reset();
+            loadPowers();
+        } else {
+            alert('Please fill out all required fields correctly.');
+        }
+    });
+
+    function loadTeams() {
+        const teamsTableBody = document.querySelector('#teamsTable tbody');
+        teamsTableBody.innerHTML = '';
+        const teams = JSON.parse(localStorage.getItem('teams')) || [];
+        
+        teams.forEach((team, index) => {
+            const row = document.createElement('tr');
+
+            const nameCell = document.createElement('td');
+            nameCell.textContent = team.name;
+            row.appendChild(nameCell);
+
+            const membersCell = document.createElement('td');
+            membersCell.textContent = team.members.join(', ');
+            row.appendChild(membersCell);
+
+            const actionsCell = document.createElement('td');
             
-            teams.forEach((team, index) => {
-                const row = document.createElement('tr');
+            // Delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.addEventListener('click', () => deleteTeam(index));
+            actionsCell.appendChild(deleteButton);
 
-                const nameCell = document.createElement('td');
-                nameCell.textContent = team.name;
-                row.appendChild(nameCell);
+            row.appendChild(actionsCell);
+            teamsTableBody.appendChild(row);
+        });
+    }
 
-                const membersCell = document.createElement('td');
-                membersCell.textContent = team.members.join(', ');
-                row.appendChild(membersCell);
-
-                const actionsCell = document.createElement('td');
-                
-                // Delete button
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.addEventListener('click', () => deleteTeam(index));
-                actionsCell.appendChild(deleteButton);
-
-                row.appendChild(actionsCell);
-                teamsTableBody.appendChild(row);
-            });
-        }
-
-        function deleteTeam(index) {
-            const confirmation = confirm("Are you sure you want to delete this team?");
-            if (confirmation) {
-                let teams = JSON.parse(localStorage.getItem('teams')) || [];
-                teams.splice(index, 1);
-                localStorage.setItem('teams', JSON.stringify(teams));
-                loadTeams();
-            }
-        }
-
-        document.getElementById('teamForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const teamNameElement = document.getElementById('teamName');
-            if (!teamNameElement) {
-                console.error('Team name element is missing');
-                return;
-            }
-
-            const name = teamNameElement.value;
-            const newTeam = { name, members: [] };
+    function deleteTeam(index) {
+        const confirmation = confirm("Are you sure you want to delete this team?");
+        if (confirmation) {
             let teams = JSON.parse(localStorage.getItem('teams')) || [];
-            teams.push(newTeam);
+            teams.splice(index, 1);
             localStorage.setItem('teams', JSON.stringify(teams));
             loadTeams();
-            document.getElementById('teamForm').reset();
-        });
+        }
+    }
 
-        window.onload = () => {
-            loadPowers();
-            loadTeams();
-        };
-
-        function assignToTeam(charIndex) {
-            const teams = JSON.parse(localStorage.getItem('teams')) || [];
-            const characters = JSON.parse(localStorage.getItem('characters')) || [];
-            const char = characters[charIndex];
-
-            if (teams.length === 0) {
-                alert("No teams available. Please create a team first.");
-                return;
-            }
-
-            const teamName = prompt("Enter team name to assign the character:");
-            const team = teams.find(t => t.name === teamName);
-
-            if (team) {
-                team.members.push(char.name);
-                localStorage.setItem('teams', JSON.stringify(teams));
-                loadTeams(); // Refresh the teams list
-            } else {
-                alert("Team not found.");
-            }
+    document.getElementById('teamForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const teamNameElement = document.getElementById('teamName');
+        if (!teamNameElement) {
+            console.error('Team name element is missing');
+            return;
         }
 
-        // Add an "Assign" button in the loadScoreboard function
-        function loadScoreboard() {
-            // Example code for adding assign button to characters table
-            const charactersTableBody = document.querySelector('#charactersTable tbody');
-            if (charactersTableBody) {
-                charactersTableBody.querySelectorAll('tr').forEach((row, index) => {
-                    const actionsCell = row.querySelector('td:last-child');
-                    if (actionsCell) {
-                        const assignButton = document.createElement('button');
-                        assignButton.textContent = 'Assign to Team';
-                        assignButton.addEventListener('click', () => assignToTeam(index));
-                        actionsCell.appendChild(assignButton);
-                    }
-                });
-            }
+        const name = teamNameElement.value;
+        const newTeam = { name, members: [] };
+        let teams = JSON.parse(localStorage.getItem('teams')) || [];
+        teams.push(newTeam);
+        localStorage.setItem('teams', JSON.stringify(teams));
+        loadTeams();
+        document.getElementById('teamForm').reset();
+    });
+
+    window.onload = () => {
+        loadPowers();
+        loadTeams();
+    };
+
+    function assignToTeam(charIndex) {
+        const teams = JSON.parse(localStorage.getItem('teams')) || [];
+        const characters = JSON.parse(localStorage.getItem('characters')) || [];
+        const char = characters[charIndex];
+
+        if (teams.length === 0) {
+            alert("No teams available. Please create a team first.");
+            return;
         }
-    </script>
+
+        const teamName = prompt("Enter team name to assign the character:");
+        const team = teams.find(t => t.name === teamName);
+
+        if (team) {
+            team.members.push(char.name);
+            localStorage.setItem('teams', JSON.stringify(teams));
+            loadTeams(); // Refresh the teams list
+        } else {
+            alert("Team not found.");
+        }
+    }
+
+    // Add an "Assign" button in the loadScoreboard function
+    function loadScoreboard() {
+        // Example code for adding assign button to characters table
+        const charactersTableBody = document.querySelector('#charactersTable tbody');
+        if (charactersTableBody) {
+            charactersTableBody.querySelectorAll('tr').forEach((row, index) => {
+                const actionsCell = row.querySelector('td:last-child');
+                if (actionsCell) {
+                    const assignButton = document.createElement('button');
+                    assignButton.textContent = 'Assign to Team';
+                    assignButton.addEventListener('click', () => assignToTeam(index));
+                    actionsCell.appendChild(assignButton);
+                }
+            });
+        }
+    }
+</script>
 </body>
 </html>
