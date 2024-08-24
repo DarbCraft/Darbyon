@@ -97,6 +97,7 @@ function addPower(event) {
     }
 }
 
+
 function editPower(index) {
     const powers = JSON.parse(localStorage.getItem('powers')) || [];
     const power = powers[index];
