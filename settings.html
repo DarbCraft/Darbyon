@@ -85,7 +85,7 @@
             <tr>
                 <th>Name</th>
                 <th>Class</th>
-                <th>XP</th>
+                <th>xp</th>
                 <th>AP</th>
                 <th>HP</th>
                 <th>Actions</th>
@@ -148,7 +148,7 @@
         <option value="team">Team-Based</option>
     </select><br>
 
-    <label for="xpEffect">XP Gain:</label>
+    <label for="xpEffect">xp Gain:</label>
     <input type="number" id="xpEffect" name="xpEffect"><br>
 
     <label for="apEffect">AP Cost:</label>
@@ -157,8 +157,8 @@
     <label for="hpEffect">HP Effect:</label>
     <input type="number" id="hpEffect" name="hpEffect"><br>
 
-    <label for="otherPlayerXP">Other Player XP:</label>
-    <input type="number" id="otherPlayerXP" name="otherPlayerXP"><br>
+    <label for="otherPlayerxp">Other Player xp:</label>
+    <input type="number" id="otherPlayerxp" name="otherPlayerxp"><br>
 
     <label for="otherPlayerAP">Other Player AP:</label>
     <input type="number" id="otherPlayerAP" name="otherPlayerAP"><br>
@@ -174,10 +174,10 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>XP Change</th>
+                <th>xp Change</th>
                 <th>AP Change</th>
                 <th>HP Change</th>
-                <th>Other Player XP Change</th>
+                <th>Other Player xp Change</th>
                 <th>Other Player AP Change</th>
                 <th>Other Player HP Change</th>
                 <th>Actions</th>
@@ -468,9 +468,9 @@ document.addEventListener('DOMContentLoaded', loadScoreboard);
                 hpCell.textContent = power.hp;
                 row.appendChild(hpCell);
 
-                const otherXPCell = document.createElement('td');
-                otherXPCell.textContent = power.otherPlayerXP || 0;
-                row.appendChild(otherXPCell);
+                const otherxpCell = document.createElement('td');
+                otherxpCell.textContent = power.otherPlayerxp || 0;
+                row.appendChild(otherxpCell);
 
                 const otherAPCell = document.createElement('td');
                 otherAPCell.textContent = power.otherPlayerAP || 0;
@@ -504,19 +504,19 @@ document.addEventListener('DOMContentLoaded', loadScoreboard);
             const power = powers[index];
 
             const newName = prompt("Edit Power Name:", power.name);
-            const newXP = prompt("Edit XP Change:", power.xp);
+            const newxp = prompt("Edit xp Change:", power.xp);
             const newAP = prompt("Edit AP Change:", power.ap);
             const newHP = prompt("Edit HP Change:", power.hp);
-            const newOtherXP = prompt("Edit Other Player XP Change:", power.otherPlayerXP || 0);
+            const newOtherxp = prompt("Edit Other Player xp Change:", power.otherPlayerxp || 0);
             const newOtherAP = prompt("Edit Other Player AP Change:", power.otherPlayerAP || 0);
             const newOtherHP = prompt("Edit Other Player HP Change:", power.otherPlayerHP || 0);
 
-            if (newName !== null && newXP !== null && newAP !== null && newHP !== null) {
+            if (newName !== null && newxp !== null && newAP !== null && newHP !== null) {
                 power.name = newName.trim();
-                power.xp = parseInt(newXP);
+                power.xp = parseInt(newxp);
                 power.ap = parseInt(newAP);
                 power.hp = parseInt(newHP);
-                power.otherPlayerXP = parseInt(newOtherXP);
+                power.otherPlayerxp = parseInt(newOtherxp);
                 power.otherPlayerAP = parseInt(newOtherAP);
                 power.otherPlayerHP = parseInt(newOtherHP);
                 powers[index] = power;
@@ -539,10 +539,10 @@ document.addEventListener('DOMContentLoaded', loadScoreboard);
         e.preventDefault();
 
         const nameElement = document.getElementById('powerName');
-        const xpElement = document.getElementById('powerXP');
+        const xpElement = document.getElementById('powerxp');
         const apElement = document.getElementById('powerAP');
         const hpElement = document.getElementById('powerHP');
-        const otherXPElement = document.getElementById('otherPlayerXP');
+        const otherxpElement = document.getElementById('otherPlayerxp');
         const otherAPElement = document.getElementById('otherPlayerAP');
         const otherHPElement = document.getElementById('otherPlayerHP');
 
@@ -561,16 +561,16 @@ document.addEventListener('DOMContentLoaded', loadScoreboard);
         const xp = parseInt(xpElement.value);
         const ap = parseInt(apElement.value);
         const hp = parseInt(hpElement.value);
-        const otherXP = parseInt(otherXPElement.value || 0);
+        const otherxp = parseInt(otherxpElement.value || 0);
         const otherAP = parseInt(otherAPElement.value || 0);
         const otherHP = parseInt(otherHPElement.value || 0);
 
         // Step 2: Add more logging for values
         console.log('Name:', name);
-        console.log('XP:', xp);
+        console.log('xp:', xp);
         console.log('AP:', ap);
         console.log('HP:', hp);
-        console.log('Other XP:', otherXP);
+        console.log('Other xp:', otherxp);
         console.log('Other AP:', otherAP);
         console.log('Other HP:', otherHP);
 
@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', loadScoreboard);
                 xp, 
                 ap, 
                 hp, 
-                otherPlayerXP: otherXP, 
+                otherPlayerxp: otherxp, 
                 otherPlayerAP: otherAP, 
                 otherPlayerHP: otherHP 
             };
