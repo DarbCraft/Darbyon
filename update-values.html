@@ -325,24 +325,32 @@ function sortTable(columnIndex, order) {
 
 function showRandomMessage() {
     const messages = JSON.parse(localStorage.getItem('messages')) || [];
-    let currentIndex = parseInt(localStorage.getItem('currentMessageIndex'), 10) || 0;
-
+    
     if (messages.length > 0) {
-        const selectedMessage = messages[currentIndex];
+        // Generate a random index for the message
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        const selectedMessage = messages[randomIndex];
+        
         document.getElementById('currentMessage').innerHTML = `<strong>${selectedMessage.name}</strong>: ${selectedMessage.description}`;
-        document.getElementById('messageCounter').textContent = `${currentIndex + 1}/${messages.length}`;
+        document.getElementById('messageCounter').textContent = `${randomIndex + 1}/${messages.length}`;
+        
+        // Store the last displayed message index to prevent repeats until all are shown
+        let shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+        shownMessages.push(randomIndex);
 
-        // Update index for next message
-        currentIndex = (currentIndex + 1) % messages.length;
-        localStorage.setItem('currentMessageIndex', currentIndex);
+        if (shownMessages.length === messages.length) {
+            shownMessages = []; // Reset when all messages have been shown
+        }
+
+        localStorage.setItem('shownMessages', JSON.stringify(shownMessages));
     } else {
         document.getElementById('currentMessage').textContent = "No messages available.";
     }
 }
 
 function resetDailyEvents() {
-    localStorage.removeItem('currentMessageIndex');
-    showRandomMessage(); // Show the first message after resetting
+    localStorage.removeItem('shownMessages');
+    showRandomMessage(); // Show a random message after resetting
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -363,6 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Populate player table or any other initialization logic
     populatePlayerTable();
 });
+
 </script>
 </body>
 </html>
