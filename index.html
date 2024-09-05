@@ -175,45 +175,27 @@
             return 7; 
         }
 
-       function pickRandomPlayer() {
+     window.onload = function() {
+    populatePlayerTable();
+    setBackgroundBasedOnTime();
+
     const players = JSON.parse(localStorage.getItem('characters')) || [];
-    let shownPlayers = JSON.parse(localStorage.getItem('shownPlayers')) || [];
+    const shownPlayers = JSON.parse(localStorage.getItem('shownPlayers')) || [];
 
-    if (shownPlayers.length === players.length) {
-        shownPlayers = [];
-    }
-
-    const availablePlayers = players.filter(player => !shownPlayers.includes(player.name));
-    if (availablePlayers.length === 0) {
-        document.getElementById('selectedPlayer').textContent = 'No new players available.';
-        return;
-    }
-
-    const randomIndex = Math.floor(Math.random() * availablePlayers.length);
-    const randomPlayer = availablePlayers[randomIndex];
-    shownPlayers.push(randomPlayer.name);
-    localStorage.setItem('shownPlayers', JSON.stringify(shownPlayers));
-
-    document.getElementById('playerName').textContent = randomPlayer.name;
-
-    // Update the counter
+    // Initialize the player selection counter
     const totalPlayers = players.length;
     const shownCount = shownPlayers.length;
     document.getElementById('selectionCounter').textContent = `${shownCount}/${totalPlayers}`;
-}
-        function resetPicker() {
-            localStorage.removeItem('shownPlayers');
-            document.getElementById('playerName').textContent = 'None';
-            document.getElementById('selectionCounter').textContent = '0/0';
-        }
 
-        document.getElementById('pickRandomPlayerButton').addEventListener('click', pickRandomPlayer);
-        document.getElementById('resetPickerButton').addEventListener('click', resetPicker);
+    if (totalPlayers === 0) {
+        document.getElementById('playerName').textContent = 'No players available.';
+    } else if (shownCount === totalPlayers) {
+        document.getElementById('playerName').textContent = 'All players have been shown.';
+    } else {
+        document.getElementById('playerName').textContent = 'None';
+    }
+};
 
-        window.onload = function() {
-            populatePlayerTable();
-            setBackgroundBasedOnTime();
-        };
     </script>
 </body>
 </html>
