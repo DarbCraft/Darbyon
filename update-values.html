@@ -363,7 +363,14 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         localStorage.setItem('messages', JSON.stringify(messages));
     }
-    
+
+    const messages = JSON.parse(localStorage.getItem('messages')) || [];
+    const shownMessages = JSON.parse(localStorage.getItem('shownMessages')) || [];
+
+    // Initialize the message counter
+    const messageCounterElement = document.getElementById('messageCounter');
+    messageCounterElement.textContent = `${shownMessages.length}/${messages.length}`;
+
     // Initialize the showRandomMessage button
     document.getElementById('generateMessageButton').addEventListener('click', showRandomMessage);
     document.getElementById('resetDailyEventsButton').addEventListener('click', resetDailyEvents);
