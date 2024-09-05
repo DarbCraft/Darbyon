@@ -22,7 +22,7 @@ function loadPowers() {
         apCostCell.textContent = power.apEffect;
         row.appendChild(apCostCell);
 
-        // Gain xp
+        // Gain XP
         const gainxpCell = document.createElement('td');
         gainxpCell.textContent = power.xpEffect;
         row.appendChild(gainxpCell);
@@ -70,9 +70,9 @@ function addPower(event) {
     const xp = parseInt(document.getElementById('xpEffect').value) || 0;
     const ap = parseInt(document.getElementById('apEffect').value) || 0;
     const hp = parseInt(document.getElementById('hpEffect').value) || 0;
-    const otherxp = type === 'team' ? (parseInt(document.getElementById('otherPlayerxp').value) || 0) : undefined;
-    const otherAP = type === 'team' ? (parseInt(document.getElementById('otherPlayerAP').value) || 0) : undefined;
-    const otherHP = type === 'team' ? (parseInt(document.getElementById('otherPlayerHP').value) || 0) : undefined;
+    const otherXP = type === 'team' ? parseInt(document.getElementById('otherPlayerxp').value) || 0 : undefined;
+    const otherAP = type === 'team' ? parseInt(document.getElementById('otherPlayerAP').value) || 0 : undefined;
+    const otherHP = type === 'team' ? parseInt(document.getElementById('otherPlayerHP').value) || 0 : undefined;
 
     if (name && !isNaN(xp) && !isNaN(ap) && !isNaN(hp)) {
         const newPower = { 
@@ -81,7 +81,7 @@ function addPower(event) {
             xpEffect: xp, 
             apEffect: ap, 
             hpEffect: hp, 
-            otherPlayerxp: otherxp, 
+            otherPlayerxp: otherXP, 
             otherPlayerAP: otherAP, 
             otherPlayerHP: otherHP 
         };
@@ -92,11 +92,12 @@ function addPower(event) {
 
         document.getElementById('powerForm').reset();
         loadPowers();
+
+        console.log("New Power Data: ", newPower);
     } else {
         alert("Please fill out all required fields correctly.");
     }
 }
-
 
 function editPower(index) {
     const powers = JSON.parse(localStorage.getItem('powers')) || [];
@@ -104,22 +105,19 @@ function editPower(index) {
 
     const newName = prompt("Edit Power Name:", power.name);
     const newAPCost = prompt("Edit AP Cost:", power.apEffect);
-    const newGainxp = prompt("Edit Gain xp:", power.xpEffect);
+    const newGainXP = prompt("Edit Gain XP:", power.xpEffect);
     const newGainAP = prompt("Edit Gain AP:", power.apEffect);
     const newGainHP = prompt("Edit Gain HP:", power.hpEffect);
     const newAffectPlayer = prompt("Affects which player (leave blank if none):", power.otherPlayerxp);
-    const newEffectType = newAffectPlayer ? prompt("Effect type (hp, ap, xp):", power.effectType).toLowerCase() : 'none';
-    const newEffectAmount = newEffectType !== 'none' ? parseInt(prompt("Effect amount:", power.effectAmount), 10) : 0;
 
-    if (newName !== null && !isNaN(newAPCost) && !isNaN(newGainxp) && !isNaN(newGainAP) && !isNaN(newGainHP)) {
+    if (newName !== null && !isNaN(newAPCost) && !isNaN(newGainXP) && !isNaN(newGainAP) && !isNaN(newGainHP)) {
         power.name = newName.trim();
         power.apEffect = parseInt(newAPCost, 10);
-        power.xpEffect = parseInt(newGainxp, 10);
+        power.xpEffect = parseInt(newGainXP, 10);
         power.apEffect = parseInt(newGainAP, 10);
         power.hpEffect = parseInt(newGainHP, 10);
-        power.otherPlayerxp = newAffectPlayer;
-        power.effectType = newEffectType;
-        power.effectAmount = newEffectAmount;
+        power.otherPlayerxp = newAffectPlayer || undefined;
+
         powers[index] = power;
         localStorage.setItem('powers', JSON.stringify(powers));
         loadPowers();
@@ -129,10 +127,9 @@ function editPower(index) {
 function deletePower(index) {
     const confirmation = confirm("Are you sure you want to delete this power?");
     if (confirmation) {
-        let powers = JSON.parse(localStorage.getItem('powers')) || [];
+        const powers = JSON.parse(localStorage.getItem('powers')) || [];
         powers.splice(index, 1);
         localStorage.setItem('powers', JSON.stringify(powers));
         loadPowers();
     }
 }
-
