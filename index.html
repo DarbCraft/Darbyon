@@ -4,225 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DårbCRÅFT</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            color: #fff;
-        }
-        nav a {
-            margin: 10px;
-            text-decoration: none;
-            color: #fff;
-        }
-        input, button {
-            display: block;
-            margin: 10px 0;
-        }
-        form {
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 10px;
-        }
-        table {
-            border-collapse: collapse;
-            margin: 20px 0;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: left;
-            background-color: #555;
-            color: #fff;
-        }
-        th {
-            background-color: #444;
-        }
-        .random-picker {
-            margin: 20px 0;
-            text-align: center;
-        }
-        .random-picker-box {
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 10px;
-            display: inline-block;
-        }
-        .random-picker button {
-            margin: 5px;
-            padding: 10px;
-            cursor: pointer;
-        }
-        .picked-player {
-            font-size: 2em;
-            margin: 10px 0;
-        }
-        .selection-counter {
-            font-size: 1.5em;
-            margin: 10px 0;
-        }
-    </style>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>DårbCRÅFT</h1>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="settings.html">Settings</a>
-        <a href="update-values.html">Update Values</a>
-        <a href="powers.html">Powers</a>
-        <a href="teams.html">Teams</a>
-    </nav>
+    <nav id="nav" aria-label="Pages"></nav>
 
     <h2>Player Table</h2>
-    <table id="playerTable">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Level</th>
-                <th>XP</th>
-                <th>AP</th>
-                <th>HP</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <div class="random-picker">
-        <div class="random-picker-box">
-            <button type="button" id="pickRandomPlayerButton">Pick Random Player</button>
-            <button type="button" id="resetPickerButton">Reset Picker</button>
-            <p id="selectedPlayer" class="picked-player">Selected Player: <span id="playerName">None</span></p>
-            <p class="selection-counter">Players selected: <span id="selectionCounter">0/0</span></p>
-        </div>
+    <div class="table-wrap">
+        <table id="playerTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th class="num">Level</th>
+                    <th class="num">XP</th>
+                    <th class="num">AP</th>
+                    <th class="num">HP</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 
-    <script>
-        function setBackgroundBasedOnTime() {
-            const hour = new Date().getHours();
-            let backgroundUrl = '';
+    <div class="panel spotlight">
+        <div class="toolbar">
+            <button type="button" id="pickRandomPlayerButton">Pick Random Player</button>
+            <button type="button" id="resetPickerButton" class="secondary">Reset Picker</button>
+        </div>
+        <p class="big" aria-live="polite">Selected Player: <span id="playerName">None</span></p>
+        <p class="counter">Players selected: <span id="selectionCounter">0/0</span></p>
+    </div>
 
-            if (hour >= 6 && hour < 9) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%201.jpeg?raw=true';
-            } else if (hour >= 9 && hour < 10) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Dawn%202.jpeg?raw=true'; 
-            } else if (hour >= 10 && hour < 14) {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%201.jpeg?raw=true';
-            } else {
-                backgroundUrl = 'https://github.com/DarbCraft/Darbyon/blob/main/Images/Day%203.jpeg?raw=true'; 
-            }
-
-            document.body.style.backgroundImage = `url('${backgroundUrl}')`;
-        }
-
-        function populatePlayerTable() {
-            const tbody = document.querySelector('#playerTable tbody');
-            tbody.innerHTML = ''; // Clear the table body
-
-            const players = JSON.parse(localStorage.getItem('characters')) || [];
-            players.forEach(player => {
-                const row = document.createElement('tr');
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = player.name;
-                row.appendChild(nameCell);
-
-                const typeCell = document.createElement('td');
-                typeCell.textContent = player.type; 
-                row.appendChild(typeCell);
-
-                const levelCell = document.createElement('td');
-                levelCell.textContent = getLevel(player.xp);
-                row.appendChild(levelCell);
-
-                const xpCell = document.createElement('td');
-                xpCell.textContent = player.xp;
-                row.appendChild(xpCell);
-
-                const apCell = document.createElement('td');
-                apCell.textContent = player.ap;
-                row.appendChild(apCell);
-
-                const hpCell = document.createElement('td');
-                hpCell.textContent = player.hp;
-                row.appendChild(hpCell);
-
-                tbody.appendChild(row);
-            });
-        }
-
-        function getLevel(xp) {
-            if (xp < 5000) return 1;
-            if (xp < 10000) return 2;
-            if (xp < 15000) return 3;
-            if (xp < 20000) return 4;
-            if (xp < 25000) return 5;
-            if (xp < 30000) return 6;
-            return 7; 
-        }
-
-        function pickRandomPlayer() {
-            const players = JSON.parse(localStorage.getItem('characters')) || [];
-            let shownPlayers = JSON.parse(localStorage.getItem('shownPlayers')) || [];
-
-            if (shownPlayers.length === players.length) {
-                shownPlayers = [];
-            }
-
-            const availablePlayers = players.filter(player => !shownPlayers.includes(player.name));
-            if (availablePlayers.length === 0) {
-                document.getElementById('selectedPlayer').textContent = 'No new players available.';
-                return;
-            }
-
-            const randomIndex = Math.floor(Math.random() * availablePlayers.length);
-            const randomPlayer = availablePlayers[randomIndex];
-            shownPlayers.push(randomPlayer.name);
-            localStorage.setItem('shownPlayers', JSON.stringify(shownPlayers));
-
-            document.getElementById('playerName').textContent = randomPlayer.name;
-
-            // Update the counter
-            const totalPlayers = players.length;
-            const shownCount = shownPlayers.length;
-            document.getElementById('selectionCounter').textContent = `${shownCount}/${totalPlayers}`;
-        }
-
-        function resetPicker() {
-            localStorage.removeItem('shownPlayers');
-            document.getElementById('playerName').textContent = 'None';
-            document.getElementById('selectionCounter').textContent = '0/0';
-        }
-
-        window.onload = function() {
-            populatePlayerTable();
-            setBackgroundBasedOnTime();
-
-            const players = JSON.parse(localStorage.getItem('characters')) || [];
-            const shownPlayers = JSON.parse(localStorage.getItem('shownPlayers')) || [];
-
-            // Initialize the player selection counter
-            const totalPlayers = players.length;
-            const shownCount = shownPlayers.length;
-            document.getElementById('selectionCounter').textContent = `${shownCount}/${totalPlayers}`;
-
-            if (totalPlayers === 0) {
-                document.getElementById('playerName').textContent = 'No players available.';
-            } else if (shownCount === totalPlayers) {
-                document.getElementById('playerName').textContent = 'All players have been shown.';
-            } else {
-                document.getElementById('playerName').textContent = 'None';
-            }
-        };
-
-        // Add event listeners for buttons
-        document.getElementById('pickRandomPlayerButton').addEventListener('click', pickRandomPlayer);
-        document.getElementById('resetPickerButton').addEventListener('click', resetPicker);
-    </script>
+    <script src="app.js"></script>
+    <script src="home.js"></script>
 </body>
 </html>

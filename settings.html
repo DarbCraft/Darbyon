@@ -4,802 +4,193 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        nav {
-            margin-bottom: 20px;
-        }
-        nav a {
-            margin: 10px;
-            text-decoration: none;
-            color: #000;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background-color: rgba(192, 192, 192, 0.8);
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #666;
-            color: white;
-        }
-        tr:nth-child(even):not(:nth-child(1)) {
-            background-color: rgba(255, 255, 255, 0.6);
-        }
-        tr:nth-child(odd) {
-            background-color: rgba(211, 211, 211, 0.6);
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 20px;
-        }
-        label, input, button {
-            margin: 5px 0;
-        }
-        .full-width {
-            width: 100%;
-        }
-        .btn-group {
-            display: flex;
-            justify-content: space-between;
-        }
-        .btn-group button {
-            margin-left: 10px;
-        }
-    </style>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Settings</h1>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="update-values.html">Update Values</a>
-        <a href="powers.html">Powers</a>
-        <a href="teams.html">Teams</a>
-    </nav>
+    <nav id="nav" aria-label="Pages"></nav>
 
-    <form id="addCharacterForm">
-        <label for="charName">Character Name:</label>
-        <input type="text" id="charName" name="charName">
-        <label for="charType">Character Type:</label>
-        <select id="charType" name="charType">
-            <option value="Warrior">Warrior</option>
-            <option value="Healer">Healer</option>
-            <option value="Mage">Mage</option>
-        </select>
-        <button type="button" onclick="addCharacter()">Add Character</button>
+    <h2>Add Character</h2>
+    <form id="addCharacterForm" class="panel">
+        <div class="field">
+            <label for="charName">Character Name</label>
+            <input type="text" id="charName" name="charName" required>
+        </div>
+        <div class="field">
+            <label for="charType">Character Type</label>
+            <select id="charType" name="charType"></select>
+        </div>
+        <button type="submit">Add Character</button>
     </form>
 
     <h2>Character List</h2>
-    <table class="styled-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Class</th>
-                <th>xp</th>
-                <th>AP</th>
-                <th>HP</th>
-                <th>Actions</th>
-                <th>Team</th>
-            </tr>
-        </thead>
-        <tbody id="scoreboardTableBody"></tbody>
-    </table>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Class</th>
+                    <th class="num">XP</th>
+                    <th class="num">AP</th>
+                    <th class="num">HP</th>
+                    <th>Team</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="charactersTableBody"></tbody>
+        </table>
+    </div>
 
     <h2>Create New Team</h2>
-<form id="teamForm">
-    <label for="teamName">Team Name:</label>
-    <input type="text" id="teamName" name="teamName" required>
-    <button type="submit">Add Team</button>
+    <form id="teamForm" class="panel">
+        <div class="field">
+            <label for="teamName">Team Name</label>
+            <input type="text" id="teamName" name="teamName" required>
+        </div>
+        <button type="submit">Add Team</button>
+    </form>
 
-</form>
+    <h2>Teams List</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Team Name</th>
+                    <th>Members</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="teamsTableBody"></tbody>
+        </table>
+    </div>
 
-<h2>Teams List</h2>
-<table id="teamsTable">
-    <thead>
-        <tr>
-            <th>Team Name</th>
-            <th>Members</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
-    
     <h2>Add Daily Message</h2>
-    <form id="messageForm">
-        <label for="messageName">Daily News Item:</label>
-        <input type="text" id="messageName" name="messageName" required>
-
-        <label for="messageDescription">Description:</label>
-        <textarea id="messageDescription" name="messageDescription" required></textarea>
-
+    <form id="messageForm" class="panel">
+        <div class="field wide">
+            <label for="messageName">Daily News Item</label>
+            <input type="text" id="messageName" name="messageName" required>
+        </div>
+        <div class="field wide">
+            <label for="messageDescription">Description</label>
+            <textarea id="messageDescription" name="messageDescription" required></textarea>
+        </div>
         <button type="submit">Add News Item</button>
     </form>
 
-    
     <h2>Daily News</h2>
-    <table id="messageTable">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    <h2>Add New Power</h2>
-   <form id="powerForm">
-    <label for="powerName">Power Name:</label>
-    <input type="text" id="powerName" name="powerName" required><br>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="messagesTableBody"></tbody>
+        </table>
+    </div>
 
-    <label for="powerType">Power Type:</label>
-    <select id="powerType" name="powerType" required>
-        <option value="self">Self-Directed</option>
-        <option value="team">Team-Based</option>
-    </select><br>
-
-    <label for="xpEffect">xp Gain:</label>
-    <input type="number" id="xpEffect" name="xpEffect"><br>
-
-    <label for="apEffect">AP Cost:</label>
-    <input type="number" id="apEffect" name="apEffect"><br>
-
-    <label for="hpEffect">HP Effect:</label>
-    <input type="number" id="hpEffect" name="hpEffect"><br>
-
-    <label for="otherPlayerxp">Other Player xp:</label>
-    <input type="number" id="otherPlayerxp" name="otherPlayerxp"><br>
-
-    <label for="otherPlayerAP">Other Player AP:</label>
-    <input type="number" id="otherPlayerAP" name="otherPlayerAP"><br>
-
-    <label for="otherPlayerHP">Other Player HP:</label>
-    <input type="number" id="otherPlayerHP" name="otherPlayerHP"><br>
-
-    <button type="submit">Add Power</button>
-</form>
+    <h2 id="powerFormTitle">Add New Power</h2>
+    <form id="powerForm" class="panel">
+        <div class="field">
+            <label for="powerName">Power Name</label>
+            <input type="text" id="powerName" name="powerName" required>
+        </div>
+        <div class="field">
+            <label for="powerType">Power Type</label>
+            <select id="powerType" name="powerType">
+                <option value="self">Self-Directed</option>
+                <option value="team">Team-Based</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="powerApCost">AP Cost</label>
+            <input type="number" id="powerApCost" name="powerApCost" min="0" value="0">
+        </div>
+        <div class="field">
+            <label for="powerXp">XP Gain</label>
+            <input type="number" id="powerXp" name="powerXp" value="0">
+        </div>
+        <div class="field">
+            <label for="powerHp">HP Effect</label>
+            <input type="number" id="powerHp" name="powerHp" value="0">
+        </div>
+        <div class="field team-only">
+            <label for="otherXp">Other Player XP</label>
+            <input type="number" id="otherXp" name="otherXp" value="0">
+        </div>
+        <div class="field team-only">
+            <label for="otherAp">Other Player AP</label>
+            <input type="number" id="otherAp" name="otherAp" value="0">
+        </div>
+        <div class="field team-only">
+            <label for="otherHp">Other Player HP</label>
+            <input type="number" id="otherHp" name="otherHp" value="0">
+        </div>
+        <div class="actions">
+            <button type="submit" id="powerSubmit">Add Power</button>
+            <button type="button" id="powerCancel" class="secondary" hidden>Cancel</button>
+        </div>
+    </form>
 
     <h2>Powers List</h2>
-    <table id="powersTable">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>xp Change</th>
-                <th>AP Change</th>
-                <th>HP Change</th>
-                <th>Other Player xp Change</th>
-                <th>Other Player AP Change</th>
-                <th>Other Player HP Change</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-    </table>
-
-    <script>
-        function addCharacter() {
-    const name = document.getElementById('charName').value;
-    const type = document.getElementById('charType').value;
-    const team = ''; // Initially, the player is not assigned to any team
-    let hp, ap;
-
-    switch (type) {
-        case 'Warrior':
-            hp = 10;
-            ap = 15;
-            break;
-        case 'Healer':
-            hp = 8;
-            ap = 20;
-            break;
-        case 'Mage':
-            hp = 6;
-            ap = 30;
-            break;
-        default:
-            alert('Invalid character type!');
-            return;
-    }
-
-    const newCharacter = { name, type, xp: 0, ap, hp, team };
-    let characters = JSON.parse(localStorage.getItem('characters')) || [];
-    characters.push(newCharacter);
-    localStorage.setItem('characters', JSON.stringify(characters));
-    loadScoreboard();  // Update the table immediately
-    document.getElementById('addCharacterForm').reset();
-}
-
-        function editCharacter(index) {
-    const characters = JSON.parse(localStorage.getItem('characters')) || [];
-    const char = characters[index];
-
-    const newName = prompt("Edit Character Name:", char.name);
-    if (newName !== null && newName.trim() !== "") {
-        char.name = newName.trim();
-    }
-
-    const newType = prompt("Edit Character Type (Warrior, Healer, Mage):", char.type);
-    if (newType !== null && newType.trim() !== "") {
-        char.type = newType.trim();
-    }
-
-    characters[index] = char;
-    localStorage.setItem('characters', JSON.stringify(characters));
-    loadScoreboard();
-}
-
-function deleteCharacter(index) {
-    if (confirm("Are you sure you want to delete this character?")) {
-        let characters = JSON.parse(localStorage.getItem('characters')) || [];
-        characters.splice(index, 1);
-        localStorage.setItem('characters', JSON.stringify(characters));
-        loadScoreboard();
-    }
-}
-
-// Load the character list when the page is loaded
-document.addEventListener('DOMContentLoaded', loadScoreboard);
-
-
-        function loadScoreboard() {
-    const tableBody = document.querySelector('#scoreboardTableBody');
-    tableBody.innerHTML = '';
-    const characters = JSON.parse(localStorage.getItem('characters')) || [];
-    const teams = JSON.parse(localStorage.getItem('teams')) || []; // Load teams
-
-    characters.forEach((char, index) => {
-        const row = document.createElement('tr');
-
-        const nameCell = document.createElement('td');
-        nameCell.textContent = char.name;
-        row.appendChild(nameCell);
-
-        const typeCell = document.createElement('td');
-        typeCell.textContent = char.type;
-        row.appendChild(typeCell);
-
-        const xpCell = document.createElement('td');
-        xpCell.textContent = char.xp;
-        row.appendChild(xpCell);
-
-        const apCell = document.createElement('td');
-        apCell.textContent = char.ap;
-        row.appendChild(apCell);
-
-        const hpCell = document.createElement('td');
-        hpCell.textContent = char.hp;
-        row.appendChild(hpCell);
-
-        // Team selection dropdown
-        const teamCell = document.createElement('td');
-        const teamSelect = document.createElement('select');
-        
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = 'Select Team';
-        teamSelect.appendChild(defaultOption);
-
-        teams.forEach(team => {
-            const option = document.createElement('option');
-            option.value = team.name;
-            option.textContent = team.name;
-            if (char.team === team.name) {
-                option.selected = true;
-            }
-            teamSelect.appendChild(option);
-        });
-
-        teamSelect.addEventListener('change', () => {
-            assignTeam(index, teamSelect.value);
-        });
-
-        teamCell.appendChild(teamSelect);
-        row.appendChild(teamCell);
-
-        // Add Actions cell
-        const actionsCell = document.createElement('td');
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Edit';
-        editButton.addEventListener('click', () => editCharacter(index));
-        actionsCell.appendChild(editButton);
-
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.addEventListener('click', () => deleteCharacter(index));
-        actionsCell.appendChild(deleteButton);
-
-        row.appendChild(actionsCell);
-        tableBody.appendChild(row);
-    });
-}
-
-       function editCharacter(index) {
-    const characters = JSON.parse(localStorage.getItem('characters')) || [];
-    const char = characters[index];
-
-    const newName = prompt("Edit Character Name:", char.name);
-    if (newName !== null && newName.trim() !== "") {
-        char.name = newName.trim();
-    }
-
-    const newType = prompt("Edit Character Type (Warrior, Healer, Mage):", char.type);
-    if (newType !== null && newType.trim() !== "") {
-        char.type = newType.trim();
-
-    characters[index] = char;
-    localStorage.setItem('characters', JSON.stringify(characters));
-    loadScoreboard();
-}
-
-function deleteCharacter(index) {
-    if (confirm("Are you sure you want to delete this character?")) {
-        let characters = JSON.parse(localStorage.getItem('characters')) || [];
-        characters.splice(index, 1);
-        localStorage.setItem('characters', JSON.stringify(characters));
-        loadScoreboard();
-    }
-}
-
-// Load the character list when the page is loaded
-document.addEventListener('DOMContentLoaded', loadScoreboard);
-
-        }
-        function assignTeam(charIndex, teamName) {
-    let characters = JSON.parse(localStorage.getItem('characters')) || [];
-    characters[charIndex].team = teamName;
-    localStorage.setItem('characters', JSON.stringify(characters));
-    loadScoreboard();  // Optionally reload the scoreboard to reflect changes
-}
-
-
-        function loadMessages() {
-            const messageTableBody = document.querySelector('#messageTable tbody');
-            messageTableBody.innerHTML = '';
-
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
-
-            messages.forEach((msg, index) => {
-                const row = document.createElement('tr');
-                const nameCell = document.createElement('td');
-                const descriptionCell = document.createElement('td');
-                const actionsCell = document.createElement('td');
-
-                // Style the name in bold and the description in a larger font
-                nameCell.innerHTML = `<strong>${msg.name}</strong>`;
-                descriptionCell.innerHTML = `<span style="font-size: larger;">${msg.description}</span>`;
-
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.onclick = () => deleteMessage(index);
-
-                const editButton = document.createElement('button');
-                editButton.textContent = 'Edit';
-                editButton.onclick = () => editMessage(index);
-
-                const btnGroup = document.createElement('div');
-                btnGroup.classList.add('btn-group');
-                btnGroup.appendChild(editButton);
-                btnGroup.appendChild(deleteButton);
-
-                actionsCell.appendChild(btnGroup);
-
-                row.appendChild(nameCell);
-                row.appendChild(descriptionCell);
-                row.appendChild(actionsCell);
-
-                messageTableBody.appendChild(row);
-            });
-        }
-
-        function deleteMessage(index) {
-            if (confirm('Are you sure you want to delete this news item?')) {
-                let messages = JSON.parse(localStorage.getItem('messages')) || [];
-                messages.splice(index, 1);
-                localStorage.setItem('messages', JSON.stringify(messages));
-                loadMessages();
-            }
-        }
-
-        function editMessage(index) {
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            const msg = messages[index];
-
-            const newName = prompt('Edit Name:', msg.name);
-            const newDescription = prompt('Edit Description:', msg.description);
-
-            if (newName !== null && newDescription !== null) {
-                messages[index] = { name: newName, description: newDescription };
-                localStorage.setItem('messages', JSON.stringify(messages));
-                loadMessages();
-            }
-        }
-
-        document.getElementById('messageForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const name = document.getElementById('messageName').value;
-            const description = document.getElementById('messageDescription').value;
-
-            const newMessage = { name, description };
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.push(newMessage);
-            localStorage.setItem('messages', JSON.stringify(messages));
-            loadMessages();
-            document.getElementById('messageForm').reset();
-        });
-
-        // Load data on page load
-        window.onload = () => {
-            loadScoreboard();
-            loadMessages();
-        };
-         // Load powers from localStorage and display in the table
-        function loadPowers() {
-            const powersTableBody = document.querySelector('#powersTable tbody');
-            powersTableBody.innerHTML = '';
-
-            const powers = JSON.parse(localStorage.getItem('powers')) || [];
-
-            powers.forEach((power, index) => {
-                const row = document.createElement('tr');
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = power.name;
-                row.appendChild(nameCell);
-
-                const xpCell = document.createElement('td');
-                xpCell.textContent = power.xp;
-                row.appendChild(xpCell);
-
-                const apCell = document.createElement('td');
-                apCell.textContent = power.ap;
-                row.appendChild(apCell);
-
-                const hpCell = document.createElement('td');
-                hpCell.textContent = power.hp;
-                row.appendChild(hpCell);
-
-                const otherxpCell = document.createElement('td');
-                otherxpCell.textContent = power.otherPlayerxp || 0;
-                row.appendChild(otherxpCell);
-
-                const otherAPCell = document.createElement('td');
-                otherAPCell.textContent = power.otherPlayerAP || 0;
-                row.appendChild(otherAPCell);
-
-                const otherHPCell = document.createElement('td');
-                otherHPCell.textContent = power.otherPlayerHP || 0;
-                row.appendChild(otherHPCell);
-
-                const actionsCell = document.createElement('td');
-
-                // Edit and delete buttons
-                const editButton = document.createElement('button');
-                editButton.textContent = 'Edit';
-                editButton.addEventListener('click', () => editPower(index));
-                actionsCell.appendChild(editButton);
-
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.addEventListener('click', () => deletePower(index));
-                actionsCell.appendChild(deleteButton);
-
-                row.appendChild(actionsCell);
-
-                powersTableBody.appendChild(row);
-            });
-        }
-
-        function editPower(index) {
-            const powers = JSON.parse(localStorage.getItem('powers')) || [];
-            const power = powers[index];
-
-            const newName = prompt("Edit Power Name:", power.name);
-            const newxp = prompt("Edit xp Change:", power.xp);
-            const newAP = prompt("Edit AP Change:", power.ap);
-            const newHP = prompt("Edit HP Change:", power.hp);
-            const newOtherxp = prompt("Edit Other Player xp Change:", power.otherPlayerxp || 0);
-            const newOtherAP = prompt("Edit Other Player AP Change:", power.otherPlayerAP || 0);
-            const newOtherHP = prompt("Edit Other Player HP Change:", power.otherPlayerHP || 0);
-
-            if (newName !== null && newxp !== null && newAP !== null && newHP !== null) {
-                power.name = newName.trim();
-                power.xp = parseInt(newxp);
-                power.ap = parseInt(newAP);
-                power.hp = parseInt(newHP);
-                power.otherPlayerxp = parseInt(newOtherxp);
-                power.otherPlayerAP = parseInt(newOtherAP);
-                power.otherPlayerHP = parseInt(newOtherHP);
-                powers[index] = power;
-                localStorage.setItem('powers', JSON.stringify(powers));
-                loadPowers();
-            }
-        }
-
-        function deletePower(index) {
-            const confirmation = confirm("Are you sure you want to delete this power?");
-            if (confirmation) {
-                let powers = JSON.parse(localStorage.getItem('powers')) || [];
-                powers.splice(index, 1);
-                localStorage.setItem('powers', JSON.stringify(powers));
-                loadPowers();
-            }
-        }
-
-       document.getElementById('powerForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const nameElement = document.getElementById('powerName');
-        const xpElement = document.getElementById('powerxp');
-        const apElement = document.getElementById('powerAP');
-        const hpElement = document.getElementById('powerHP');
-        const otherxpElement = document.getElementById('otherPlayerxp');
-        const otherAPElement = document.getElementById('otherPlayerAP');
-        const otherHPElement = document.getElementById('otherPlayerHP');
-
-        // Step 1: Console logging the elements
-        console.log('nameElement:', nameElement);
-        console.log('xpElement:', xpElement);
-        console.log('apElement:', apElement);
-        console.log('hpElement:', hpElement);
-
-        if (!nameElement || !xpElement || !apElement || !hpElement) {
-            console.error('One or more elements are missing');
-            return;
-        }
-
-        const name = nameElement.value.trim();
-        const xp = parseInt(xpElement.value);
-        const ap = parseInt(apElement.value);
-        const hp = parseInt(hpElement.value);
-        const otherxp = parseInt(otherxpElement.value || 0);
-        const otherAP = parseInt(otherAPElement.value || 0);
-        const otherHP = parseInt(otherHPElement.value || 0);
-
-        // Step 2: Add more logging for values
-        console.log('Name:', name);
-        console.log('xp:', xp);
-        console.log('AP:', ap);
-        console.log('HP:', hp);
-        console.log('Other xp:', otherxp);
-        console.log('Other AP:', otherAP);
-        console.log('Other HP:', otherHP);
-
-        if (name && !isNaN(xp) && !isNaN(ap) && !isNaN(hp)) {
-            const newPower = { 
-                name, 
-                xp, 
-                ap, 
-                hp, 
-                otherPlayerxp: otherxp, 
-                otherPlayerAP: otherAP, 
-                otherPlayerHP: otherHP 
-            };
-
-            const powers = JSON.parse(localStorage.getItem('powers')) || [];
-            powers.push(newPower);
-            localStorage.setItem('powers', JSON.stringify(powers));
-
-            document.getElementById('powerForm').reset();
-            loadPowers();
-        } else {
-            alert('Please fill out all required fields correctly.');
-        }
-    });
-
-    function loadTeams() {
-        const teamsTableBody = document.querySelector('#teamsTable tbody');
-        teamsTableBody.innerHTML = '';
-        const teams = JSON.parse(localStorage.getItem('teams')) || [];
-        
-        teams.forEach((team, index) => {
-            const row = document.createElement('tr');
-
-            const nameCell = document.createElement('td');
-            nameCell.textContent = team.name;
-            row.appendChild(nameCell);
-
-            const membersCell = document.createElement('td');
-            membersCell.textContent = team.members.join(', ');
-            row.appendChild(membersCell);
-
-            const actionsCell = document.createElement('td');
-            
-            // Delete button
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Delete';
-            deleteButton.addEventListener('click', () => deleteTeam(index));
-            actionsCell.appendChild(deleteButton);
-
-            row.appendChild(actionsCell);
-            teamsTableBody.appendChild(row);
-        });
-    }
-
-    function deleteTeam(index) {
-        const confirmation = confirm("Are you sure you want to delete this team?");
-        if (confirmation) {
-            let teams = JSON.parse(localStorage.getItem('teams')) || [];
-            teams.splice(index, 1);
-            localStorage.setItem('teams', JSON.stringify(teams));
-            loadTeams();
-        }
-    }
-
-    document.getElementById('teamForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        const teamNameElement = document.getElementById('teamName');
-        if (!teamNameElement) {
-            console.error('Team name element is missing');
-            return;
-        }
-
-        const name = teamNameElement.value;
-        const newTeam = { name, members: [] };
-        let teams = JSON.parse(localStorage.getItem('teams')) || [];
-        teams.push(newTeam);
-        localStorage.setItem('teams', JSON.stringify(teams));
-        loadTeams();
-        document.getElementById('teamForm').reset();
-    });
-
-    window.onload = () => {
-        loadPowers();
-        loadTeams();
-    };
-
-    function assignToTeam(charIndex) {
-        const teams = JSON.parse(localStorage.getItem('teams')) || [];
-        const characters = JSON.parse(localStorage.getItem('characters')) || [];
-        const char = characters[charIndex];
-
-        if (teams.length === 0) {
-            alert("No teams available. Please create a team first.");
-            return;
-        }
-
-        const teamName = prompt("Enter team name to assign the character:");
-        const team = teams.find(t => t.name === teamName);
-
-        if (team) {
-            team.members.push(char.name);
-            localStorage.setItem('teams', JSON.stringify(teams));
-            loadTeams(); // Refresh the teams list
-        } else {
-            alert("Team not found.");
-        }
-    }
-
-    // Add an "Assign" button in the loadScoreboard function
-    function loadScoreboard() {
-        // Example code for adding assign button to characters table
-        const charactersTableBody = document.querySelector('#charactersTable tbody');
-        if (charactersTableBody) {
-            charactersTableBody.querySelectorAll('tr').forEach((row, index) => {
-                const actionsCell = row.querySelector('td:last-child');
-                if (actionsCell) {
-                    const assignButton = document.createElement('button');
-                    assignButton.textContent = 'Assign to Team';
-                    assignButton.addEventListener('click', () => assignToTeam(index));
-                    actionsCell.appendChild(assignButton);
-                }
-            });
-        }
-    }
-    
-    // Function to handle adding a new team
-    document.getElementById('teamForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent the default form submission
-
-        const teamName = document.getElementById('teamName').value.trim();
-        if (teamName === '') {
-            alert('Please enter a team name.');
-            return;
-        }
-
-        // Get the existing teams from localStorage or initialize as an empty array
-        let teams = JSON.parse(localStorage.getItem('teams')) || [];
-        
-        // Check if the team name already exists
-        if (teams.some(team => team.name === teamName)) {
-            alert('This team already exists.');
-            return;
-        }
-
-        // Add the new team to the array
-        teams.push({ name: teamName, members: [] });
-
-        // Save the updated teams array to localStorage
-        localStorage.setItem('teams', JSON.stringify(teams));
-
-        // Reload the teams table to include the new team
-        loadTeams();
-
-        // Reset the form
-        document.getElementById('teamForm').reset();
-    });
-
-    // Function to load and display teams in the teams table
-    function loadTeams() {
-        const teamsTableBody = document.querySelector('#teamsTable tbody');
-        teamsTableBody.innerHTML = ''; // Clear the table body
-
-        // Get the teams from localStorage
-        const teams = JSON.parse(localStorage.getItem('teams')) || [];
-
-        // Populate the table with the teams
-        teams.forEach((team, index) => {
-            const row = document.createElement('tr');
-
-            const nameCell = document.createElement('td');
-            nameCell.textContent = team.name;
-            row.appendChild(nameCell);
-
-            const membersCell = document.createElement('td');
-            membersCell.textContent = team.members.join(', '); // Display members
-            row.appendChild(membersCell);
-
-            // Add Actions cell
-            const actionsCell = document.createElement('td');
-
-            // Edit button
-            const editButton = document.createElement('button');
-            editButton.textContent = 'Edit';
-            editButton.addEventListener('click', () => editTeam(index));
-            actionsCell.appendChild(editButton);
-
-            // Delete button
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Delete';
-            deleteButton.addEventListener('click', () => deleteTeam(index));
-            actionsCell.appendChild(deleteButton);
-
-            row.appendChild(actionsCell);
-
-            teamsTableBody.appendChild(row);
-        });
-    }
-
-    // Function to delete a team
-    function deleteTeam(index) {
-        if (confirm('Are you sure you want to delete this team?')) {
-            let teams = JSON.parse(localStorage.getItem('teams')) || [];
-            teams.splice(index, 1);
-            localStorage.setItem('teams', JSON.stringify(teams));
-            loadTeams();
-        }
-    }
-
-    // Function to edit a team (e.g., changing the team name or managing members)
-    function editTeam(index) {
-        let teams = JSON.parse(localStorage.getItem('teams')) || [];
-        const team = teams[index];
-
-        const newTeamName = prompt('Edit Team Name:', team.name);
-        if (newTeamName !== null && newTeamName.trim() !== '') {
-            team.name = newTeamName.trim();
-            teams[index] = team;
-            localStorage.setItem('teams', JSON.stringify(teams));
-            loadTeams();
-        }
-    }
-
-   // Wait until the DOM content is fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            handleFormSubmission(); // Initialize form submission handling
-            loadTeams(); // Load the teams on page load
-        });
-</script>
-    
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th class="num">AP Cost</th>
+                    <th class="num">XP Change</th>
+                    <th class="num">HP Change</th>
+                    <th class="num">Other Player XP</th>
+                    <th class="num">Other Player AP</th>
+                    <th class="num">Other Player HP</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="powersTableBody"></tbody>
+        </table>
+    </div>
+
+    <h2>Battle Punishments</h2>
+    <p class="hint">When a player's HP reaches 0 they fall into Battle and spin a wheel of these punishments.</p>
+    <form id="punishmentForm" class="panel">
+        <div class="field wide">
+            <label for="punishmentText">New Punishment</label>
+            <input type="text" id="punishmentText" name="punishmentText" maxlength="60" required>
+        </div>
+        <button type="submit">Add Punishment</button>
+    </form>
+    <div class="table-wrap" style="margin-top:12px">
+        <table>
+            <thead>
+                <tr>
+                    <th>Punishment</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="punishmentsTableBody"></tbody>
+        </table>
+    </div>
+
+    <h2>Backup and Restore</h2>
+    <div class="panel">
+        <p class="hint" style="margin-top:0">
+            All class data is saved in this browser on this computer only. Download a backup
+            regularly, and use it to move the class to another computer.
+        </p>
+        <div class="toolbar">
+            <button type="button" id="backupButton">Download Backup</button>
+            <button type="button" id="restoreButton" class="secondary">Restore from Backup…</button>
+            <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+        </div>
+        <p id="backupNotice" class="notice" role="status"></p>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="settings.js"></script>
 </body>
 </html>

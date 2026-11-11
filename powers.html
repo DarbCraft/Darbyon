@@ -4,104 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Powers</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        nav {
-            margin-bottom: 20px;
-        }
-        nav a {
-            margin: 10px;
-            text-decoration: none;
-            color: #000;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background-color: rgba(192, 192, 192, 0.8);
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #666;
-            color: white;
-        }
-        tr:nth-child(even):not(:nth-child(1)) {
-            background-color: rgba(255, 255, 255, 0.6);
-        }
-        tr:nth-child(odd) {
-            background-color: rgba(211, 211, 211, 0.6);
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 20px;
-        }
-        label, input, button {
-            margin: 5px 0;
-        }
-        .full-width {
-            width: 100%;
-        }
-        .btn-group {
-            display: flex;
-            justify-content: space-between;
-        }
-        .btn-group button {
-            margin-left: 10px;
-        }
-        tbody td {
-        padding-left: 20px;
-    </style>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Powers</h1>
-    <nav>
-       <nav>
-        <a href="index.html">Home</a>
-        <a href="settings.html">Settings</a>
-        <a href="update-values.html">Update Values</a>
-        <a href="teams.html">Teams</a>
-    </nav>
-<div>
-    <button id="undoButton">Undo Last Action</button>
-</div>
-        
+    <nav id="nav" aria-label="Pages"></nav>
+
+    <div class="toolbar">
+        <button type="button" id="undoButton" class="secondary">Undo Last Action</button>
+    </div>
+    <p id="notice" class="notice" role="status"></p>
+
     <h2>Player List</h2>
-    <table class="styled-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Level</th>
-                <th>XP</th>
-                <th>AP</th>
-                <th>HP</th>
-                <th>Powers</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="playersTableBody"></tbody>
-    </table>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th class="num">Level</th>
+                    <th class="num">XP</th>
+                    <th class="num">AP</th>
+                    <th class="num">HP</th>
+                    <th>Power</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="playersTableBody"></tbody>
+        </table>
+    </div>
 
     <h2>Powers List</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Power Name</th>
-                <th>Effect</th>
-                 <th>Effect to Teammate</th>
-            </tr>
-        </thead>
-        <tbody id="powersTableBody"></tbody>
-    </table>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Power Name</th>
+                    <th>Type</th>
+                    <th class="num">AP Cost</th>
+                    <th>Effect</th>
+                    <th>Effect to Teammate</th>
+                </tr>
+            </thead>
+            <tbody id="powersTableBody"></tbody>
+        </table>
+    </div>
 
+    <script src="app.js"></script>
+    <script src="battle.js"></script>
     <script src="powers.js"></script>
 </body>
 </html>
