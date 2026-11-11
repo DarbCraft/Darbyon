@@ -1,5 +1,5 @@
 // Update Values page: award XP, AP and HP, and show the daily news.
-document.addEventListener('DOMContentLoaded', () => {
+Darbyon.ready(() => {
     const { el } = Darbyon;
     const tbody = document.querySelector('#playerTable tbody');
     const selectAll = document.getElementById('selectAllCheckbox');
@@ -184,6 +184,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('resetDailyEventsButton').addEventListener('click', () => {
         Darbyon.resetMessages();
         currentMessage.textContent = 'Generate Daily News';
+        showCounter(Darbyon.messageProgress());
+    });
+
+    Darbyon.onChange(() => {
+        render();
         showCounter(Darbyon.messageProgress());
     });
 

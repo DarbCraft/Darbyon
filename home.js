@@ -1,5 +1,5 @@
 // Home page: the class table and the random player picker.
-document.addEventListener('DOMContentLoaded', () => {
+Darbyon.ready(() => {
     const { el } = Darbyon;
     const tbody = document.querySelector('#playerTable tbody');
     const playerName = document.getElementById('playerName');
@@ -44,6 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
         playerName.textContent = 'None';
         showCounter(Darbyon.pickerProgress());
     });
+
+    Darbyon.onChange(() => {
+        renderTable();
+        showCounter(Darbyon.pickerProgress());
+    }, { poll: true });
 
     renderTable();
     const progress = Darbyon.pickerProgress();

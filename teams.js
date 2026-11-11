@@ -1,9 +1,7 @@
 // Teams page: one card per team, with its members and combined totals.
-document.addEventListener('DOMContentLoaded', () => {
+Darbyon.ready(() => {
     const { el } = Darbyon;
     const container = document.getElementById('teamsContainer');
-    const characters = Darbyon.getCharacters();
-    const teams = Darbyon.getTeams();
 
     function addCard(title, members) {
         const card = el('section', null, 'panel team-card');
@@ -39,14 +37,21 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(card);
     }
 
-    if (!teams.length) {
-        container.appendChild(el('p', 'No teams yet. Create them on the Settings page.', 'panel'));
-        return;
+    function render() {
+        container.innerHTML = '';
+        const characters = Darbyon.getCharacters();
+        const teams = Darbyon.getTeams();
+        if (!teams.length) {
+            container.appendChild(el('p', 'No teams yet. Create them on the Settings page.', 'panel'));
+            return;
+        }
+        const teamNames = teams.map(t => t.name);
+        teams.forEach(team => addCard(team.name, characters.filter(c => c.team === team.name)));
+
+        const unassigned = characters.filter(c => teamNames.indexOf(c.team) === -1);
+        if (unassigned.length) addCard('No team', unassigned);
     }
 
-    const teamNames = teams.map(t => t.name);
-    teams.forEach(team => addCard(team.name, characters.filter(c => c.team === team.name)));
-
-    const unassigned = characters.filter(c => teamNames.indexOf(c.team) === -1);
-    if (unassigned.length) addCard('No team', unassigned);
+    Darbyon.onChange(render, { poll: true });
+    render();
 });

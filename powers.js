@@ -1,5 +1,5 @@
 // Powers page: players spend AP to use the powers defined on the Settings page.
-document.addEventListener('DOMContentLoaded', () => {
+Darbyon.ready(() => {
     const { el } = Darbyon;
     const playersBody = document.getElementById('playersTableBody');
     const powersBody = document.getElementById('powersTableBody');
@@ -127,5 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotice(label ? 'Undone: ' + label + '.' : 'No actions to undo.', label ? 'success' : 'error');
     });
 
+    Darbyon.onChange(render);
     render();
 });

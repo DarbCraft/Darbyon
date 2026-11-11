@@ -1,5 +1,5 @@
 // Settings page: set up players, teams, daily news and powers, and back up the class.
-document.addEventListener('DOMContentLoaded', () => {
+Darbyon.ready(() => {
     const { el } = Darbyon;
     const byId = id => document.getElementById(id);
 
@@ -399,6 +399,12 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPunishments();
     }
 
+    if (Darbyon.isServer()) {
+        byId('backupHint').textContent = 'The class is saved on the DårbCRÅFT server, which also keeps its own ' +
+            'daily copies. A backup downloaded here is an extra copy you can keep somewhere else.';
+    }
+
+    Darbyon.onChange(renderAll);
     resetPowerForm();
     renderAll();
 });

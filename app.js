@@ -2,8 +2,14 @@
  * DårbCRÅFT shared code.
  *
  * Every page loads this file first. It owns all reading and writing of the
- * class data, so the pages never touch localStorage directly. If the data
- * later moves to a server, this is the only file that has to change.
+ * class data, so the pages never need to know where the data is kept.
+ *
+ * The data lives in one of two places, chosen automatically:
+ *   - "server" mode: the site is running on the DårbCRÅFT server (the
+ *     Raspberry Pi). Data is kept there and shared by every device. Changes
+ *     need the teacher to be logged in.
+ *   - "local" mode: no server was found (for example on GitHub Pages). Data
+ *     is kept in this browser only, as it always was.
  */
 const Darbyon = (() => {
     'use strict';
@@ -42,7 +48,23 @@ const Darbyon = (() => {
 
     // ---- Storage ----------------------------------------------------------
 
+    let mode = 'local';          // 'local' or 'server'
+    let role = 'teacher';        // 'teacher' or 'guest' (always teacher in local mode)
+    let cache = {};              // server mode: the lists as last loaded or changed
+    let revs = {};               // server mode: revision number of each list
+    const unsaved = new Set();   // server mode: lists changed here but not yet sent
+    let sending = false;
+    const changeListeners = [];
+
+    const clone = value => JSON.parse(JSON.stringify(value));
+
+    function has(key) {
+        if (mode === 'server') return Object.prototype.hasOwnProperty.call(cache, key);
+        return localStorage.getItem(key) !== null;
+    }
+
     function read(key, fallback) {
+        if (mode === 'server') return has(key) ? clone(cache[key]) : fallback;
         try {
             const value = JSON.parse(localStorage.getItem(key));
             return value === null || value === undefined ? fallback : value;
@@ -53,7 +75,131 @@ const Darbyon = (() => {
     }
 
     function write(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
+        if (mode !== 'server') {
+            localStorage.setItem(key, JSON.stringify(value));
+            return;
+        }
+        if (role !== 'teacher') return;      // visitors can look but not change
+        cache[key] = clone(value);
+        queueSave(key);
+    }
+
+    function remove(key) {
+        if (mode !== 'server') {
+            localStorage.removeItem(key);
+            return;
+        }
+        if (role !== 'teacher') return;
+        delete cache[key];
+        queueSave(key);
+    }
+
+    // ---- Talking to the server -------------------------------------------
+
+    function api(path, body) {
+        const options = { credentials: 'same-origin', cache: 'no-store' };
+        if (body !== undefined) {
+            options.method = 'POST';
+            options.headers = { 'Content-Type': 'application/json', 'X-Darbyon': '1' };
+            options.body = JSON.stringify(body);
+        }
+        return fetch(path, options);
+    }
+
+    // One action often changes several lists (players, undo, log). They are
+    // collected and sent to the server together as a single save.
+    function queueSave(key) {
+        unsaved.add(key);
+        if (!sending) {
+            sending = true;
+            Promise.resolve().then(sendSaves);
+        }
+    }
+
+    async function sendSaves() {
+        while (unsaved.size) {
+            const keys = Array.from(unsaved);
+            unsaved.clear();
+            const changes = {};
+            keys.forEach(key => {
+                changes[key] = { value: has(key) ? cache[key] : null, rev: revs[key] || 0 };
+            });
+            let response;
+            try {
+                response = await api('api/save', { changes: changes });
+            } catch (err) {
+                response = null;
+            }
+            if (response && response.ok) {
+                Object.assign(revs, (await response.json()).revs);
+                showProblem(null);
+                continue;
+            }
+            if (response && response.status === 409) {
+                showProblem('The class was changed on another device or tab, so your last change was not saved. Reloading…');
+                setTimeout(() => location.reload(), 2500);
+                return;
+            }
+            if (response && response.status === 401) {
+                role = 'guest';
+                showProblem('You have been logged out, so your last change was NOT saved. Reload the page and log in again.');
+                return;
+            }
+            // The server could not be reached: keep the changes and try again shortly.
+            keys.forEach(key => unsaved.add(key));
+            showProblem('Cannot reach the server. Your changes are NOT saved yet. Trying again…');
+            setTimeout(sendSaves, 4000);
+            return;
+        }
+        sending = false;
+    }
+
+    // Fetches the latest class from the server and redraws the page if
+    // anything changed, so a second screen keeps up with the teacher.
+    async function refresh() {
+        if (mode !== 'server' || sending || unsaved.size) return;
+        let state;
+        try {
+            const response = await api('api/state');
+            if (!response.ok) return;
+            state = await response.json();
+        } catch (err) {
+            return;
+        }
+        if (sending || unsaved.size) return;
+        if (state.role !== role) {
+            location.reload();
+            return;
+        }
+        if (JSON.stringify(state.revs) === JSON.stringify(revs)) return;
+        cache = state.data;
+        revs = state.revs;
+        changeListeners.forEach(listener => listener());
+    }
+
+    // Pages pass their redraw function here. With { poll: true } the page
+    // also checks for changes every few seconds (used by the class views).
+    function onChange(listener, options) {
+        changeListeners.push(listener);
+        if (options && options.poll) {
+            setInterval(() => { if (!document.hidden) refresh(); }, 10000);
+        }
+    }
+
+    function showProblem(text) {
+        let banner = document.getElementById('problemBanner');
+        if (!text) {
+            if (banner) banner.remove();
+            return;
+        }
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'problemBanner';
+            banner.className = 'problem-banner';
+            banner.setAttribute('role', 'alert');
+            document.body.prepend(banner);
+        }
+        banner.textContent = text;
     }
 
     function newId() {
@@ -346,7 +492,7 @@ const Darbyon = (() => {
     // ---- Daily news -------------------------------------------------------
 
     function getMessages() {
-        if (localStorage.getItem('messages') === null) write('messages', DEFAULT_MESSAGES);
+        if (!has('messages')) write('messages', DEFAULT_MESSAGES);
         const raw = read('messages', []);
         return Array.isArray(raw) ? raw : [];
     }
@@ -383,7 +529,7 @@ const Darbyon = (() => {
     // The options on the wheel a player spins when their HP reaches zero.
 
     function getPunishments() {
-        if (localStorage.getItem('punishments') === null) return DEFAULT_PUNISHMENTS.slice();
+        if (!has('punishments')) return DEFAULT_PUNISHMENTS.slice();
         const raw = read('punishments', []);
         return Array.isArray(raw) ? raw.map(String).filter(text => text.trim() !== '') : [];
     }
@@ -437,7 +583,7 @@ const Darbyon = (() => {
         DATA_KEYS.forEach(key => {
             // A key missing from an older backup goes back to its default.
             if (Array.isArray(backup.data[key])) write(key, backup.data[key]);
-            else localStorage.removeItem(key);
+            else remove(key);
         });
         return null;
     }
@@ -455,21 +601,85 @@ const Darbyon = (() => {
     function renderNav() {
         const nav = document.getElementById('nav');
         if (!nav) return;
+        nav.innerHTML = '';
         const current = location.pathname.split('/').pop() || 'index.html';
+        const guest = mode === 'server' && role !== 'teacher';
         let lastGroup = null;
+        const divider = () => {
+            const node = document.createElement('span');
+            node.className = 'nav-divider';
+            node.setAttribute('aria-hidden', 'true');
+            nav.appendChild(node);
+        };
         PAGES.forEach(page => {
-            if (lastGroup && page.group !== lastGroup) {
-                const divider = document.createElement('span');
-                divider.className = 'nav-divider';
-                divider.setAttribute('aria-hidden', 'true');
-                nav.appendChild(divider);
-            }
+            if (guest && page.group === 'teacher') return;
+            if (lastGroup && page.group !== lastGroup) divider();
             lastGroup = page.group;
             const link = document.createElement('a');
             link.href = page.href;
             link.textContent = page.label;
             if (page.href === current) link.setAttribute('aria-current', 'page');
             nav.appendChild(link);
+        });
+        if (mode !== 'server') return;
+        divider();
+        if (guest) {
+            const link = document.createElement('a');
+            link.href = 'update-values.html';
+            link.textContent = 'Teacher Login';
+            nav.appendChild(link);
+        } else {
+            const logout = el('button', 'Log Out', 'secondary small');
+            logout.type = 'button';
+            logout.addEventListener('click', async () => {
+                await api('api/logout', {});
+                location.href = 'index.html';
+            });
+            nav.appendChild(logout);
+        }
+    }
+
+    // Shown in place of a teacher page when nobody is logged in.
+    function showLogin() {
+        Array.from(document.body.children).forEach(node => {
+            if (node.tagName !== 'H1' && node.tagName !== 'NAV' && node.tagName !== 'SCRIPT') node.hidden = true;
+        });
+        const form = el('form', null, 'panel login');
+        const field = el('div', null, 'field');
+        const label = el('label', 'Teacher password');
+        label.htmlFor = 'teacherPassword';
+        const input = document.createElement('input');
+        input.type = 'password';
+        input.id = 'teacherPassword';
+        input.autocomplete = 'current-password';
+        input.required = true;
+        field.appendChild(label);
+        field.appendChild(input);
+        const submit = el('button', 'Log In');
+        submit.type = 'submit';
+        const notice = el('p', '', 'notice error');
+        notice.setAttribute('role', 'alert');
+        form.appendChild(field);
+        form.appendChild(submit);
+        form.appendChild(notice);
+        document.body.appendChild(form);
+        input.focus();
+
+        form.addEventListener('submit', async event => {
+            event.preventDefault();
+            submit.disabled = true;
+            try {
+                const response = await api('api/login', { password: input.value });
+                if (response.ok) {
+                    location.reload();
+                    return;
+                }
+                notice.textContent = (await response.json()).error || 'Could not log in.';
+            } catch (err) {
+                notice.textContent = 'Cannot reach the server.';
+            }
+            submit.disabled = false;
+            input.select();
         });
     }
 
@@ -499,11 +709,55 @@ const Darbyon = (() => {
         tbody.appendChild(row);
     }
 
-    if (typeof document !== 'undefined') {
-        document.addEventListener('DOMContentLoaded', () => {
-            renderNav();
-            setBackground();
+    // ---- Starting a page --------------------------------------------------
+
+    // Works out where the data lives, loads it, and draws the navigation.
+    // Resolves to true when the page may go ahead and draw itself.
+    async function start() {
+        if (document.readyState === 'loading') {
+            await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+        }
+        setBackground();
+        try {
+            const response = await api('api/state');
+            if (response.status >= 500) {
+                renderNav();
+                showProblem('The server has a problem and the class could not be loaded. Try reloading the page.');
+                return false;
+            }
+            const state = response.ok ? await response.json() : null;
+            if (state && state.server === true) {
+                mode = 'server';
+                role = state.role;
+                cache = state.data;
+                revs = state.revs;
+            }
+        } catch (err) {
+            // No server here (for example GitHub Pages): carry on in local mode.
+        }
+        renderNav();
+        if (mode !== 'server') return true;
+
+        window.addEventListener('focus', refresh);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+        window.addEventListener('beforeunload', event => {
+            if (sending || unsaved.size) event.preventDefault();   // warn before losing a change
         });
+        if (role !== 'teacher') {
+            document.querySelectorAll('.teacher-only').forEach(node => { node.hidden = true; });
+            if (document.body.hasAttribute('data-teacher-page')) {
+                showLogin();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    const started = typeof document !== 'undefined' ? start() : Promise.resolve(false);
+
+    // Pages wrap their code in Darbyon.ready(() => { ... }).
+    function ready(callback) {
+        started.then(ok => { if (ok) callback(); });
     }
 
     return {
@@ -517,6 +771,7 @@ const Darbyon = (() => {
         getPunishments, savePunishments,
         pickerProgress, pickPlayer, resetPicker,
         exportData, importData,
+        ready, onChange, isServer: () => mode === 'server',
         el, emptyRow
     };
 })();
