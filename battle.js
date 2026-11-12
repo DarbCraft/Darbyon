@@ -8,7 +8,7 @@
 Darbyon.Battle = (() => {
     'use strict';
 
-    const COLOURS = ['#ffc94d', '#ff8a80', '#7fd4ff', '#9be7a5', '#c9a7ff', '#ffab66', '#f48fb1', '#80cbc4'];
+    const COLOURS = ['#ffc533', '#ff8a8d', '#8ecbff', '#7fdcbb', '#c3b2fd', '#ffb37a', '#f9a8d0', '#a8e6f0'];
     const SIZE = 720;            // canvas pixels (drawn large so it stays sharp)
     const SPIN_SECONDS = 4.5;
 
@@ -99,14 +99,14 @@ Darbyon.Battle = (() => {
             if (i === punishments.length - 1 && i > 0 && colour === COLOURS[0]) colour = COLOURS[1 + (i % 3)];
             ctx.fillStyle = colour;
             ctx.fill();
-            ctx.strokeStyle = '#141a2a';
+            ctx.strokeStyle = '#17264d';
             ctx.lineWidth = 4;
             ctx.stroke();
 
             ctx.save();
             ctx.translate(r, r);
             ctx.rotate(start + slice / 2);
-            ctx.fillStyle = '#141a2a';
+            ctx.fillStyle = '#17264d';
             ctx.textAlign = 'right';
             ctx.textBaseline = 'middle';
             ctx.fillText(fitLabel(ctx, text, r - 90), r - 24, 0);
@@ -114,7 +114,7 @@ Darbyon.Battle = (() => {
         });
         ctx.beginPath();
         ctx.arc(r, r, 40, 0, 2 * Math.PI);
-        ctx.fillStyle = '#141a2a';
+        ctx.fillStyle = '#17264d';
         ctx.fill();
     }
 
@@ -122,7 +122,10 @@ Darbyon.Battle = (() => {
         current = queue.shift();
         punishments = Darbyon.getPunishments();
         spinning = false;
-        who.textContent = current.name + ' has reached 0 HP and has fallen into Battle!';
+        who.textContent = '';
+        const player = Darbyon.getCharacters().find(c => c.id === current.id);
+        if (player) who.appendChild(Darbyon.avatarImage(player, 'avatar-big'));
+        who.appendChild(document.createTextNode(current.name + ' has reached 0 HP and has fallen into Battle!'));
         result.textContent = '';
         continueButton.hidden = true;
         continueButton.textContent = queue.length ? 'Next Player' : 'Continue';

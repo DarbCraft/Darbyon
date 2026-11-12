@@ -21,6 +21,13 @@ const Darbyon = (() => {
         Healer:  { hp: 8,  ap: 20 },
         Mage:    { hp: 6,  ap: 30 }
     };
+    // The avatars a player can choose from, by class. Each one is a picture
+    // in the avatars folder, for example avatars/mage-f2.svg.
+    const AVATARS = {};
+    Object.keys(CLASSES).forEach(type => {
+        const key = type.toLowerCase();
+        AVATARS[type] = ['m1', 'm2', 'm3', 'f1', 'f2', 'f3'].map(code => key + '-' + code);
+    });
     const XP_PER_LEVEL = 5000;
     const MAX_LEVEL = 7;
     const UNDO_LIMIT = 20;
@@ -241,7 +248,8 @@ const Darbyon = (() => {
                 xp: toInt(c.xp),
                 ap: toInt(c.ap),
                 hp: toInt(c.hp),
-                team: String(c.team || '')
+                team: String(c.team || ''),
+                avatar: /^[a-z]+-[mf][1-3]$/.test(c.avatar || '') ? c.avatar : ''
             };
         });
         if (repaired) write('characters', characters);
@@ -262,7 +270,7 @@ const Darbyon = (() => {
         const base = CLASSES[type];
         if (!base) throw new Error('Unknown character type: ' + type);
         const characters = getCharacters();
-        characters.push({ id: newId(), name: name, type: type, xp: 0, ap: base.ap, hp: base.hp, team: '' });
+        characters.push({ id: newId(), name: name, type: type, xp: 0, ap: base.ap, hp: base.hp, team: '', avatar: '' });
         saveCharacters(characters);
     }
 
@@ -629,7 +637,7 @@ const Darbyon = (() => {
             link.textContent = 'Teacher Login';
             nav.appendChild(link);
         } else {
-            const logout = el('button', 'Log Out', 'secondary small');
+            const logout = el('button', 'Log Out', 'small');
             logout.type = 'button';
             logout.addEventListener('click', async () => {
                 await api('api/logout', {});
@@ -642,7 +650,7 @@ const Darbyon = (() => {
     // Shown in place of a teacher page when nobody is logged in.
     function showLogin() {
         Array.from(document.body.children).forEach(node => {
-            if (node.tagName !== 'H1' && node.tagName !== 'NAV' && node.tagName !== 'SCRIPT') node.hidden = true;
+            if (['H1', 'HEADER', 'SCRIPT'].indexOf(node.tagName) === -1) node.hidden = true;
         });
         const form = el('form', null, 'panel login');
         const field = el('div', null, 'field');
@@ -683,14 +691,55 @@ const Darbyon = (() => {
         });
     }
 
-    function setBackground() {
-        const hour = new Date().getHours();
-        let image;
-        if (hour >= 6 && hour < 9) image = 'Dawn 1';
-        else if (hour >= 9 && hour < 10) image = 'Dawn 2';
-        else if (hour >= 10 && hour < 14) image = 'Day 1';
-        else image = 'Day 3';
-        document.body.style.backgroundImage = "url('Images/" + encodeURIComponent(image) + ".jpeg')";
+    // Builds the navy bar across the top: the site name and the page tabs.
+    function buildHeader() {
+        const nav = document.getElementById('nav');
+        if (!nav || document.querySelector('.site-header')) return;
+        const header = el('header', null, 'site-header');
+        const brand = el('a', 'DårbCRÅFT', 'brand');
+        brand.href = 'index.html';
+        header.appendChild(brand);
+        header.appendChild(nav);
+        document.body.prepend(header);
+    }
+
+    // A coloured tag for a player's class, and a badge for their level.
+    function typeTag(type) {
+        const known = ['warrior', 'healer', 'mage'].indexOf(String(type).toLowerCase()) !== -1;
+        return el('span', type, 'tag' + (known ? ' tag-' + String(type).toLowerCase() : ''));
+    }
+
+    function levelBadge(xp) {
+        return el('span', getLevel(xp), 'level');
+    }
+
+    // A player's picture. Players who have not chosen one get their initial.
+    function avatarImage(character, className) {
+        if (!character.avatar) {
+            return el('span', (character.name || '?').trim().charAt(0).toUpperCase(), 'avatar avatar-empty ' + (className || ''));
+        }
+        const img = document.createElement('img');
+        img.src = 'avatars/' + character.avatar + '.svg';
+        img.alt = '';
+        img.className = 'avatar ' + (className || '');
+        return img;
+    }
+
+    // The Name cell used in every player table: picture, then name.
+    function nameCell(character) {
+        const td = el('td', null, 'name');
+        const who = el('span', null, 'who');
+        who.appendChild(avatarImage(character));
+        who.appendChild(el('span', character.name));
+        td.appendChild(who);
+        return td;
+    }
+
+    // A table cell holding something other than plain text.
+    function cell(node, className) {
+        const td = el('td', null, className);
+        td.appendChild(node);
+        return td;
     }
 
     // Small helper for building table rows safely (text is never read as HTML).
@@ -717,7 +766,7 @@ const Darbyon = (() => {
         if (document.readyState === 'loading') {
             await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
         }
-        setBackground();
+        buildHeader();
         try {
             const response = await api('api/state');
             if (response.status >= 500) {
@@ -753,7 +802,12 @@ const Darbyon = (() => {
         return true;
     }
 
-    const started = typeof document !== 'undefined' ? start() : Promise.resolve(false);
+    // The page stays blank until we know what to show, so a teacher page
+    // never flashes up before the login box.
+    const started = typeof document !== 'undefined'
+        ? start().then(ok => { document.body.classList.add('ready'); return ok; },
+                       err => { document.body.classList.add('ready'); throw err; })
+        : Promise.resolve(false);
 
     // Pages wrap their code in Darbyon.ready(() => { ... }).
     function ready(callback) {
@@ -772,6 +826,7 @@ const Darbyon = (() => {
         pickerProgress, pickPlayer, resetPicker,
         exportData, importData,
         ready, onChange, isServer: () => mode === 'server',
-        el, emptyRow
+        AVATARS, avatarImage, nameCell,
+        el, emptyRow, cell, typeTag, levelBadge
     };
 })();

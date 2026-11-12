@@ -39,9 +39,9 @@ Darbyon.ready(() => {
         players.forEach(player => {
             const row = document.createElement('tr');
             if (player.hp === 0) row.className = 'fallen';
-            row.appendChild(el('td', player.name));
-            row.appendChild(el('td', player.type));
-            row.appendChild(el('td', Darbyon.getLevel(player.xp), 'num'));
+            row.appendChild(Darbyon.nameCell(player));
+            row.appendChild(Darbyon.cell(Darbyon.typeTag(player.type)));
+            row.appendChild(Darbyon.cell(Darbyon.levelBadge(player.xp)));
             row.appendChild(el('td', player.xp, 'num'));
             row.appendChild(el('td', player.ap, 'num'));
             row.appendChild(el('td', player.hp, 'num'));

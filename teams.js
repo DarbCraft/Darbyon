@@ -13,7 +13,7 @@ Darbyon.ready(() => {
 
         const table = document.createElement('table');
         const headRow = document.createElement('tr');
-        [['Name', ''], ['Type', ''], ['Level', 'num'], ['XP', 'num'], ['AP', 'num'], ['HP', 'num']]
+        [['Name', ''], ['Type', ''], ['Level', ''], ['XP', 'num'], ['AP', 'num'], ['HP', 'num']]
             .forEach(([text, cls]) => headRow.appendChild(el('th', text, cls)));
         const thead = document.createElement('thead');
         thead.appendChild(headRow);
@@ -24,9 +24,9 @@ Darbyon.ready(() => {
         members.forEach(c => {
             const row = document.createElement('tr');
             if (c.hp === 0) row.className = 'fallen';
-            row.appendChild(el('td', c.name));
-            row.appendChild(el('td', c.type));
-            row.appendChild(el('td', Darbyon.getLevel(c.xp), 'num'));
+            row.appendChild(Darbyon.nameCell(c));
+            row.appendChild(Darbyon.cell(Darbyon.typeTag(c.type)));
+            row.appendChild(Darbyon.cell(Darbyon.levelBadge(c.xp)));
             row.appendChild(el('td', c.xp, 'num'));
             row.appendChild(el('td', c.ap, 'num'));
             row.appendChild(el('td', c.hp, 'num'));

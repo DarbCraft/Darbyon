@@ -41,7 +41,7 @@ Darbyon.ready(() => {
         }
         characters.forEach(char => {
             const row = document.createElement('tr');
-            row.appendChild(el('td', char.name));
+            row.appendChild(Darbyon.nameCell(char));
 
             const typeSelect = document.createElement('select');
             typeSelect.setAttribute('aria-label', 'Class for ' + char.name);
@@ -49,7 +49,9 @@ Darbyon.ready(() => {
             if (types.indexOf(char.type) === -1) types.push(char.type);   // keep any older custom class
             types.forEach(type => typeSelect.appendChild(option(type, type, type === char.type)));
             typeSelect.addEventListener('change', () => {
-                Darbyon.updateCharacter(char.id, { type: typeSelect.value });
+                // Avatars belong to a class, so a new class means choosing again.
+                Darbyon.updateCharacter(char.id, { type: typeSelect.value, avatar: '' });
+                renderCharacters();
             });
             const typeCell = document.createElement('td');
             typeCell.appendChild(typeSelect);
@@ -72,6 +74,7 @@ Darbyon.ready(() => {
             row.appendChild(teamCell);
 
             row.appendChild(actionsCell(
+                button('Avatar', 'soft', () => chooseAvatar(char)),
                 button('Rename', 'secondary', () => {
                     const newName = prompt('Edit Character Name:', char.name);
                     if (newName !== null && newName.trim() !== '') {
@@ -90,6 +93,52 @@ Darbyon.ready(() => {
             ));
             tbody.appendChild(row);
         });
+    }
+
+    // ---- Avatar picker ----
+
+    let avatarDialog = null;
+
+    function chooseAvatar(char) {
+        if (!avatarDialog) {
+            avatarDialog = document.createElement('dialog');
+            avatarDialog.className = 'avatar-picker';
+            document.body.appendChild(avatarDialog);
+        }
+        avatarDialog.innerHTML = '';
+        avatarDialog.appendChild(el('h2', 'Choose an avatar for ' + char.name));
+
+        const choose = avatar => {
+            Darbyon.updateCharacter(char.id, { avatar: avatar });
+            avatarDialog.close();
+            renderCharacters();
+        };
+        const choices = Darbyon.AVATARS[char.type] || [];
+        const grid = el('div', null, 'avatar-grid');
+        choices.forEach((avatar, index) => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'avatar-option';
+            option.setAttribute('aria-label', char.type + ' avatar ' + (index + 1));
+            if (avatar === char.avatar) option.setAttribute('aria-pressed', 'true');
+            option.appendChild(Darbyon.avatarImage({ avatar: avatar }));
+            option.addEventListener('click', () => choose(avatar));
+            grid.appendChild(option);
+        });
+        avatarDialog.appendChild(grid);
+        if (!choices.length) avatarDialog.appendChild(el('p', 'There are no avatars for this class.', 'hint'));
+
+        const actions = el('div', null, 'actions');
+        const none = el('button', 'No avatar', 'secondary');
+        none.type = 'button';
+        none.addEventListener('click', () => choose(''));
+        const cancel = el('button', 'Cancel', 'soft');
+        cancel.type = 'button';
+        cancel.addEventListener('click', () => avatarDialog.close());
+        actions.appendChild(none);
+        actions.appendChild(cancel);
+        avatarDialog.appendChild(actions);
+        avatarDialog.showModal();
     }
 
     byId('addCharacterForm').addEventListener('submit', event => {

@@ -42,7 +42,7 @@ Darbyon.ready(() => {
     }
 
     function statButton(playerId, stat, label) {
-        const button = el('button', label, 'small');
+        const button = el('button', label, 'small soft');
         button.type = 'button';
         button.addEventListener('click', () => award([playerId], stat));
         return button;
@@ -81,9 +81,9 @@ Darbyon.ready(() => {
             updateCell.appendChild(buttons);
             row.appendChild(updateCell);
 
-            row.appendChild(el('td', player.name));
-            row.appendChild(el('td', player.type));
-            row.appendChild(el('td', Darbyon.getLevel(player.xp), 'num'));
+            row.appendChild(Darbyon.nameCell(player));
+            row.appendChild(Darbyon.cell(Darbyon.typeTag(player.type)));
+            row.appendChild(Darbyon.cell(Darbyon.levelBadge(player.xp)));
             row.appendChild(el('td', player.xp, 'num'));
             row.appendChild(el('td', player.ap, 'num'));
             row.appendChild(el('td', player.hp, 'num'));
