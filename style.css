@@ -172,6 +172,21 @@ button.avatar-option:hover { background: var(--sky); }
 button.avatar-option[aria-pressed="true"] { background: var(--sun); }
 button.avatar-option .avatar { display: block; width: 100%; height: auto; aspect-ratio: 1; border-width: 3px; }
 
+/* Bulk import and tick-box lists inside pop-ups */
+.panel.import { max-width: 920px; }
+.panel.import .toolbar label { margin-left: 8px; }
+dialog.import-preview { width: min(96vw, 980px); }
+dialog.import-preview .table-wrap { max-height: 52vh; overflow-y: auto; margin-bottom: 16px; border-width: 2px; }
+.import-notes { font-size: 0.88rem; font-weight: 700; color: var(--danger); }
+label.check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 14px;
+    font-size: 1rem;
+    color: var(--ink);
+}
+
 /* Class tags and level badges */
 .tag {
     display: inline-block;

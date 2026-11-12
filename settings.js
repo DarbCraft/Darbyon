@@ -75,6 +75,7 @@ Darbyon.ready(() => {
 
             row.appendChild(actionsCell(
                 button('Avatar', 'soft', () => chooseAvatar(char)),
+                button('Powers', 'soft', () => choosePowers(char)),
                 button('Rename', 'secondary', () => {
                     const newName = prompt('Edit Character Name:', char.name);
                     if (newName !== null && newName.trim() !== '') {
@@ -140,6 +141,167 @@ Darbyon.ready(() => {
         avatarDialog.appendChild(actions);
         avatarDialog.showModal();
     }
+
+    // ---- Which powers a player has ----
+
+    let powersDialog = null;
+
+    function choosePowers(char) {
+        if (!powersDialog) {
+            powersDialog = document.createElement('dialog');
+            powersDialog.className = 'avatar-picker';
+            document.body.appendChild(powersDialog);
+        }
+        powersDialog.innerHTML = '';
+        powersDialog.appendChild(el('h2', 'Powers for ' + char.name));
+        const powers = Darbyon.getPowers();
+        powersDialog.appendChild(el('p', powers.length
+            ? 'Tick the powers this player has. With none ticked they can use every power.'
+            : 'There are no powers yet. Add some further down this page.', 'hint'));
+        const boxes = [];
+        powers.forEach(power => {
+            const label = el('label', null, 'check');
+            const box = document.createElement('input');
+            box.type = 'checkbox';
+            box.value = power.id;
+            box.checked = char.powers.indexOf(power.id) !== -1;
+            boxes.push(box);
+            label.appendChild(box);
+            label.appendChild(document.createTextNode(' ' + power.name + ' (' + power.apCost + ' AP)'));
+            powersDialog.appendChild(label);
+        });
+        const actions = el('div', null, 'actions');
+        const save = el('button', 'Save');
+        save.type = 'button';
+        save.addEventListener('click', () => {
+            Darbyon.updateCharacter(char.id, { powers: boxes.filter(b => b.checked).map(b => b.value) });
+            powersDialog.close();
+            renderCharacters();
+        });
+        const cancel = el('button', 'Cancel', 'soft');
+        cancel.type = 'button';
+        cancel.addEventListener('click', () => powersDialog.close());
+        actions.appendChild(save);
+        actions.appendChild(cancel);
+        powersDialog.appendChild(actions);
+        powersDialog.showModal();
+    }
+
+    // ---- Add many students ----
+
+    Object.keys(Darbyon.CLASSES).forEach(type => byId('importDefaultType').appendChild(option(type, type)));
+    const importNotice = byId('importNotice');
+    let importDialog = null;
+
+    function showImportNotice(text, kind) {
+        importNotice.textContent = text;
+        importNotice.className = 'notice ' + kind;
+    }
+
+    function previewImport(rows) {
+        const result = Darbyon.Import.plan(rows, { defaultType: byId('importDefaultType').value });
+        if (result.error) {
+            showImportNotice(result.error, 'error');
+            return;
+        }
+        if (!result.students.length) {
+            showImportNotice('No students were found in that list.', 'error');
+            return;
+        }
+        showImportNotice('', '');
+        const existing = Darbyon.getCharacters();
+        const existingNames = existing.map(c => c.name.toLowerCase());
+        const powers = Darbyon.getPowers();
+
+        if (!importDialog) {
+            importDialog = document.createElement('dialog');
+            importDialog.className = 'avatar-picker import-preview';
+            document.body.appendChild(importDialog);
+        }
+        importDialog.innerHTML = '';
+        importDialog.appendChild(el('h2', 'Check these ' + result.students.length + ' students'));
+
+        const wrap = el('div', null, 'table-wrap');
+        const table = document.createElement('table');
+        const head = document.createElement('tr');
+        ['Name', 'Class', 'First power', 'Team', 'Notes'].forEach(text => head.appendChild(el('th', text)));
+        const thead = document.createElement('thead');
+        thead.appendChild(head);
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+        const noteCells = [];
+        result.students.forEach(student => {
+            const row = document.createElement('tr');
+            row.appendChild(Darbyon.nameCell(student));
+            row.appendChild(Darbyon.cell(Darbyon.typeTag(student.type)));
+            row.appendChild(el('td', student.powers.map(id => (powers.find(p => p.id === id) || {}).name).join(', ') || '–'));
+            row.appendChild(el('td', student.team || '–'));
+            const noteCell = el('td', '', 'import-notes');
+            noteCells.push(noteCell);
+            row.appendChild(noteCell);
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        wrap.appendChild(table);
+        importDialog.appendChild(wrap);
+
+        const replaceLabel = el('label', null, 'check');
+        const replaceBox = document.createElement('input');
+        replaceBox.type = 'checkbox';
+        replaceLabel.appendChild(replaceBox);
+        replaceLabel.appendChild(document.createTextNode(' Remove the ' + existing.length + ' existing characters first'));
+        if (existing.length) importDialog.appendChild(replaceLabel);
+
+        const actions = el('div', null, 'actions');
+        const confirmButton = el('button', '');
+        confirmButton.type = 'button';
+        const cancel = el('button', 'Cancel', 'soft');
+        cancel.type = 'button';
+        cancel.addEventListener('click', () => importDialog.close());
+        actions.appendChild(confirmButton);
+        actions.appendChild(cancel);
+        importDialog.appendChild(actions);
+
+        // Students already in the class are skipped unless the class is being replaced.
+        function refresh() {
+            let adding = 0;
+            result.students.forEach((student, index) => {
+                const clash = !replaceBox.checked && existingNames.indexOf(student.name.toLowerCase()) !== -1;
+                if (!clash) adding++;
+                noteCells[index].textContent = (clash ? ['Already in the class, will be skipped'] : student.notes).join('. ');
+            });
+            confirmButton.textContent = 'Add ' + adding + (adding === 1 ? ' Student' : ' Students');
+            confirmButton.disabled = adding === 0;
+        }
+        replaceBox.addEventListener('change', refresh);
+        refresh();
+
+        confirmButton.addEventListener('click', () => {
+            if (replaceBox.checked && !confirm('This deletes all ' + existing.length +
+                    ' existing characters and their XP, AP and HP. Continue?')) return;
+            const added = Darbyon.importCharacters(result.students, replaceBox.checked);
+            importDialog.close();
+            byId('importText').value = '';
+            renderAll();
+            showImportNotice(added + (added === 1 ? ' student added.' : ' students added.'), 'success');
+        });
+        importDialog.showModal();
+    }
+
+    byId('importPreviewButton').addEventListener('click', () => {
+        previewImport(Darbyon.Import.parseText(byId('importText').value));
+    });
+    byId('importFileButton').addEventListener('click', () => byId('importFile').click());
+    byId('importFile').addEventListener('change', async event => {
+        const file = event.target.files[0];
+        event.target.value = '';
+        if (!file) return;
+        try {
+            previewImport(await Darbyon.Import.readFile(file));
+        } catch (err) {
+            showImportNotice('That file could not be read. ' + (err && err.message ? err.message : ''), 'error');
+        }
+    });
 
     byId('addCharacterForm').addEventListener('submit', event => {
         event.preventDefault();

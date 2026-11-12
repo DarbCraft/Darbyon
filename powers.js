@@ -49,7 +49,7 @@ Darbyon.ready(() => {
             const powerSelect = document.createElement('select');
             powerSelect.setAttribute('aria-label', 'Power for ' + player.name);
             powerSelect.appendChild(option('', 'Select power'));
-            powers.forEach(power => {
+            Darbyon.powersFor(player).forEach(power => {
                 powerSelect.appendChild(option(power.id, power.name + ' (' + power.apCost + ' AP)'));
             });
             const powerCell = document.createElement('td');

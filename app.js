@@ -249,7 +249,9 @@ const Darbyon = (() => {
                 ap: toInt(c.ap),
                 hp: toInt(c.hp),
                 team: String(c.team || ''),
-                avatar: /^[a-z]+-[mf][1-3]$/.test(c.avatar || '') ? c.avatar : ''
+                avatar: /^[a-z]+-[mf][1-3]$/.test(c.avatar || '') ? c.avatar : '',
+                // ids of the powers this player has; an empty list means they can use every power
+                powers: Array.isArray(c.powers) ? c.powers.map(String) : []
             };
         });
         if (repaired) write('characters', characters);
@@ -270,8 +272,35 @@ const Darbyon = (() => {
         const base = CLASSES[type];
         if (!base) throw new Error('Unknown character type: ' + type);
         const characters = getCharacters();
-        characters.push({ id: newId(), name: name, type: type, xp: 0, ap: base.ap, hp: base.hp, team: '', avatar: '' });
+        characters.push({ id: newId(), name: name, type: type, xp: 0, ap: base.ap, hp: base.hp, team: '', avatar: '', powers: [] });
         saveCharacters(characters);
+    }
+
+    // Adds a whole list of students in one go (used by the bulk import).
+    // Each student is { name, type, avatar, powers, team }. With `replace`
+    // the existing characters are removed first; otherwise anyone whose name
+    // is already in the class is left alone. Returns how many were added.
+    function importCharacters(students, replace) {
+        const characters = replace ? [] : getCharacters();
+        const taken = characters.map(c => c.name.toLowerCase());
+        let added = 0;
+        students.forEach(student => {
+            const base = CLASSES[student.type];
+            if (!base || !student.name || taken.indexOf(student.name.toLowerCase()) !== -1) return;
+            taken.push(student.name.toLowerCase());
+            if (student.team) addTeam(student.team);      // does nothing if the team already exists
+            const team = getTeams().find(t => t.name.toLowerCase() === (student.team || '').toLowerCase());
+            characters.push({ id: newId(), name: student.name, type: student.type, xp: 0, ap: base.ap, hp: base.hp,
+                              team: team ? team.name : '', avatar: student.avatar || '', powers: student.powers || [] });
+            added++;
+        });
+        if (replace) {
+            write('shownPlayers', []);
+            write('undoStack', []);
+        }
+        saveCharacters(characters);
+        addLog('Imported ' + added + ' students' + (replace ? ', replacing the previous class' : ''));
+        return added;
     }
 
     function updateCharacter(id, changes) {
@@ -434,6 +463,19 @@ const Darbyon = (() => {
 
     function deletePower(id) {
         write('powers', getPowers().filter(p => p.id !== id));
+        const characters = getCharacters();
+        if (characters.some(c => c.powers.indexOf(id) !== -1)) {
+            characters.forEach(c => { c.powers = c.powers.filter(powerId => powerId !== id); });
+            saveCharacters(characters);
+        }
+    }
+
+    // The powers a player may use: the ones they have been given, or every
+    // power if they have not been given any.
+    function powersFor(character) {
+        const all = getPowers();
+        const own = all.filter(p => character.powers.indexOf(p.id) !== -1);
+        return own.length ? own : all;
     }
 
     function signed(n) {
@@ -458,6 +500,9 @@ const Darbyon = (() => {
         const user = characters.find(c => c.id === userId);
         if (!power) return { ok: false, error: 'Please select a power first!' };
         if (!user) return { ok: false, error: 'That player no longer exists.' };
+        if (!powersFor(user).some(p => p.id === power.id)) {
+            return { ok: false, error: user.name + ' does not have the power ' + power.name + '.' };
+        }
 
         let target = null;
         if (power.type === 'team') {
@@ -816,11 +861,11 @@ const Darbyon = (() => {
 
     return {
         CLASSES, XP_PER_LEVEL, MAX_LEVEL,
-        getLevel, getCharacters, addCharacter, updateCharacter, deleteCharacter, adjustStat,
+        getLevel, getCharacters, addCharacter, importCharacters, updateCharacter, deleteCharacter, adjustStat,
         peekUndo, undo,
         getLog, addLog, clearLog,
         getTeams, addTeam, renameTeam, deleteTeam,
-        getPowers, savePower, deletePower, applyPower, describeEffect,
+        getPowers, savePower, deletePower, applyPower, describeEffect, powersFor,
         getMessages, saveMessages, nextMessage, messageProgress, resetMessages,
         getPunishments, savePunishments,
         pickerProgress, pickPlayer, resetPicker,

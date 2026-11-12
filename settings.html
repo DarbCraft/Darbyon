@@ -24,6 +24,27 @@
         <button type="submit">Add Character</button>
     </form>
 
+    <h2>Add Many Students</h2>
+    <div class="panel import">
+        <p class="hint" style="margin-top:0">
+            Upload the Excel file from Microsoft Forms, or paste a list with one student per line.
+            A line can be just a name, or <strong>Name, Class, Avatar, Power, Team</strong>.
+            You will see a preview before anything is saved.
+        </p>
+        <div class="field wide">
+            <label for="importText">Paste a list</label>
+            <textarea id="importText" rows="5" placeholder="Ruby, Mage, 3, Fireball, Dragons&#10;Kai, Warrior&#10;Imogen"></textarea>
+        </div>
+        <div class="toolbar">
+            <button type="button" id="importPreviewButton">Preview List</button>
+            <button type="button" id="importFileButton" class="secondary">Upload Forms or Excel File…</button>
+            <input type="file" id="importFile" accept=".xlsx,.csv,.txt,text/csv" hidden>
+            <label for="importDefaultType">Class when none is given</label>
+            <select id="importDefaultType" style="width:auto"></select>
+        </div>
+        <p id="importNotice" class="notice" role="status"></p>
+    </div>
+
     <h2>Character List</h2>
     <div class="table-wrap">
         <table>
@@ -191,6 +212,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="import.js"></script>
     <script src="settings.js"></script>
 </body>
 </html>
