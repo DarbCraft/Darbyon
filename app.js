@@ -56,7 +56,7 @@ const Darbyon = (() => {
     // ---- Storage ----------------------------------------------------------
 
     let mode = 'local';          // 'local' or 'server'
-    let role = 'teacher';        // 'teacher' or 'guest' (always teacher in local mode)
+    let role = 'teacher';        // 'teacher', 'viewer' (may look) or 'locked' (must type the class code)
     let cache = {};              // server mode: the lists as last loaded or changed
     let revs = {};               // server mode: revision number of each list
     const unsaved = new Set();   // server mode: lists changed here but not yet sent
@@ -148,7 +148,7 @@ const Darbyon = (() => {
                 return;
             }
             if (response && response.status === 401) {
-                role = 'guest';
+                role = 'viewer';
                 showProblem('You have been logged out, so your last change was NOT saved. Reload the page and log in again.');
                 return;
             }
@@ -665,7 +665,7 @@ const Darbyon = (() => {
             nav.appendChild(node);
         };
         PAGES.forEach(page => {
-            if (guest && page.group === 'teacher') return;
+            if (role === 'locked' || (guest && page.group === 'teacher')) return;
             if (lastGroup && page.group !== lastGroup) divider();
             lastGroup = page.group;
             const link = document.createElement('a');
@@ -692,23 +692,25 @@ const Darbyon = (() => {
         }
     }
 
-    // Shown in place of a teacher page when nobody is logged in.
-    function showLogin() {
+    // Shown in place of a page the visitor may not see yet. `wanted` is
+    // 'teacher' for the teacher pages or 'viewer' when only the class code
+    // is needed to look at the class.
+    function showLogin(wanted) {
         Array.from(document.body.children).forEach(node => {
             if (['H1', 'HEADER', 'SCRIPT'].indexOf(node.tagName) === -1) node.hidden = true;
         });
         const form = el('form', null, 'panel login');
         const field = el('div', null, 'field');
-        const label = el('label', 'Teacher password');
-        label.htmlFor = 'teacherPassword';
+        const label = el('label', wanted === 'teacher' ? 'Teacher password' : 'Class code');
+        label.htmlFor = 'loginPassword';
         const input = document.createElement('input');
         input.type = 'password';
-        input.id = 'teacherPassword';
-        input.autocomplete = 'current-password';
+        input.id = 'loginPassword';
+        input.autocomplete = wanted === 'teacher' ? 'current-password' : 'off';
         input.required = true;
         field.appendChild(label);
         field.appendChild(input);
-        const submit = el('button', 'Log In');
+        const submit = el('button', wanted === 'teacher' ? 'Log In' : 'Enter');
         submit.type = 'submit';
         const notice = el('p', '', 'notice error');
         notice.setAttribute('role', 'alert');
@@ -723,11 +725,14 @@ const Darbyon = (() => {
             submit.disabled = true;
             try {
                 const response = await api('api/login', { password: input.value });
-                if (response.ok) {
+                const answer = await response.json();
+                if (response.ok && (wanted !== 'teacher' || answer.role === 'teacher')) {
                     location.reload();
                     return;
                 }
-                notice.textContent = (await response.json()).error || 'Could not log in.';
+                notice.textContent = response.ok
+                    ? 'That is the class code. This page needs the teacher password.'
+                    : (answer.error || 'Could not log in.');
             } catch (err) {
                 notice.textContent = 'Cannot reach the server.';
             }
@@ -840,7 +845,11 @@ const Darbyon = (() => {
         if (role !== 'teacher') {
             document.querySelectorAll('.teacher-only').forEach(node => { node.hidden = true; });
             if (document.body.hasAttribute('data-teacher-page')) {
-                showLogin();
+                showLogin('teacher');
+                return false;
+            }
+            if (role === 'locked') {
+                showLogin('viewer');
                 return false;
             }
         }

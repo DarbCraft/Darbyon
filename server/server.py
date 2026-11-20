@@ -6,12 +6,17 @@ Serves the website and keeps the class data in one database file, so every
 device on the network sees the same class. It needs nothing but the Python
 that comes with Raspberry Pi OS.
 
-    python3 server/server.py --set-password     choose the teacher password
-    python3 server/server.py                    run on port 8080
-    python3 server/server.py --port 80          run on the normal web port
+    python3 server/server.py --set-password      choose the teacher password
+    python3 server/server.py --set-class-code    choose the code students type to see the class
+    python3 server/server.py                     run on port 8080, for a private network
+    python3 server/server.py --port 80           the same, on the normal web port
+    python3 server/server.py --internet          run behind a tunnel that puts the site on the internet
 
-Anyone on the network can VIEW the class (Home and Teams).
-Only someone logged in with the teacher password can CHANGE anything.
+Who can do what:
+    - Changing anything needs the teacher password.
+    - Viewing the class (Home and Teams) needs the class code, if one is set.
+      With no class code, anyone who can reach the site can view it. The
+      --internet mode refuses to start without a class code.
 """
 
 import argparse
@@ -51,16 +56,26 @@ STATIC_TYPES = {
 }
 
 SESSION_COOKIE = "darbyon_session"
-SESSION_HOURS = 12
+TEACHER_SESSION_HOURS = 12
+VIEWER_SESSION_HOURS = 24 * 30   # students stay signed in to view for a month
 MAX_BODY_BYTES = 2 * 1024 * 1024
-MIN_PASSWORD_LENGTH = 8
-LOGIN_ATTEMPTS = 5            # wrong passwords allowed ...
+MIN_PASSWORD_LENGTH = 12
+MIN_CLASS_CODE_LENGTH = 6
+LOGIN_ATTEMPTS = 5            # wrong guesses allowed ...
 LOGIN_WINDOW_SECONDS = 300    # ... in this many seconds, per device
+BUSY_ATTEMPTS = 20            # after this many wrong guesses from everyone in that time ...
+BUSY_DELAY_SECONDS = 2        # ... every login is slowed down by this much
+LOGINS_AT_ONCE = 4            # logins checked at the same time; any more are told to wait
+REQUEST_TIMEOUT_SECONDS = 30  # a connection that sends nothing for this long is dropped
 BACKUPS_TO_KEEP = 14
 
+INTERNET_MODE = False         # set by --internet
+
 _write_lock = threading.Lock()
-_failed_logins = {}           # device address -> times of recent wrong passwords
+_failed_logins = {}           # device address -> times of recent wrong guesses
+_all_failures = []            # times of recent wrong guesses from anyone
 _failed_lock = threading.Lock()
+_login_slots = threading.BoundedSemaphore(LOGINS_AT_ONCE)
 
 
 # ---- Database --------------------------------------------------------------
@@ -83,6 +98,9 @@ def init_db():
                    "key TEXT PRIMARY KEY, value TEXT NOT NULL, rev INTEGER NOT NULL)")
         db.execute("CREATE TABLE IF NOT EXISTS settings (name TEXT PRIMARY KEY, value TEXT NOT NULL)")
         db.execute("CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, expires REAL NOT NULL)")
+        # Older databases only knew teacher sessions; add the role column if it is missing.
+        if "role" not in [row[1] for row in db.execute("PRAGMA table_info(sessions)")]:
+            db.execute("ALTER TABLE sessions ADD COLUMN role TEXT NOT NULL DEFAULT 'teacher'")
 
 
 def get_setting(name):
@@ -155,22 +173,25 @@ def token_hash(token):
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-def create_session():
+def create_session(role):
+    """role is 'teacher' (may change things) or 'viewer' (may look)."""
+    hours = TEACHER_SESSION_HOURS if role == "teacher" else VIEWER_SESSION_HOURS
     token = secrets.token_urlsafe(32)
     with _write_lock, connect() as db:
         db.execute("DELETE FROM sessions WHERE expires < ?", (time.time(),))
-        db.execute("INSERT INTO sessions (token_hash, expires) VALUES (?, ?)",
-                   (token_hash(token), time.time() + SESSION_HOURS * 3600))
-    return token
+        db.execute("INSERT INTO sessions (token_hash, expires, role) VALUES (?, ?, ?)",
+                   (token_hash(token), time.time() + hours * 3600, role))
+    return token, hours * 3600
 
 
-def session_is_valid(token):
+def session_role(token):
+    """Returns 'teacher', 'viewer' or None for a session cookie."""
     if not token:
-        return False
+        return None
     with connect() as db:
-        row = db.execute("SELECT expires FROM sessions WHERE token_hash = ?",
+        row = db.execute("SELECT expires, role FROM sessions WHERE token_hash = ?",
                          (token_hash(token),)).fetchone()
-    return bool(row) and row[0] > time.time()
+    return row[1] if row and row[0] > time.time() else None
 
 
 def end_session(token):
@@ -185,15 +206,33 @@ def end_all_sessions():
 
 
 def too_many_failures(address):
+    """True if this device has guessed wrong too often. address may be None (unknown)."""
+    if address is None:
+        return False
     with _failed_lock:
         recent = [t for t in _failed_logins.get(address, []) if t > time.time() - LOGIN_WINDOW_SECONDS]
-        _failed_logins[address] = recent
+        if recent:
+            _failed_logins[address] = recent
+        else:
+            _failed_logins.pop(address, None)
         return len(recent) >= LOGIN_ATTEMPTS
 
 
 def record_failure(address):
+    now = time.time()
     with _failed_lock:
-        _failed_logins.setdefault(address, []).append(time.time())
+        _all_failures.append(now)
+        if address is not None:
+            _failed_logins.setdefault(address, []).append(now)
+        if len(_failed_logins) > 5000:      # never let the list grow without limit
+            _failed_logins.clear()
+
+
+def site_is_under_guessing():
+    """True while there have been many wrong guesses from anyone recently."""
+    with _failed_lock:
+        _all_failures[:] = [t for t in _all_failures if t > time.time() - LOGIN_WINDOW_SECONDS]
+        return len(_all_failures) >= BUSY_ATTEMPTS
 
 
 # ---- Backups ---------------------------------------------------------------
@@ -226,10 +265,29 @@ def backup_forever():
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "Darbyon"
+    sys_version = ""
     protocol_version = "HTTP/1.1"
+    timeout = REQUEST_TIMEOUT_SECONDS
 
     def log_message(self, fmt, *args):
-        print("%s %s" % (self.address_string(), fmt % args), flush=True)
+        who = (self.device() if getattr(self, "headers", None) else None) or self.client_address[0]
+        print("%s %s" % (who, fmt % args), flush=True)
+
+    def device(self):
+        """
+        The address of the device making the request, used to lock out a
+        device that keeps guessing. Behind a tunnel every request arrives from
+        this computer itself, so the tunnel's note of the real address is used
+        when there is one. Returns None when the real address cannot be known.
+        """
+        peer = self.client_address[0]
+        if peer not in ("127.0.0.1", "::1", "::ffff:127.0.0.1"):
+            return peer
+        forwarded = self.headers.get("X-Forwarded-For", "")
+        last = forwarded.split(",")[-1].strip()      # the entry added by the tunnel itself
+        if last:
+            return last[:64]
+        return None if INTERNET_MODE else peer
 
     # -- helpers --
 
@@ -238,6 +296,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Robots-Tag", "noindex, nofollow")     # keep it out of search engines
+        if INTERNET_MODE:
+            self.send_header("Strict-Transport-Security", "max-age=31536000")
         self.send_header("Referrer-Policy", "same-origin")
         self.send_header("Content-Security-Policy",
                          "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
@@ -259,14 +320,29 @@ class Handler(BaseHTTPRequestHandler):
                 return value
         return None
 
-    def is_teacher(self):
-        return session_is_valid(self.session_token())
+    def role(self):
+        """'teacher', 'viewer', or None when not signed in."""
+        return session_role(self.session_token())
+
+    def cookie(self, value, seconds):
+        text = "%s=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=Strict" % (SESSION_COOKIE, value, seconds)
+        return ("Set-Cookie", text + ("; Secure" if INTERNET_MODE else ""))
 
     def read_json(self):
         """Reads the request body. Returns None (after replying) if it is unusable."""
         # Changes must come from this site's own pages, not from another website.
+        # Browsers will not let another site add the X-Darbyon header. As a second
+        # check, modern browsers label where a request came from (Sec-Fetch-Site);
+        # for older ones the Origin must be this site's own address.
+        fetch_site = self.headers.get("Sec-Fetch-Site")
         origin = self.headers.get("Origin")
-        if self.headers.get("X-Darbyon") != "1" or (origin and urlsplit(origin).netloc != self.headers.get("Host")):
+        if fetch_site:
+            same_site = fetch_site == "same-origin"
+        elif origin:
+            same_site = urlsplit(origin).netloc in (self.headers.get("Host"), self.headers.get("X-Forwarded-Host"))
+        else:
+            same_site = True
+        if self.headers.get("X-Darbyon") != "1" or not same_site:
             self.send_json(HTTPStatus.FORBIDDEN, {"error": "Request refused."})
             return None
         try:
@@ -279,6 +355,9 @@ class Handler(BaseHTTPRequestHandler):
             return None
         try:
             body = json.loads(self.rfile.read(length) or b"{}")
+        except OSError:                     # the sender stopped part way through
+            self.close_connection = True
+            return None
         except (ValueError, UnicodeDecodeError):
             body = None
         if not isinstance(body, dict):
@@ -292,6 +371,8 @@ class Handler(BaseHTTPRequestHandler):
         path = unquote(urlsplit(self.path).path)
         if path == "/api/state":
             self.get_state()
+        elif path == "/robots.txt":
+            self.send_body(HTTPStatus.OK, b"User-agent: *\nDisallow: /\n", "text/plain; charset=utf-8")
         elif path.startswith("/api/"):
             self.send_json(HTTPStatus.NOT_FOUND, {"error": "Not found."})
         else:
@@ -311,35 +392,56 @@ class Handler(BaseHTTPRequestHandler):
             routes[path](body)
 
     def get_state(self):
-        teacher = self.is_teacher()
-        data, revs = load_state(DATA_KEYS if teacher else PUBLIC_KEYS)
-        self.send_json(HTTPStatus.OK, {"server": True, "role": "teacher" if teacher else "guest",
-                                       "data": data, "revs": revs})
+        role = self.role()
+        if role == "teacher":
+            keys = DATA_KEYS
+        elif role == "viewer" or not get_setting("class_code"):
+            role, keys = "viewer", PUBLIC_KEYS       # no class code set: anyone may look
+        else:
+            role, keys = "locked", set()             # must type the class code first
+        data, revs = load_state(keys)
+        self.send_json(HTTPStatus.OK, {"server": True, "role": role, "data": data, "revs": revs})
 
     def post_login(self, body):
-        address = self.client_address[0]
-        stored = get_setting("teacher_password")
-        if not stored:
+        device = self.device()
+        teacher_password = get_setting("teacher_password")
+        class_code = get_setting("class_code")
+        guess = str(body.get("password", ""))[:200]
+        if not teacher_password:
             self.send_json(HTTPStatus.SERVICE_UNAVAILABLE,
                            {"error": "No teacher password has been set on the server yet."})
-        elif too_many_failures(address):
+            return
+        if too_many_failures(device):
             self.send_json(HTTPStatus.TOO_MANY_REQUESTS,
-                           {"error": "Too many wrong passwords. Wait five minutes and try again."})
-        elif not check_password(str(body.get("password", "")), stored):
-            record_failure(address)
-            self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Wrong password."})
-        else:
-            cookie = "%s=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=Strict" % (
-                SESSION_COOKIE, create_session(), SESSION_HOURS * 3600)
-            self.send_json(HTTPStatus.OK, {"ok": True}, [("Set-Cookie", cookie)])
+                           {"error": "Too many wrong tries. Wait five minutes and try again."})
+            return
+        if not _login_slots.acquire(blocking=False):
+            self.send_json(HTTPStatus.TOO_MANY_REQUESTS, {"error": "The site is busy. Try again in a moment."})
+            return
+        try:
+            if site_is_under_guessing():
+                time.sleep(BUSY_DELAY_SECONDS)
+            if check_password(guess, teacher_password):
+                role = "teacher"
+            elif class_code and check_password(guess.strip().lower(), class_code):
+                role = "viewer"
+            else:
+                role = None
+        finally:
+            _login_slots.release()
+        if role is None:
+            record_failure(device)
+            self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "That is not right. Check it and try again."})
+            return
+        token, seconds = create_session(role)
+        self.send_json(HTTPStatus.OK, {"ok": True, "role": role}, [self.cookie(token, seconds)])
 
     def post_logout(self, body):
         end_session(self.session_token())
-        expired = "%s=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict" % SESSION_COOKIE
-        self.send_json(HTTPStatus.OK, {"ok": True}, [("Set-Cookie", expired)])
+        self.send_json(HTTPStatus.OK, {"ok": True}, [self.cookie("", 0)])
 
     def post_save(self, body):
-        if not self.is_teacher():
+        if self.role() != "teacher":
             self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Log in as the teacher to make changes."})
             return
         changes = body.get("changes")
@@ -377,7 +479,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def set_password():
     print("Choose the teacher password (at least %d characters)." % MIN_PASSWORD_LENGTH)
-    print("Use one you do not use anywhere else.")
+    print("Use one you do not use anywhere else. Three or four random words works well.")
     while True:
         first = getpass.getpass("New password: ")
         if len(first) < MIN_PASSWORD_LENGTH:
@@ -392,27 +494,71 @@ def set_password():
     print("Teacher password saved.")
 
 
+def set_class_code():
+    print("Choose the class code students type to see the class (at least %d characters)." % MIN_CLASS_CODE_LENGTH)
+    print("Capital letters do not matter. Do not make it the same as the teacher password.")
+    teacher_password = get_setting("teacher_password")
+    while True:
+        code = input("Class code: ").strip().lower()
+        if len(code) < MIN_CLASS_CODE_LENGTH:
+            print("Too short, try again.")
+            continue
+        if teacher_password and check_password(code, teacher_password):
+            print("That is the teacher password. Choose something different.")
+            continue
+        break
+    set_setting("class_code", hash_password(code))
+    with _write_lock, connect() as db:      # students signed in with the old code must type the new one
+        db.execute("DELETE FROM sessions WHERE role = 'viewer'")
+    print("Class code saved.")
+
+
 def main():
+    global INTERNET_MODE
     parser = argparse.ArgumentParser(description="DårbCRÅFT class site server")
     parser.add_argument("--port", type=int, default=8080)
-    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--host", default=None, help="address to listen on (default: every address, or only this computer with --internet)")
+    parser.add_argument("--internet", action="store_true",
+                        help="run behind a tunnel: only the tunnel can connect, and a class code is required")
     parser.add_argument("--set-password", action="store_true", help="choose the teacher password and exit")
-    parser.add_argument("--has-password", action="store_true", help="exit with 0 if a password is set")
+    parser.add_argument("--set-class-code", action="store_true", help="choose the class code and exit")
+    parser.add_argument("--clear-class-code", action="store_true", help="remove the class code and exit")
+    parser.add_argument("--has-password", action="store_true", help="exit with 0 if a teacher password is set")
+    parser.add_argument("--has-class-code", action="store_true", help="exit with 0 if a class code is set")
     args = parser.parse_args()
 
     init_db()
     if args.has_password:
         sys.exit(0 if get_setting("teacher_password") else 1)
+    if args.has_class_code:
+        sys.exit(0 if get_setting("class_code") else 1)
     if args.set_password:
         set_password()
         return
+    if args.set_class_code:
+        set_class_code()
+        return
+    if args.clear_class_code:
+        with _write_lock, connect() as db:
+            db.execute("DELETE FROM settings WHERE name = 'class_code'")
+        print("Class code removed. Anyone who can reach the site can now view the class.")
+        return
+
+    INTERNET_MODE = args.internet
+    if INTERNET_MODE and not (get_setting("teacher_password") and get_setting("class_code")):
+        print("--internet needs both a teacher password and a class code. Run:\n"
+              "  python3 server/server.py --set-password\n"
+              "  python3 server/server.py --set-class-code", flush=True)
+        sys.exit(1)
     if not get_setting("teacher_password"):
         print("No teacher password set yet. Run:  python3 server/server.py --set-password", flush=True)
 
+    host = args.host or ("127.0.0.1" if INTERNET_MODE else "0.0.0.0")
     threading.Thread(target=backup_forever, daemon=True).start()
-    server = ThreadingHTTPServer((args.host, args.port), Handler)
+    server = ThreadingHTTPServer((host, args.port), Handler)
     server.daemon_threads = True
-    print("DårbCRÅFT is running on port %d. Data file: %s" % (args.port, DB_PATH), flush=True)
+    print("DårbCRÅFT is running on %s port %d%s. Data file: %s"
+          % (host, args.port, " (internet mode)" if INTERNET_MODE else "", DB_PATH), flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
