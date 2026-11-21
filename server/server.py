@@ -716,7 +716,8 @@ class Handler(BaseHTTPRequestHandler):
         if not content_type or not target.is_file() or SITE_DIR not in target.resolve().parents:
             self.send_body(HTTPStatus.NOT_FOUND, b"Not found", "text/plain; charset=utf-8")
             return
-        cache = "public, max-age=86400" if content_type.startswith("image/") else "no-cache"
+        # Pictures may be kept for five minutes, so a new avatar or icon shows up soon after an update.
+        cache = "public, max-age=300" if content_type.startswith("image/") else "no-cache"
         self.send_body(HTTPStatus.OK, target.read_bytes(), content_type, [("Cache-Control", cache)])
 
 

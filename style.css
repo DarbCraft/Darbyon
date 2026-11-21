@@ -709,30 +709,28 @@ button.poll-choice.chosen { background: var(--good); }
     box-shadow: 0 10px 30px rgba(23, 38, 77, 0.25);
 }
 
-/* Corner grips for resizing a tool: drag any corner. */
+/* The grip for resizing a tool: drag the bottom-right corner. */
 .resize-grip {
     position: absolute;
+    right: 0;
+    bottom: 0;
     z-index: 2;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
+    cursor: nwse-resize;
     touch-action: none;
 }
-.grip-nw { top: 0; left: 0; cursor: nwse-resize; }
-.grip-ne { top: 0; right: 0; cursor: nesw-resize; }
-.grip-sw { bottom: 0; left: 0; cursor: nesw-resize; }
-.grip-se { bottom: 0; right: 0; cursor: nwse-resize; }
-.resize-grip::after {
+.resize-grip::after {          /* three short diagonal lines */
     content: "";
     position: absolute;
-    width: 12px;
-    height: 12px;
-    border: 0 solid var(--muted);
-    opacity: 0.55;
+    right: 5px;
+    bottom: 5px;
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(135deg, transparent 0 45%, var(--muted) 45% 52%, transparent 52% 62%,
+                                var(--muted) 62% 69%, transparent 69% 79%, var(--muted) 79% 86%, transparent 86%);
+    opacity: 0.6;
 }
-.grip-nw::after { top: 5px; left: 5px; border-top-width: 3px; border-left-width: 3px; border-color: #c9d6f5; border-top-left-radius: 6px; }
-.grip-ne::after { top: 5px; right: 5px; border-top-width: 3px; border-right-width: 3px; border-color: #c9d6f5; border-top-right-radius: 6px; }
-.grip-sw::after { bottom: 5px; left: 5px; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 6px; }
-.grip-se::after { bottom: 5px; right: 5px; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 6px; }
 .widget:hover .resize-grip::after, .widget.resizing .resize-grip::after { opacity: 1; }
 .widget.resizing { user-select: none; }
 .widget.flash { animation: pop 0.4s ease-out; }
@@ -761,6 +759,21 @@ button.widget-close {
     background: transparent;
 }
 button.widget-close:hover { color: var(--ink); background: #fff; }
+
+/* Each tool has its own header colour, from blues, greens, reds and yellows.
+   Dark headers have white text; the yellow ones have navy text. */
+.widget-timer     .widget-head { background: #b8343a; }
+.widget-stopwatch .widget-head { background: #8c2430; }
+.widget-clock     .widget-head { background: #24397a; }
+.widget-picker    .widget-head { background: #ffc533; color: var(--ink); }
+.widget-groups    .widget-head { background: #1f7a55; }
+.widget-noise     .widget-head { background: #e8a317; color: var(--ink); }
+.widget-poll      .widget-head { background: #2a6fb0; }
+.widget-requests  .widget-head { background: #2e6b34; }
+.widget-picker .widget-head button.widget-close,
+.widget-noise  .widget-head button.widget-close { color: var(--ink); }
+.widget-picker .widget-head button.widget-close:hover,
+.widget-noise  .widget-head button.widget-close:hover { color: #fff; background: var(--ink); }
 .widget-body { flex: 1; padding: 16px 18px; overflow: auto; }
 .widget-body .actions { margin-top: 10px; }
 .actions.centred, .hint.centred { justify-content: center; text-align: center; }
@@ -879,7 +892,7 @@ a, button, select, input, label, summary { -webkit-tap-highlight-color: transpar
     input[type="checkbox"] { width: 28px; height: 28px; }
     input[type="text"], input[type="number"], input[type="password"], select, textarea { min-height: 44px; font-size: max(16px, 1em); }
     .resize-grip { width: 40px; height: 40px; }
-    .resize-grip::after { opacity: 0.9; }
+    .resize-grip::after { width: 18px; height: 18px; opacity: 0.9; }
     th.sortable { padding-top: 14px; padding-bottom: 14px; }
 }
 

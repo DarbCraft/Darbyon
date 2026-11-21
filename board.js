@@ -107,9 +107,9 @@ Darbyon.ready(() => {
         node.style.top = Math.min(Math.max(0, node.offsetTop), maxY) + 'px';
     }
 
-    // Drag any corner to resize. The opposite corner stays where it is.
+    // Drag the bottom-right corner to resize; the top-left corner stays where it is.
     function makeResizable(node) {
-        ['nw', 'ne', 'sw', 'se'].forEach(corner => {
+        ['se'].forEach(corner => {
             const grip = el('div', null, 'resize-grip grip-' + corner);
             grip.setAttribute('aria-hidden', 'true');
             node.appendChild(grip);
