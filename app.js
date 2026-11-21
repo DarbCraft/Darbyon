@@ -35,7 +35,28 @@ const Darbyon = (() => {
 
     // Everything that makes up a class. Used by backup and restore.
     const DATA_KEYS = ['characters', 'teams', 'powers', 'messages', 'punishments',
-                       'shownMessages', 'shownPlayers', 'changeLog', 'undoStack'];
+                       'shownMessages', 'shownPlayers', 'changeLog', 'undoStack',
+                       'pictureCodes', 'poll'];
+
+    // The pictures students tap, in order, to log in to their own character:
+    // sports teams, shown as the team's name in its colours with the sport's
+    // symbol. `name` is the short name on the button, `full` the full name.
+    // The order matters: saved picture passwords are positions in this list.
+    const PICTURES = [
+        { emoji: '🏉', name: 'Eagles',    full: 'West Coast Eagles',   colour: '#003087', text: '#f2a900' },
+        { emoji: '🏉', name: 'Dockers',   full: 'Fremantle Dockers',   colour: '#2a0d54', text: '#ffffff' },
+        { emoji: '🏏', name: 'Scorchers', full: 'Perth Scorchers',     colour: '#f26722', text: '#1b1400' },
+        { emoji: '🏀', name: 'Wildcats',  full: 'Perth Wildcats',      colour: '#b3122a', text: '#ffffff' },
+        { emoji: '⚽', name: 'Liverpool', full: 'Liverpool',           colour: '#c8102e', text: '#ffffff' },
+        { emoji: '⚽', name: 'Arsenal',   full: 'Arsenal',             colour: '#ffffff', text: '#db0007' },
+        { emoji: '⚽', name: 'Man Utd',   full: 'Manchester United',   colour: '#1b1b1b', text: '#fbe122' },
+        { emoji: '⚽', name: 'Chelsea',   full: 'Chelsea',             colour: '#034694', text: '#ffffff' },
+        { emoji: '🏀', name: 'Lakers',    full: 'Los Angeles Lakers',  colour: '#552583', text: '#fdb927' },
+        { emoji: '🏀', name: 'Warriors',  full: 'Golden State Warriors', colour: '#1d428a', text: '#ffc72c' },
+        { emoji: '🏀', name: 'Celtics',   full: 'Boston Celtics',      colour: '#007a33', text: '#ffffff' },
+        { emoji: '🏏', name: 'Sixers',    full: 'Sydney Sixers',       colour: '#e6007e', text: '#ffffff' }
+    ];
+    const PICTURE_CODE_LENGTH = 3;
 
     // What the Battle wheel starts with. Edit the list on the Settings page.
     const DEFAULT_PUNISHMENTS = [
@@ -56,7 +77,8 @@ const Darbyon = (() => {
     // ---- Storage ----------------------------------------------------------
 
     let mode = 'local';          // 'local' or 'server'
-    let role = 'teacher';        // 'teacher', 'viewer' (may look) or 'locked' (must type the class code)
+    let role = 'teacher';        // 'teacher', 'viewer' (may look), 'student' (logged in to their
+                                 // own character) or 'locked' (must type the class code)
     let cache = {};              // server mode: the lists as last loaded or changed
     let revs = {};               // server mode: revision number of each list
     const unsaved = new Set();   // server mode: lists changed here but not yet sent
@@ -142,6 +164,7 @@ const Darbyon = (() => {
                 showProblem(null);
                 continue;
             }
+            saveWaiters.splice(0).forEach(waiter => waiter(false));
             if (response && response.status === 409) {
                 showProblem('The class was changed on another device or tab, so your last change was not saved. Reloading…');
                 setTimeout(() => location.reload(), 2500);
@@ -159,11 +182,20 @@ const Darbyon = (() => {
             return;
         }
         sending = false;
+        saveWaiters.splice(0).forEach(waiter => waiter(true));
+    }
+
+    // Resolves to true once every change made so far has reached the server
+    // (or straight away in local mode), or false if saving failed.
+    const saveWaiters = [];
+    function saved() {
+        if (mode !== 'server' || (!sending && !unsaved.size)) return Promise.resolve(true);
+        return new Promise(resolve => saveWaiters.push(resolve));
     }
 
     // Fetches the latest class from the server and redraws the page if
     // anything changed, so a second screen keeps up with the teacher.
-    async function refresh() {
+    async function refresh(force) {
         if (mode !== 'server' || sending || unsaved.size) return;
         let state;
         try {
@@ -178,18 +210,19 @@ const Darbyon = (() => {
             location.reload();
             return;
         }
-        if (JSON.stringify(state.revs) === JSON.stringify(revs)) return;
+        if (!force && JSON.stringify(state.revs) === JSON.stringify(revs)) return;   // nothing new
         cache = state.data;
         revs = state.revs;
         changeListeners.forEach(listener => listener());
     }
 
     // Pages pass their redraw function here. With { poll: true } the page
-    // also checks for changes every few seconds (used by the class views).
+    // also checks for changes every few seconds (used by the class views);
+    // { every: 3000 } sets how often, in milliseconds.
     function onChange(listener, options) {
         changeListeners.push(listener);
         if (options && options.poll) {
-            setInterval(() => { if (!document.hidden) refresh(); }, 10000);
+            setInterval(() => { if (!document.hidden) refresh(); }, options.every || 10000);
         }
     }
 
@@ -617,6 +650,122 @@ const Darbyon = (() => {
         write('shownPlayers', []);
     }
 
+    // ---- Student logins ---------------------------------------------------
+    // Each student has a picture password: three of the PICTURES, tapped in
+    // order. They are stored as [{ id, code: [2, 7, 0] }].
+
+    function getPictureCodes() {
+        const raw = read('pictureCodes', []);
+        return Array.isArray(raw) ? raw.filter(e => e && e.id && Array.isArray(e.code)) : [];
+    }
+
+    function pictureCodeFor(id) {
+        const entry = getPictureCodes().find(e => e.id === id);
+        return entry ? entry.code : null;
+    }
+
+    function randomPictureCode() {
+        const code = [];
+        // Three different pictures, which are easier to remember.
+        while (code.length < PICTURE_CODE_LENGTH) {
+            const pick = Math.floor(Math.random() * PICTURES.length);
+            if (code.indexOf(pick) === -1) code.push(pick);
+        }
+        return code;
+    }
+
+    // Gives a new picture password to each listed student (or, with no list,
+    // to every student who does not have one). Returns how many were made.
+    function makePictureCodes(ids) {
+        const characters = getCharacters();
+        const codes = getPictureCodes().filter(e => characters.some(c => c.id === e.id));
+        const wanted = ids || characters.filter(c => !codes.some(e => e.id === c.id)).map(c => c.id);
+        wanted.forEach(id => {
+            const index = codes.findIndex(e => e.id === id);
+            const entry = { id: id, code: randomPictureCode() };
+            if (index === -1) codes.push(entry); else codes[index] = entry;
+        });
+        write('pictureCodes', codes);
+        return wanted.length;
+    }
+
+    async function postJson(path, body) {
+        try {
+            const response = await api(path, body);
+            const answer = await response.json().catch(() => ({}));
+            return response.ok ? Object.assign({ ok: true }, answer)
+                               : { ok: false, error: answer.error || 'Something went wrong. Try again.' };
+        } catch (err) {
+            return { ok: false, error: 'Cannot reach the server. Check the internet connection.' };
+        }
+    }
+
+    const studentLogin = (id, code) => postJson('api/student-login', { id: id, code: code });
+    const studentLogout = () => postJson('api/student-logout', {});
+
+    // The logged-in student's own character, requests and vote ({ character, requests, vote }).
+    function me() {
+        const info = read('me', null);
+        if (role !== 'student' || !info) return null;
+        return { character: getCharacters().find(c => c.id === info.id) || null,
+                 requests: info.requests || [], vote: info.vote };
+    }
+
+    // ---- Power requests (students ask, the teacher approves) ---------------
+
+    const requestPower = (powerId, targetId) => postJson('api/power-request', { powerId: powerId, targetId: targetId || '' });
+    const cancelRequest = () => postJson('api/power-request-cancel', {});
+
+    function pendingRequests() {
+        return read('powerRequests', []).filter(r => r && r.status === 'pending');
+    }
+
+    // Approving uses the power exactly as the Powers page would, so all the
+    // usual rules are checked again. Returns { ok, summary, fallen, error }.
+    async function answerRequest(request, approve) {
+        let result = { ok: true, fallen: [] };
+        if (approve) {
+            result = applyPower(request.studentId, request.powerId, request.targetId);
+            if (result.ok && !(await saved())) {
+                return { ok: false, error: 'The power could not be saved, so the request is still waiting.' };
+            }
+        }
+        const answer = await postJson('api/request-resolve', {
+            id: request.id, approved: approve && result.ok, note: result.ok ? '' : result.error });
+        await refresh(true);
+        if (!answer.ok) return answer;
+        return result;
+    }
+
+    // ---- Class poll -------------------------------------------------------
+    // The poll is [{ id, question, options: [...], open }]; students' votes
+    // arrive in pollVotes as [{ pollId, studentId, option }].
+
+    function getPoll() {
+        const poll = read('poll', [])[0];
+        return poll && Array.isArray(poll.options) ? poll : null;
+    }
+
+    function startPoll(question, options) {
+        write('poll', [{ id: newId(), question: question, options: options, open: true }]);
+    }
+
+    function closePoll() {
+        const poll = getPoll();
+        if (poll) write('poll', [Object.assign({}, poll, { open: false })]);
+    }
+
+    function pollResults() {
+        const poll = getPoll();
+        if (!poll) return null;
+        const counts = poll.options.map(() => 0);
+        const votes = read('pollVotes', []).filter(v => v && v.pollId === poll.id);
+        votes.forEach(v => { if (counts[v.option] !== undefined) counts[v.option]++; });
+        return { poll: poll, counts: counts, voters: votes.length };
+    }
+
+    const vote = (pollId, option) => postJson('api/vote', { pollId: pollId, option: option });
+
     // ---- Backup and restore ----------------------------------------------
 
     function exportData() {
@@ -646,6 +795,8 @@ const Darbyon = (() => {
     const PAGES = [
         { href: 'index.html', label: 'Home', group: 'class' },
         { href: 'teams.html', label: 'Teams', group: 'class' },
+        { href: 'me.html', label: 'My Character', group: 'class', students: true },
+        { href: 'board.html', label: 'Board', group: 'teacher' },
         { href: 'update-values.html', label: 'Update Values', group: 'teacher' },
         { href: 'powers.html', label: 'Powers', group: 'teacher' },
         { href: 'settings.html', label: 'Settings', group: 'teacher' }
@@ -666,6 +817,7 @@ const Darbyon = (() => {
         };
         PAGES.forEach(page => {
             if (role === 'locked' || (guest && page.group === 'teacher')) return;
+            if (page.students && !(mode === 'server' && role !== 'teacher')) return;
             if (lastGroup && page.group !== lastGroup) divider();
             lastGroup = page.group;
             const link = document.createElement('a');
@@ -676,9 +828,17 @@ const Darbyon = (() => {
         });
         if (mode !== 'server') return;
         divider();
-        if (guest) {
+        if (role === 'student') {
+            const logout = el('button', 'Log Out', 'small');
+            logout.type = 'button';
+            logout.addEventListener('click', async () => {
+                await studentLogout();
+                location.href = 'me.html';
+            });
+            nav.appendChild(logout);
+        } else if (guest) {
             const link = document.createElement('a');
-            link.href = 'update-values.html';
+            link.href = 'board.html';
             link.textContent = 'Teacher Login';
             nav.appendChild(link);
         } else {
@@ -808,6 +968,36 @@ const Darbyon = (() => {
         tbody.appendChild(row);
     }
 
+    // ---- Celebrations -----------------------------------------------------
+
+    // Shows a short message at the top of the screen.
+    function toast(text) {
+        let holder = document.getElementById('toasts');
+        if (!holder) {
+            holder = el('div', null, 'toasts');
+            holder.id = 'toasts';
+            holder.setAttribute('aria-live', 'polite');
+            document.body.appendChild(holder);
+        }
+        const item = el('div', text, 'toast');
+        holder.appendChild(item);
+        setTimeout(() => item.remove(), 7000);
+    }
+
+    // Call after each redraw: anyone whose level went up since the last call
+    // gets a celebration message. The first call only remembers the levels.
+    let knownLevels = null;
+    function announceLevelUps() {
+        const levels = {};
+        getCharacters().forEach(c => {
+            levels[c.id] = getLevel(c.xp);
+            if (knownLevels && knownLevels[c.id] && levels[c.id] > knownLevels[c.id]) {
+                toast('⭐ ' + c.name + ' reached level ' + levels[c.id] + '!');
+            }
+        });
+        knownLevels = levels;
+    }
+
     // ---- Starting a page --------------------------------------------------
 
     // Works out where the data lives, loads it, and draws the navigation.
@@ -879,7 +1069,11 @@ const Darbyon = (() => {
         getPunishments, savePunishments,
         pickerProgress, pickPlayer, resetPicker,
         exportData, importData,
-        ready, onChange, isServer: () => mode === 'server',
+        PICTURES, getPictureCodes, pictureCodeFor, makePictureCodes, studentLogin, studentLogout, me,
+        requestPower, cancelRequest, pendingRequests, answerRequest,
+        getPoll, startPoll, closePoll, pollResults, vote,
+        toast, announceLevelUps,
+        ready, onChange, refresh, saved, isServer: () => mode === 'server', role: () => role,
         AVATARS, avatarImage, nameCell,
         el, emptyRow, cell, typeTag, levelBadge
     };

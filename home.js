@@ -6,6 +6,7 @@ Darbyon.ready(() => {
     const counter = document.getElementById('selectionCounter');
 
     function renderTable() {
+        Darbyon.announceLevelUps();
         tbody.innerHTML = '';
         const players = Darbyon.getCharacters();
         if (!players.length) {

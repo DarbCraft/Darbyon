@@ -115,7 +115,17 @@ Darbyon.ready(() => {
         undoButton.title = label ? 'Undo: ' + label : 'Nothing to undo';
     }
 
+    function renderRequests() {
+        if (!Darbyon.isServer()) return;
+        document.getElementById('requestsSection').hidden = false;
+        Darbyon.Requests.render(document.getElementById('requestsList'), (text, kind) => {
+            render();
+            showNotice(text, kind);
+        });
+    }
+
     function render() {
+        renderRequests();
         renderPlayers();
         renderPowers();
         renderUndo();
@@ -127,6 +137,6 @@ Darbyon.ready(() => {
         showNotice(label ? 'Undone: ' + label + '.' : 'No actions to undo.', label ? 'success' : 'error');
     });
 
-    Darbyon.onChange(render);
+    Darbyon.onChange(render, { poll: Darbyon.isServer(), every: 5000 });
     render();
 });

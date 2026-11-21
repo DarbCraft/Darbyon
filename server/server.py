@@ -40,11 +40,20 @@ DATA_DIR = Path(__file__).resolve().parent / "data"    # never uploaded to GitHu
 DB_PATH = DATA_DIR / "darbyon.db"
 BACKUP_DIR = DATA_DIR / "backups"
 
-# The lists the website is allowed to store, and the ones visitors may read
-# without logging in.
+# The lists the teacher's pages save, and the ones anyone with the class code
+# may read. SERVER_KEYS are written only by the server itself, when students
+# ask to use a power or vote in a poll; the teacher reads them.
 DATA_KEYS = {"characters", "teams", "powers", "messages", "punishments",
-             "shownMessages", "shownPlayers", "changeLog", "undoStack"}
+             "shownMessages", "shownPlayers", "changeLog", "undoStack",
+             "pictureCodes", "poll"}
 PUBLIC_KEYS = {"characters", "teams", "powers"}
+SERVER_KEYS = {"powerRequests", "pollVotes"}
+
+PICTURE_COUNT = 12            # pictures a student chooses from ...
+PICTURE_CODE_LENGTH = 3       # ... and how many they tap, in order
+STUDENT_COOKIE = "darbyon_student"
+STUDENT_SESSION_HOURS = 10    # a school day; students tap their pictures again each morning
+REQUESTS_KEPT_HOURS = 24
 
 # Only these kinds of file are ever sent to a browser.
 STATIC_TYPES = {
@@ -99,8 +108,11 @@ def init_db():
         db.execute("CREATE TABLE IF NOT EXISTS settings (name TEXT PRIMARY KEY, value TEXT NOT NULL)")
         db.execute("CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, expires REAL NOT NULL)")
         # Older databases only knew teacher sessions; add the role column if it is missing.
-        if "role" not in [row[1] for row in db.execute("PRAGMA table_info(sessions)")]:
+        columns = [row[1] for row in db.execute("PRAGMA table_info(sessions)")]
+        if "role" not in columns:
             db.execute("ALTER TABLE sessions ADD COLUMN role TEXT NOT NULL DEFAULT 'teacher'")
+        if "subject" not in columns:      # which character a student session belongs to
+            db.execute("ALTER TABLE sessions ADD COLUMN subject TEXT NOT NULL DEFAULT ''")
 
 
 def get_setting(name):
@@ -152,6 +164,79 @@ def save_changes(changes):
         return new_revs
 
 
+def load_key(key, fallback):
+    data, revs = load_state({key})
+    return data.get(key, fallback), revs.get(key, 0)
+
+
+def update_server_key(key, change):
+    """Reads one server-written list, passes it to change(), and saves what it returns."""
+    with _write_lock, connect() as db:
+        row = db.execute("SELECT value, rev FROM data WHERE key = ?", (key,)).fetchone()
+        value = json.loads(row[0]) if row else []
+        new_value = change(value if isinstance(value, list) else [])
+        db.execute("INSERT INTO data (key, value, rev) VALUES (?, ?, ?) "
+                   "ON CONFLICT(key) DO UPDATE SET value = excluded.value, rev = excluded.rev",
+                   (key, json.dumps(new_value), (row[1] if row else 0) + 1))
+
+
+# ---- Game rules (the same rules as app.js, checked again here) -------------
+
+def to_int(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+
+def tidy_power(p):
+    """Reads a power saved in any of the site's older formats."""
+    other = [to_int(p.get(k)) for k in ("otherXp", "otherAp", "otherHp")]
+    if not any(other):
+        other = [to_int(p.get("otherPlayerxp") or p.get("otherPlayerXP")),
+                 to_int(p.get("otherPlayerAP")), to_int(p.get("otherPlayerHP"))]
+    kind = p.get("type")
+    if kind not in ("team", "self"):
+        kind = "team" if p.get("target") == "other" or any(other) else "self"
+    cost = p.get("apCost")
+    cost = max(0, to_int(cost)) if cost is not None else abs(to_int(p.get("ap") or p.get("apEffect")))
+    return {"id": str(p.get("id", "")), "name": str(p.get("name", "")), "type": kind, "apCost": cost}
+
+
+def class_snapshot():
+    characters = [c for c in load_key("characters", [])[0] if isinstance(c, dict)]
+    powers = [tidy_power(p) for p in load_key("powers", [])[0] if isinstance(p, dict) and p.get("id")]
+    return characters, powers
+
+
+def powers_for(character, powers):
+    """A player's own powers, or every power if they have not been given any."""
+    own_ids = [str(i) for i in character.get("powers") or []]
+    own = [p for p in powers if p["id"] in own_ids]
+    return own or powers
+
+
+def find_character(characters, character_id):
+    return next((c for c in characters if str(c.get("id")) == character_id), None)
+
+
+def picture_code_for(character_id):
+    for entry in load_key("pictureCodes", [])[0]:
+        if isinstance(entry, dict) and str(entry.get("id")) == character_id:
+            code = entry.get("code")
+            if isinstance(code, list) and len(code) == PICTURE_CODE_LENGTH:
+                return [to_int(i) for i in code]
+    return None
+
+
+def current_poll():
+    poll = load_key("poll", [])[0]
+    poll = poll[0] if poll and isinstance(poll[0], dict) else None
+    if not poll or not isinstance(poll.get("options"), list):
+        return None
+    return poll
+
+
 # ---- Passwords and sessions -----------------------------------------------
 
 def hash_password(password, salt=None):
@@ -173,25 +258,34 @@ def token_hash(token):
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-def create_session(role):
-    """role is 'teacher' (may change things) or 'viewer' (may look)."""
-    hours = TEACHER_SESSION_HOURS if role == "teacher" else VIEWER_SESSION_HOURS
+def create_session(role, subject=""):
+    """
+    role is 'teacher' (may change things), 'viewer' (may look) or 'student'
+    (may look, and ask to use their own powers). subject is the student's
+    character id.
+    """
+    hours = {"teacher": TEACHER_SESSION_HOURS, "student": STUDENT_SESSION_HOURS}.get(role, VIEWER_SESSION_HOURS)
     token = secrets.token_urlsafe(32)
     with _write_lock, connect() as db:
         db.execute("DELETE FROM sessions WHERE expires < ?", (time.time(),))
-        db.execute("INSERT INTO sessions (token_hash, expires, role) VALUES (?, ?, ?)",
-                   (token_hash(token), time.time() + hours * 3600, role))
+        db.execute("INSERT INTO sessions (token_hash, expires, role, subject) VALUES (?, ?, ?, ?)",
+                   (token_hash(token), time.time() + hours * 3600, role, subject))
     return token, hours * 3600
 
 
-def session_role(token):
-    """Returns 'teacher', 'viewer' or None for a session cookie."""
+def session_info(token):
+    """Returns (role, subject) for a session cookie, or (None, '')."""
     if not token:
-        return None
+        return None, ""
     with connect() as db:
-        row = db.execute("SELECT expires, role FROM sessions WHERE token_hash = ?",
+        row = db.execute("SELECT expires, role, subject FROM sessions WHERE token_hash = ?",
                          (token_hash(token),)).fetchone()
-    return row[1] if row and row[0] > time.time() else None
+    return (row[1], row[2]) if row and row[0] > time.time() else (None, "")
+
+
+def session_role(token):
+    """Returns 'teacher', 'viewer', 'student' or None for a session cookie."""
+    return session_info(token)[0]
 
 
 def end_session(token):
@@ -314,18 +408,28 @@ class Handler(BaseHTTPRequestHandler):
         self.send_body(status, json.dumps(payload).encode("utf-8"), "application/json", headers)
 
     def session_token(self):
+        return self.cookie_value(SESSION_COOKIE)
+
+    def role(self):
+        """'teacher', 'viewer', or None when not signed in. Students show up as 'viewer' here."""
+        return session_role(self.session_token())
+
+    def student(self):
+        """The character id of the student signed in on this device, or None."""
+        role, subject = session_info(self.cookie_value(STUDENT_COOKIE))
+        if role != "student" or not find_character(class_snapshot()[0], subject):
+            return None
+        return subject
+
+    def cookie_value(self, wanted):
         for part in self.headers.get("Cookie", "").split(";"):
             name, _, value = part.strip().partition("=")
-            if name == SESSION_COOKIE:
+            if name == wanted:
                 return value
         return None
 
-    def role(self):
-        """'teacher', 'viewer', or None when not signed in."""
-        return session_role(self.session_token())
-
-    def cookie(self, value, seconds):
-        text = "%s=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=Strict" % (SESSION_COOKIE, value, seconds)
+    def cookie(self, value, seconds, name=SESSION_COOKIE):
+        text = "%s=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=Strict" % (name, value, seconds)
         return ("Set-Cookie", text + ("; Secure" if INTERNET_MODE else ""))
 
     def read_json(self):
@@ -382,7 +486,10 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlsplit(self.path).path
-        routes = {"/api/login": self.post_login, "/api/logout": self.post_logout, "/api/save": self.post_save}
+        routes = {"/api/login": self.post_login, "/api/logout": self.post_logout, "/api/save": self.post_save,
+                  "/api/student-login": self.post_student_login, "/api/student-logout": self.post_student_logout,
+                  "/api/power-request": self.post_power_request, "/api/power-request-cancel": self.post_request_cancel,
+                  "/api/vote": self.post_vote, "/api/request-resolve": self.post_request_resolve}
         if path not in routes:
             self.close_connection = True
             self.send_json(HTTPStatus.NOT_FOUND, {"error": "Not found."})
@@ -393,14 +500,151 @@ class Handler(BaseHTTPRequestHandler):
 
     def get_state(self):
         role = self.role()
+        student = None if role == "teacher" else self.student()
         if role == "teacher":
-            keys = DATA_KEYS
+            keys = DATA_KEYS | SERVER_KEYS
+        elif student:
+            role, keys = "student", PUBLIC_KEYS | {"poll"} | SERVER_KEYS
         elif role == "viewer" or not get_setting("class_code"):
             role, keys = "viewer", PUBLIC_KEYS       # no class code set: anyone may look
         else:
             role, keys = "locked", set()             # must type the class code first
         data, revs = load_state(keys)
+        if role == "student":
+            # A student sees only their own requests and vote, and the poll only while it is open.
+            requests = [r for r in data.pop("powerRequests", []) if r.get("studentId") == student]
+            poll = current_poll()
+            vote = next((v.get("option") for v in data.pop("pollVotes", [])
+                         if poll and v.get("pollId") == poll.get("id") and v.get("studentId") == student), None)
+            data["poll"] = [poll] if poll and poll.get("open") else []
+            data["me"] = {"id": student, "requests": requests[-5:], "vote": vote}
         self.send_json(HTTPStatus.OK, {"server": True, "role": role, "data": data, "revs": revs})
+
+    def needs_student(self):
+        """Replies and returns None unless a student is signed in; otherwise their character id."""
+        student = self.student()
+        if not student:
+            self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Tap your name and your pictures to log in first."})
+        return student
+
+    def post_student_login(self, body):
+        if get_setting("class_code") and self.role() not in ("viewer", "teacher"):
+            self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Type the class code first."})
+            return
+        character_id = str(body.get("id", ""))[:64]
+        code = body.get("code")
+        device = self.device()
+        if too_many_failures(device) or too_many_failures("student:" + character_id):
+            self.send_json(HTTPStatus.TOO_MANY_REQUESTS,
+                           {"error": "Too many wrong tries. Wait five minutes and try again."})
+            return
+        expected = picture_code_for(character_id)
+        if not expected:
+            self.send_json(HTTPStatus.FORBIDDEN, {"error": "You do not have a picture password yet. Ask your teacher."})
+            return
+        guess = [to_int(i) for i in code] if isinstance(code, list) else []
+        if not hmac.compare_digest(json.dumps(guess), json.dumps(expected)):
+            record_failure(device)
+            record_failure("student:" + character_id)
+            self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Those are not your pictures. Try again."})
+            return
+        end_session(self.cookie_value(STUDENT_COOKIE))
+        token, seconds = create_session("student", character_id)
+        self.send_json(HTTPStatus.OK, {"ok": True}, [self.cookie(token, seconds, STUDENT_COOKIE)])
+
+    def post_student_logout(self, body):
+        end_session(self.cookie_value(STUDENT_COOKIE))
+        self.send_json(HTTPStatus.OK, {"ok": True}, [self.cookie("", 0, STUDENT_COOKIE)])
+
+    def post_power_request(self, body):
+        student = self.needs_student()
+        if not student:
+            return
+        characters, powers = class_snapshot()
+        me = find_character(characters, student)
+        power = next((p for p in powers_for(me, powers) if p["id"] == str(body.get("powerId", ""))), None)
+        error = None
+        target = None
+        if not power:
+            error = "You do not have that power."
+        elif to_int(me.get("ap")) < power["apCost"]:
+            error = "You need %d AP for %s. You have %d." % (power["apCost"], power["name"], to_int(me.get("ap")))
+        elif power["type"] == "team":
+            target = find_character(characters, str(body.get("targetId", "")))
+            if not me.get("team"):
+                error = "You are not in a team yet, so you cannot use a team power."
+            elif not target or target is me or target.get("team") != me.get("team"):
+                error = "Choose a teammate for this power."
+        if not error and any(r.get("studentId") == student and r.get("status") == "pending"
+                             for r in load_key("powerRequests", [])[0]):
+            error = "You already have a power waiting for your teacher."
+        if error:
+            self.send_json(HTTPStatus.BAD_REQUEST, {"error": error})
+            return
+
+        request = {"id": secrets.token_hex(6), "studentId": student, "studentName": str(me.get("name", "")),
+                   "powerId": power["id"], "powerName": power["name"], "apCost": power["apCost"],
+                   "targetId": str(target.get("id")) if target else "",
+                   "targetName": str(target.get("name", "")) if target else "",
+                   "status": "pending", "created": time.time(), "resolved": None, "note": ""}
+
+        def add(requests):
+            keep_after = time.time() - REQUESTS_KEPT_HOURS * 3600
+            requests = [r for r in requests if r.get("status") == "pending" or (r.get("resolved") or 0) > keep_after]
+            return (requests + [request])[-200:]
+        update_server_key("powerRequests", add)
+        self.send_json(HTTPStatus.OK, {"ok": True, "request": request})
+
+    def post_request_cancel(self, body):
+        student = self.needs_student()
+        if not student:
+            return
+
+        def cancel(requests):
+            return [r for r in requests if not (r.get("studentId") == student and r.get("status") == "pending")]
+        update_server_key("powerRequests", cancel)
+        self.send_json(HTTPStatus.OK, {"ok": True})
+
+    def post_request_resolve(self, body):
+        """The teacher has approved or declined a request (the power itself is applied by their page)."""
+        if self.role() != "teacher":
+            self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Log in as the teacher to do this."})
+            return
+        request_id = str(body.get("id", ""))
+        status = "approved" if body.get("approved") is True else "declined"
+        note = str(body.get("note", ""))[:200]
+        found = []
+
+        def resolve(requests):
+            for r in requests:
+                if r.get("id") == request_id and r.get("status") == "pending":
+                    r.update(status=status, resolved=time.time(), note=note)
+                    found.append(r)
+            return requests
+        update_server_key("powerRequests", resolve)
+        if found:
+            self.send_json(HTTPStatus.OK, {"ok": True})
+        else:
+            self.send_json(HTTPStatus.NOT_FOUND, {"error": "That request has already been answered."})
+
+    def post_vote(self, body):
+        student = self.needs_student()
+        if not student:
+            return
+        poll = current_poll()
+        option = body.get("option")
+        if not poll or not poll.get("open") or body.get("pollId") != poll.get("id"):
+            self.send_json(HTTPStatus.BAD_REQUEST, {"error": "This poll has closed."})
+            return
+        if not isinstance(option, int) or isinstance(option, bool) or not 0 <= option < len(poll["options"]):
+            self.send_json(HTTPStatus.BAD_REQUEST, {"error": "Choose one of the answers."})
+            return
+
+        def vote(votes):
+            votes = [v for v in votes if v.get("pollId") == poll["id"] and v.get("studentId") != student]
+            return votes + [{"pollId": poll["id"], "studentId": student, "option": option}]
+        update_server_key("pollVotes", vote)
+        self.send_json(HTTPStatus.OK, {"ok": True})
 
     def post_login(self, body):
         device = self.device()

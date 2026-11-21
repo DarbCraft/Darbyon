@@ -31,6 +31,7 @@ Darbyon.ready(() => {
     Object.keys(Darbyon.CLASSES).forEach(type => byId('charType').appendChild(option(type, type)));
 
     function renderCharacters() {
+        renderCodes();      // the picture password list shows the same students
         const tbody = byId('charactersTableBody');
         tbody.innerHTML = '';
         const characters = Darbyon.getCharacters();
@@ -545,6 +546,84 @@ Darbyon.ready(() => {
         Darbyon.savePunishments(punishments);
         byId('punishmentForm').reset();
         renderPunishments();
+    });
+
+    // ---- Student logins ----
+
+    function pictureText(code) {
+        return code.map(i => Darbyon.PICTURES[i].emoji + ' ' + Darbyon.PICTURES[i].full).join('  →  ');
+    }
+
+    function renderCodes() {
+        const tbody = byId('codesTableBody');
+        tbody.innerHTML = '';
+        const characters = Darbyon.getCharacters();
+        const missing = characters.filter(c => !Darbyon.pictureCodeFor(c.id)).length;
+        byId('makeCodesButton').textContent = missing
+            ? 'Make Picture Passwords for ' + missing + (missing === 1 ? ' Student' : ' Students')
+            : 'Everyone Has a Picture Password';
+        byId('makeCodesButton').disabled = !missing;
+        if (!characters.length) {
+            Darbyon.emptyRow(tbody, 3, 'No students yet.');
+            return;
+        }
+        characters.forEach(char => {
+            const code = Darbyon.pictureCodeFor(char.id);
+            const row = document.createElement('tr');
+            row.appendChild(Darbyon.nameCell(char));
+            row.appendChild(el('td', code ? pictureText(code) : 'None yet', code ? 'picture-code' : 'empty'));
+            row.appendChild(actionsCell(button(code ? 'New Pictures' : 'Make Pictures', 'soft', () => {
+                if (code && !confirm('Give ' + char.name + ' new pictures? Their old ones will stop working.')) return;
+                Darbyon.makePictureCodes([char.id]);
+                renderCodes();
+            })));
+            tbody.appendChild(row);
+        });
+    }
+
+    byId('makeCodesButton').addEventListener('click', () => {
+        const made = Darbyon.makePictureCodes();
+        renderCodes();
+        byId('codesNotice').textContent = made + (made === 1 ? ' picture password made.' : ' picture passwords made.');
+        byId('codesNotice').className = 'notice success';
+    });
+
+    byId('printCardsButton').addEventListener('click', () => {
+        const holder = byId('printCards');
+        holder.innerHTML = '';
+        const address = location.origin + location.pathname.replace(/[^/]*$/, '') + 'me.html';
+        Darbyon.getCharacters().forEach(char => {
+            const code = Darbyon.pictureCodeFor(char.id);
+            if (!code) return;
+            const card = el('div', null, 'login-card');
+            const top = el('div', null, 'who');
+            top.appendChild(Darbyon.avatarImage(char));
+            top.appendChild(el('strong', char.name));
+            card.appendChild(top);
+            const pictures = el('div', null, 'login-card-pictures');
+            code.forEach((i, n) => {
+                const picture = Darbyon.PICTURES[i];
+                const pic = el('div', null, 'login-card-picture');
+                pic.appendChild(el('span', String(n + 1), 'login-card-step'));
+                const tile = el('span', null, 'login-card-tile');
+                tile.style.background = picture.colour;
+                tile.style.color = picture.text;
+                tile.appendChild(el('span', picture.emoji, 'login-card-emoji'));
+                tile.appendChild(el('span', picture.name));
+                pic.appendChild(tile);
+                pictures.appendChild(pic);
+            });
+            card.appendChild(pictures);
+            card.appendChild(el('p', 'Go to ' + address + ', tap your name, then tap these teams in order.', 'login-card-help'));
+            holder.appendChild(card);
+        });
+        if (!holder.children.length) {
+            alert('Make picture passwords first.');
+            return;
+        }
+        document.body.classList.add('printing-cards');
+        window.print();
+        document.body.classList.remove('printing-cards');
     });
 
     // ---- Backup and restore ----

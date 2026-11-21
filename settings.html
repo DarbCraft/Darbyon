@@ -63,6 +63,32 @@
         </table>
     </div>
 
+    <h2>Student Logins</h2>
+    <div class="panel">
+        <p class="hint" style="margin-top:0">
+            Each student logs in to their own character on <strong>My Character</strong> by tapping their
+            name and then three pictures in order. Print the login cards and hand them out.
+            This needs DårbCRÅFT running on the class server.
+        </p>
+        <div class="toolbar">
+            <button type="button" id="makeCodesButton">Make Picture Passwords</button>
+            <button type="button" id="printCardsButton" class="secondary">Print Login Cards</button>
+        </div>
+        <p id="codesNotice" class="notice" role="status"></p>
+    </div>
+    <div class="table-wrap" style="margin-top:12px">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Picture password</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="codesTableBody"></tbody>
+        </table>
+    </div>
+    
     <h2>Create New Team</h2>
     <form id="teamForm" class="panel">
         <div class="field">
@@ -210,6 +236,8 @@
         </div>
         <p id="backupNotice" class="notice" role="status"></p>
     </div>
+
+    <div id="printCards" class="print-cards" aria-hidden="true"></div>
 
     <script src="app.js"></script>
     <script src="import.js"></script>

@@ -115,6 +115,39 @@ blocked, ask IT to allow that one address.
   They see Home and Teams, which update by themselves every 10 seconds.
 - Leave the Pi switched on. If the power goes off, the site starts by itself when it comes back.
 
+## Setting up student logins
+
+1. On **Settings**, under **Student Logins**, click **Make Picture Passwords**.
+   Each student gets three pictures to tap in order.
+2. Click **Print Login Cards** and hand them out.
+3. Students open the address on their own device, type the class code once,
+   open **My Character**, tap their name, then tap their three teams.
+   They stay logged in for the school day.
+
+On My Character, students see their level, XP, AP and HP, and can ask to use
+one of their powers (choosing a teammate for team powers). Their request pops
+up on your **Board** and on the **Powers** page, and nothing happens until you
+tap **Yes**. They also vote in class polls there.
+
+A student who gets their pictures wrong five times is locked out for five
+minutes. To give someone new pictures, use **New Pictures** beside their name.
+
+## The classroom Board
+
+**Board** is the page for the projector. Open tools from the bar along the
+bottom, drag them by their title bar, and resize them from the bottom right
+corner. The Board remembers which tools you had open on that computer.
+
+- **Clock:** an analogue clock that always shows Perth time.
+- **Noise Meter:** your browser asks to use the microphone the first time.
+  Under **Loudness, penalty and reward** you choose how loud is too loud, and
+  switch on a penalty (any amount of HP, XP or AP when it stays too loud) and a
+  reward (for every few minutes below the line). Both start switched off.
+  **Mute Mic** pauses listening, and **Sounds** turns its beeps off. Your
+  choices are remembered on that computer.
+- **Poll:** students answer on My Character. Close the poll to stop answers.
+- **Requests:** opens by itself, with a beep, when a student asks to use a power.
+
 ## Changing the codes
 
 Log in to the Pi (step 2), then:
