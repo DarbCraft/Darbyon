@@ -998,6 +998,33 @@ const Darbyon = (() => {
         knownLevels = levels;
     }
 
+    // ---- Phones -----------------------------------------------------------
+
+    // On a phone each table row is shown as a card, with each value labelled
+    // by its column heading. This copies the headings onto the cells.
+    function labelCells(root) {
+        root.querySelectorAll('table').forEach(table => {
+            const headings = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+            if (!headings.length) return;
+            table.querySelectorAll('tbody tr').forEach(row => {
+                let column = 0;
+                Array.from(row.children).forEach(td => {
+                    if (td.colSpan === 1 && !td.hasAttribute('data-label')) td.setAttribute('data-label', headings[column] || '');
+                    column += td.colSpan || 1;
+                });
+            });
+        });
+    }
+
+    if (typeof document !== 'undefined' && window.MutationObserver) {
+        let pending = false;
+        new MutationObserver(() => {
+            if (pending) return;
+            pending = true;
+            requestAnimationFrame(() => { pending = false; labelCells(document); });
+        }).observe(document.documentElement, { childList: true, subtree: true });
+    }
+
     // ---- Starting a page --------------------------------------------------
 
     // Works out where the data lives, loads it, and draws the navigation.
@@ -1025,6 +1052,8 @@ const Darbyon = (() => {
             // No server here (for example GitHub Pages): carry on in local mode.
         }
         renderNav();
+        const currentTab = document.querySelector('nav [aria-current="page"]');
+        if (currentTab && currentTab.scrollIntoView) currentTab.scrollIntoView({ block: 'nearest', inline: 'center' });
         if (mode !== 'server') return true;
 
         window.addEventListener('focus', refresh);

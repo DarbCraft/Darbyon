@@ -48,8 +48,13 @@ h2 { margin: 36px 0 12px; font-size: 1.45rem; font-weight: 900; }
     gap: 8px 24px;
     margin: 0 -40px 30px;
     padding: 20px 40px 0;
+    padding-top: max(20px, env(safe-area-inset-top));     /* clear of the status bar in the home screen app */
     color: #fff;
     background: var(--ink);
+}
+@media (min-width: 901px) {
+    .site-header { margin-left: calc(-1 * max(40px, env(safe-area-inset-left))); margin-right: calc(-1 * max(40px, env(safe-area-inset-right)));
+                   padding-left: max(40px, env(safe-area-inset-left)); padding-right: max(40px, env(safe-area-inset-right)); }
 }
 .brand {
     margin-bottom: 16px;
@@ -391,7 +396,7 @@ form.login .notice { margin: 0; }
 
 @media (max-width: 900px) {
     body { padding: 0 14px 48px; font-size: 17px; }
-    .site-header { margin: 0 -14px 22px; padding: 14px 14px 0; }
+    .site-header { margin: 0 -14px 22px; padding: max(14px, env(safe-area-inset-top)) 14px 0; }
     .brand { margin-bottom: 8px; font-size: 1.9rem; }
     nav a { padding: 9px 13px; }
     .split { grid-template-columns: minmax(0, 1fr); }
@@ -637,6 +642,7 @@ button.poll-choice.chosen { background: var(--good); }
     display: flex;
     flex-direction: column;
     height: calc(100vh - 92px);
+    height: calc(100dvh - 92px);
     min-height: 460px;
     margin: 0 -40px;
     overflow: hidden;
@@ -697,12 +703,38 @@ button.poll-choice.chosen { background: var(--good); }
     max-width: 100%;
     max-height: 100%;
     overflow: hidden;
-    resize: both;
     background: var(--paper);
     border: 3px solid var(--ink);
     border-radius: 22px;
     box-shadow: 0 10px 30px rgba(23, 38, 77, 0.25);
 }
+
+/* Corner grips for resizing a tool: drag any corner. */
+.resize-grip {
+    position: absolute;
+    z-index: 2;
+    width: 26px;
+    height: 26px;
+    touch-action: none;
+}
+.grip-nw { top: 0; left: 0; cursor: nwse-resize; }
+.grip-ne { top: 0; right: 0; cursor: nesw-resize; }
+.grip-sw { bottom: 0; left: 0; cursor: nesw-resize; }
+.grip-se { bottom: 0; right: 0; cursor: nwse-resize; }
+.resize-grip::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 0 solid var(--muted);
+    opacity: 0.55;
+}
+.grip-nw::after { top: 5px; left: 5px; border-top-width: 3px; border-left-width: 3px; border-color: #c9d6f5; border-top-left-radius: 6px; }
+.grip-ne::after { top: 5px; right: 5px; border-top-width: 3px; border-right-width: 3px; border-color: #c9d6f5; border-top-right-radius: 6px; }
+.grip-sw::after { bottom: 5px; left: 5px; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 6px; }
+.grip-se::after { bottom: 5px; right: 5px; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 6px; }
+.widget:hover .resize-grip::after, .widget.resizing .resize-grip::after { opacity: 1; }
+.widget.resizing { user-select: none; }
 .widget.flash { animation: pop 0.4s ease-out; }
 .widget-body { container-type: inline-size; }
 .big-digits.times-up { font-size: clamp(2rem, 13cqi, 5rem); color: var(--danger); }
@@ -710,7 +742,7 @@ button.poll-choice.chosen { background: var(--good); }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px 8px 18px;
+    padding: 8px 22px 8px 24px;
     color: #fff;
     background: var(--ink);
     cursor: grab;
@@ -797,7 +829,7 @@ button.switch[aria-checked="true"] { color: #fff; background: var(--good); box-s
 .poll-count { text-align: right; }
 
 @media (max-width: 900px) {
-    .board { margin: 0 -14px; height: calc(100vh - 120px); }
+    .board { margin: 0 -14px; height: calc(100vh - 120px); height: calc(100dvh - 120px); }
     .picture-pad { grid-template-columns: repeat(3, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -826,4 +858,109 @@ button.switch[aria-checked="true"] { color: #fff; background: var(--good); box-s
     .login-card-tile { display: flex; flex-direction: column; align-items: center; padding: 2mm 3mm; border: 1px solid #17264d; border-radius: 3mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .login-card-emoji { font-size: 22pt; }
     .login-card-help { margin: 0; font-size: 10pt; }
+}
+
+
+/* =====================================================================
+   iPad and iPhone
+   ===================================================================== */
+
+html { -webkit-text-size-adjust: 100%; }
+a, button, select, input, label, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+@media (min-width: 901px) {
+    body { padding-left: max(40px, env(safe-area-inset-left)); padding-right: max(40px, env(safe-area-inset-right)); }
+}
+
+/* Fingers need bigger targets than a mouse. */
+@media (pointer: coarse) {
+    button { min-height: 44px; }
+    button.small { min-height: 40px; padding: 8px 14px; }
+    nav a { padding: 13px 18px; }
+    input[type="checkbox"] { width: 28px; height: 28px; }
+    input[type="text"], input[type="number"], input[type="password"], select, textarea { min-height: 44px; font-size: max(16px, 1em); }
+    .resize-grip { width: 40px; height: 40px; }
+    .resize-grip::after { opacity: 0.9; }
+    th.sortable { padding-top: 14px; padding-bottom: 14px; }
+}
+
+/* iPad portrait and small laptops: tighten tables so every column fits. */
+@media (max-width: 1100px) {
+    th, td { padding: 11px 9px; }
+    .page-home #playerTable td .avatar, td .avatar { width: 46px; height: 46px; }
+    td.name { font-size: 1.02em; }
+    .tag { padding: 3px 9px; }
+    #playerTable td .actions { gap: 5px; }
+    #playerTable td .actions button.small { padding: 6px 9px; font-size: 0.82rem; }
+}
+
+/* Phones */
+@media (max-width: 700px) {
+    body { padding: 0 max(14px, env(safe-area-inset-right)) 48px max(14px, env(safe-area-inset-left)); font-size: 17px; }
+    h1 { font-size: 1.7rem; }
+
+    /* Header: site name, then one row of tabs that scrolls sideways. */
+    .site-header { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 4px;
+                   margin: 0 calc(-1 * max(14px, env(safe-area-inset-left))) 20px;
+                   padding: max(12px, env(safe-area-inset-top)) 14px 0; }
+    .brand { margin: 0 0 4px; font-size: 1.6rem; }
+    nav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: none; margin: 0 -14px; padding: 0 14px; }
+    nav::-webkit-scrollbar { display: none; }
+    nav a { flex: none; padding: 11px 15px; }
+    .nav-divider { flex: none; width: 8px; }
+    nav button { flex: none; margin-bottom: 6px; }
+
+    /* Tables: each row becomes a card, each value labelled. */
+    .table-wrap { padding: 4px 4px; }
+    table thead { display: none; }
+    table tbody tr {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+        gap: 8px 8px;
+        padding: 14px 12px;
+        border-top: 2px solid var(--line);
+    }
+    table tbody tr:first-child { border-top: none; }
+    table td { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 0; border: none; }
+    table td::before { content: attr(data-label); font-size: 0.72rem; font-weight: 800; color: var(--muted); }
+    table td[data-label=""]::before, table td.name::before, table td.empty::before { display: none; }
+    table td.name { grid-column: 1 / -1; order: -1; font-size: 1.15em; }
+    table td:has(.tag) { grid-column: span 2; }
+    /* A row with a tick box: tick box, then the name beside it. */
+    table td:has(> input[type="checkbox"]) { grid-column: 1; order: -2; justify-content: center; }
+    table tr:has(> td > input[type="checkbox"]) td.name { grid-column: 2 / -1; }
+    table td:has(.actions) { order: 10; }
+    table td.num { text-align: left; font-size: 0.95em; }
+    table td.empty { grid-column: 1 / -1; }
+    table td:has(.actions), table td:has(select) { grid-column: 1 / -1; }
+    table td:has(.actions) .actions { flex-wrap: wrap; }
+    tr.fallen td { background: transparent; }
+    tr.fallen { background: #fff1f1; }
+    .team-card { padding: 16px 8px 4px; }
+
+    .toolbar button, .actions button { flex: 1 1 auto; }
+    form.panel { grid-template-columns: 1fr; }
+    .panel { padding: 16px; }
+    .split .log { max-height: none; }
+
+    /* The Board on a phone: tools stacked down the page, toolbar along the bottom. */
+    .board { height: auto; min-height: calc(100dvh - 140px); margin: 0 calc(-1 * max(14px, env(safe-area-inset-left))); overflow: visible; }
+    .board-widgets { display: flex; flex-direction: column; gap: 14px; padding: 14px; overflow: visible; }
+    .board .widget { position: relative; left: auto !important; top: auto !important; width: auto !important; height: auto !important;
+                     max-height: none; min-height: 0; z-index: auto !important; }
+    .widget-head { cursor: default; }
+    .resize-grip { display: none; }
+    .board-empty { position: static; padding: 40px 16px; }
+    .board-toolbar { position: sticky; bottom: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+                     padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+    .board-toolbar::-webkit-scrollbar { display: none; }
+    .board-toolbar button { flex: none; }
+    .toolbar-gap { display: none; }
+    .big-digits { font-size: clamp(2.6rem, 18cqi, 5rem); }
+
+    .picture-slot { width: 80px; }
+    .stat-row { flex-wrap: nowrap; gap: 8px; }
+    .stat-tile { flex: 1 1 0; min-width: 0; padding: 8px 10px; column-gap: 4px; }
+    .stat-emoji { font-size: 1.3rem; }
+    .stat-value { font-size: 1.3rem; }
+    .hero { justify-content: center; text-align: left; }
 }

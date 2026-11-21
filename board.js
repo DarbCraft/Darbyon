@@ -16,6 +16,13 @@ Darbyon.ready(() => {
 
     const open = {};          // tool name -> { node, tool }
     let topLayer = 10;
+    const MIN_WIDTH = 240;
+    const MIN_HEIGHT = 140;
+
+    // On a phone the tools are stacked down the page instead of floating,
+    // so they cannot be dragged or resized there.
+    const phone = window.matchMedia('(max-width: 700px)');
+    const stacked = () => phone.matches;
 
     // ---- Small helpers ---------------------------------------------------
 
@@ -71,9 +78,15 @@ Darbyon.ready(() => {
     }
 
     function saveLayout() {
+        const before = loadLayout().open || [];
         const layout = { background: board.dataset.background, open: [] };
         Object.keys(open).forEach(name => {
             const node = open[name].node;
+            if (stacked()) {
+                // Keep the positions from the big screen; a phone's stacked layout is not saved.
+                layout.open.push(before.find(p => p.name === name) || { name: name });
+                return;
+            }
             layout.open.push({ name: name, x: node.offsetLeft, y: node.offsetTop,
                                w: node.offsetWidth, h: node.offsetHeight });
         });
@@ -87,15 +100,66 @@ Darbyon.ready(() => {
     }
 
     function keepInside(node) {
+        if (stacked()) return;
         const maxX = Math.max(0, area.clientWidth - node.offsetWidth);
         const maxY = Math.max(0, area.clientHeight - node.offsetHeight);
         node.style.left = Math.min(Math.max(0, node.offsetLeft), maxX) + 'px';
         node.style.top = Math.min(Math.max(0, node.offsetTop), maxY) + 'px';
     }
 
+    // Drag any corner to resize. The opposite corner stays where it is.
+    function makeResizable(node) {
+        ['nw', 'ne', 'sw', 'se'].forEach(corner => {
+            const grip = el('div', null, 'resize-grip grip-' + corner);
+            grip.setAttribute('aria-hidden', 'true');
+            node.appendChild(grip);
+            grip.addEventListener('pointerdown', event => {
+                if (stacked()) return;
+                event.preventDefault();
+                event.stopPropagation();
+                bringToFront(node);
+                grip.setPointerCapture(event.pointerId);
+                node.classList.add('resizing');
+                const start = { x: event.clientX, y: event.clientY, left: node.offsetLeft, top: node.offsetTop,
+                                width: node.offsetWidth, height: node.offsetHeight };
+                const move = e => {
+                    const dx = e.clientX - start.x;
+                    const dy = e.clientY - start.y;
+                    let { left, top, width, height } = start;
+                    if (corner.indexOf('e') !== -1) {
+                        width = Math.min(Math.max(MIN_WIDTH, start.width + dx), area.clientWidth - start.left);
+                    } else {
+                        width = Math.min(Math.max(MIN_WIDTH, start.width - dx), start.left + start.width);
+                        left = start.left + start.width - width;
+                    }
+                    if (corner.indexOf('s') !== -1) {
+                        height = Math.min(Math.max(MIN_HEIGHT, start.height + dy), area.clientHeight - start.top);
+                    } else {
+                        height = Math.min(Math.max(MIN_HEIGHT, start.height - dy), start.top + start.height);
+                        top = start.top + start.height - height;
+                    }
+                    node.style.left = left + 'px';
+                    node.style.top = top + 'px';
+                    node.style.width = width + 'px';
+                    node.style.height = height + 'px';
+                };
+                const stop = () => {
+                    grip.removeEventListener('pointermove', move);
+                    grip.removeEventListener('pointerup', stop);
+                    grip.removeEventListener('pointercancel', stop);
+                    node.classList.remove('resizing');
+                    saveLayout();
+                };
+                grip.addEventListener('pointermove', move);
+                grip.addEventListener('pointerup', stop);
+                grip.addEventListener('pointercancel', stop);
+            });
+        });
+    }
+
     function makeDraggable(node, handle) {
         handle.addEventListener('pointerdown', event => {
-            if (event.target.closest('button')) return;
+            if (event.target.closest('button') || stacked()) return;
             event.preventDefault();
             bringToFront(node);
             handle.setPointerCapture(event.pointerId);
@@ -167,17 +231,12 @@ Darbyon.ready(() => {
         node.style.left = spot.x + 'px';
         node.style.top = spot.y + 'px';
         open[name] = { node: node, tool: instance };
-        keepInside(node);
+        if (!stacked()) keepInside(node);
         makeDraggable(node, head);
+        makeResizable(node);
         node.addEventListener('pointerdown', () => bringToFront(node));
-        if (window.ResizeObserver) {
-            let timer = null;
-            new ResizeObserver(() => {
-                clearTimeout(timer);
-                timer = setTimeout(saveLayout, 300);
-            }).observe(node);
-        }
         empty.hidden = true;
+        if (stacked()) node.scrollIntoView({ behavior: 'smooth', block: 'start' });
         saveLayout();
     }
 
@@ -887,15 +946,25 @@ Darbyon.ready(() => {
         saveLayout();
     });
 
+    // Full screen: Safari on iPad needs the older "webkit" names; iPhones
+    // cannot do it at all, so the button is hidden there.
     const fullscreenButton = document.getElementById('fullscreenButton');
+    const fullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement;
+    const canFullscreen = !!(board.requestFullscreen || board.webkitRequestFullscreen);
+    fullscreenButton.hidden = !canFullscreen;
     fullscreenButton.addEventListener('click', () => {
-        if (document.fullscreenElement) document.exitFullscreen();
-        else if (board.requestFullscreen) board.requestFullscreen();
+        if (fullscreenElement()) {
+            (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        } else {
+            (board.requestFullscreen || board.webkitRequestFullscreen).call(board);
+        }
     });
-    document.addEventListener('fullscreenchange', () => {
-        fullscreenButton.lastChild.textContent = document.fullscreenElement ? ' Exit Full Screen' : ' Full Screen';
+    const fullscreenChanged = () => {
+        fullscreenButton.lastChild.textContent = fullscreenElement() ? ' Exit Full Screen' : ' Full Screen';
         Object.values(open).forEach(entry => keepInside(entry.node));
-    });
+    };
+    document.addEventListener('fullscreenchange', fullscreenChanged);
+    document.addEventListener('webkitfullscreenchange', fullscreenChanged);
     window.addEventListener('resize', () => Object.values(open).forEach(entry => keepInside(entry.node)));
 
     // ---- Keeping up with the class ---------------------------------------

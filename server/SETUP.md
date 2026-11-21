@@ -135,8 +135,9 @@ minutes. To give someone new pictures, use **New Pictures** beside their name.
 ## The classroom Board
 
 **Board** is the page for the projector. Open tools from the bar along the
-bottom, drag them by their title bar, and resize them from the bottom right
-corner. The Board remembers which tools you had open on that computer.
+bottom, drag them by their title bar, and resize them by dragging any corner.
+The Board remembers which tools you had open, and where, on that computer.
+On a phone the tools are stacked down the page instead.
 
 - **Clock:** an analogue clock that always shows Perth time.
 - **Noise Meter:** your browser asks to use the microphone the first time.
@@ -147,6 +148,11 @@ corner. The Board remembers which tools you had open on that computer.
   choices are remembered on that computer.
 - **Poll:** students answer on My Character. Close the poll to stop answers.
 - **Requests:** opens by itself, with a beep, when a student asks to use a power.
+
+## On iPads and iPhones
+
+Open the address in Safari, tap the **Share** button, then **Add to Home Screen**.
+DårbCRÅFT then opens like an app, full screen, with its own icon.
 
 ## Changing the codes
 
