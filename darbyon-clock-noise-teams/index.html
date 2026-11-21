@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DårbCRÅFT</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-home">
+    <nav id="nav" aria-label="Pages"></nav>
+    <h1>Players</h1>
+    <div class="table-wrap">
+        <table id="playerTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Level</th>
+                    <th class="num">XP</th>
+                    <th class="num">AP</th>
+                    <th class="num">HP</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="panel spotlight teacher-only">
+        <div class="toolbar">
+            <button type="button" id="pickRandomPlayerButton">Pick Random Player</button>
+            <button type="button" id="resetPickerButton" class="secondary">Reset Picker</button>
+        </div>
+        <p class="big" aria-live="polite">Selected Player: <span id="playerName">None</span></p>
+        <p class="counter">Players selected: <span id="selectionCounter">0/0</span></p>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="home.js"></script>
+</body>
+</html>
