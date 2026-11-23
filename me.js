@@ -136,7 +136,7 @@ Darbyon.ready(() => {
             Warrior: 'Strong and tough. Has the most HP.',
             Healer: 'Looks after the team. Good HP and AP.'
         };
-        const answers = { first: '', initial: '', type: '', avatar: '', powerId: '', code: [] };
+        const answers = { first: '', type: '', avatar: '', powerId: '', code: [] };
         // First powers: ones any level 1 player of the chosen class can use.
         const starters = type => Darbyon.getPowers().filter(p => p.level <= 1 && (!p.class || p.class === type));
         const hasStarters = Object.keys(Darbyon.CLASSES).some(type => starters(type).length);
@@ -144,14 +144,14 @@ Darbyon.ready(() => {
         let steps = [];
         const setSteps = () => {
             powers = answers.type ? starters(answers.type) : [];
-            steps = ['name', 'initial', 'class', 'avatar']
+            steps = ['name', 'class', 'avatar']
                 .concat((answers.type ? powers.length : hasStarters) ? ['power'] : [], ['code', 'check', 'done']);
         };
         setSteps();
         let step = 0;
         let checking = [];
         const taken = name => Darbyon.getCharacters().some(c => c.name.toLowerCase() === name.toLowerCase());
-        const fullName = () => answers.first + ' ' + answers.initial + '.';
+        const fullName = () => answers.first;
 
         function frame(heading, help) {
             title.textContent = 'New Player';
@@ -193,7 +193,7 @@ Darbyon.ready(() => {
             const kind = steps[step];
 
             if (kind === 'name') {
-                const panel = frame('What is your first name?');
+                const panel = frame('What is your first name?', 'Just your first name. If someone already has it, add a number, like Ruby 2.');
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.maxLength = 20;
@@ -203,39 +203,24 @@ Darbyon.ready(() => {
                 input.setAttribute('aria-label', 'First name');
                 input.value = answers.first;
                 panel.appendChild(input);
+                const preview = el('p', '', 'signup-preview');
+                panel.appendChild(preview);
                 const nav = navigation(panel, false);
                 const check = () => {
                     const text = input.value.trim().replace(/\s+/g, ' ');
-                    const ok = text.length > 0 && /^[\p{L}' -]+$/u.test(text);
-                    answers.first = ok ? text.charAt(0).toUpperCase() + text.slice(1) : '';
-                    nav.next.disabled = !ok;
-                    nav.notice.textContent = text && !ok ? 'Use letters only.' : '';
+                    const ok = text.length > 0 && /\p{L}/u.test(text) && /^[\p{L}0-9' -]+$/u.test(text);
+                    const name = ok ? text.charAt(0).toUpperCase() + text.slice(1) : '';
+                    const clash = !!name && taken(name);
+                    answers.first = ok && !clash ? name : '';
+                    nav.next.disabled = !answers.first;
+                    nav.notice.textContent = text && !ok ? 'Use letters only (and a number if you need one).' : '';
+                    preview.textContent = clash ? 'There is already a ' + name + ' in the class. If that is you, go back and log in. If not, add a number, like ' + name + ' 2.' : '';
+                    preview.classList.toggle('clash', clash);
                 };
                 input.addEventListener('input', check);
                 input.addEventListener('keydown', e => { if (e.key === 'Enter' && !nav.next.disabled) nav.next.click(); });
                 check();
                 input.focus();
-            }
-
-            if (kind === 'initial') {
-                const panel = frame('What letter does your last name start with?', 'This tells apart two students with the same first name.');
-                const grid = pickGrid('letter-grid');
-                const preview = el('p', '', 'signup-preview');
-                let nav;
-                const choose = letter => {
-                    answers.initial = letter;
-                    grid.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.textContent === letter ? 'true' : 'false'));
-                    const clash = taken(fullName());
-                    preview.textContent = clash ? 'There is already a ' + fullName() + ' in the class. If that is you, go back and log in. If not, ask your teacher.'
-                                                : 'You will be called ' + fullName();
-                    preview.classList.toggle('clash', clash);
-                    nav.next.disabled = clash;
-                };
-                'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => grid.appendChild(button(letter, 'letter', () => choose(letter))));
-                panel.appendChild(grid);
-                panel.appendChild(preview);
-                nav = navigation(panel, false);
-                if (answers.initial) choose(answers.initial);
             }
 
             if (kind === 'class') {

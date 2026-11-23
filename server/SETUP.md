@@ -138,10 +138,10 @@ Instead of typing everyone in, students can make their own character:
 
 1. On **Settings**, turn **Student Sign-Up** on.
 2. Students open **My Character**, type the class code, and tap **I am new**.
-3. They type their first name, tap the first letter of their last name
-   (so two Rubys become *Ruby S.* and *Ruby T.*), then choose a class, an
-   avatar, a first power and three secret teams. They tap the teams twice
-   to check they remember them, and they are logged in straight away.
+3. They type their first name only. If that name is taken, they add a number
+   (Ruby 2) or a nickname you know. Then they choose a class, an avatar, a first
+   power and three secret teams. They tap the teams twice to check they remember
+   them, and they are logged in straight away.
 4. Turn **Student Sign-Up** off once everyone is in, so nobody adds extra players.
 
 The site refuses a name that is already taken, and one device can only make

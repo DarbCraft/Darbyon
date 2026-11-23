@@ -277,9 +277,9 @@ def signup_open():
 
 
 def tidy_first_name(text):
-    """'  ruby ' -> 'Ruby'. Returns None if it is not a sensible first name."""
+    """'  ruby ' -> 'Ruby', 'ruby 2' -> 'Ruby 2'. Returns None if it is not a sensible first name."""
     text = " ".join(str(text).split())[:20]
-    if not text or not all(ch.isalpha() or ch in " -'" for ch in text) or not any(ch.isalpha() for ch in text):
+    if not text or not all(ch.isalpha() or ch.isdigit() or ch in " -'" for ch in text) or not any(ch.isalpha() for ch in text):
         return None
     return text[0].upper() + text[1:]
 
@@ -644,7 +644,6 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(HTTPStatus.FORBIDDEN, {"error": "Signing up is closed. Ask your teacher."})
             return
         first = tidy_first_name(body.get("first", ""))
-        initial = str(body.get("initial", "")).strip().upper()
         kind = str(body.get("type", ""))
         avatar = str(body.get("avatar", ""))
         code = body.get("code")
@@ -653,8 +652,6 @@ class Handler(BaseHTTPRequestHandler):
         error = None
         if not first:
             error = "Type your first name, using letters only."
-        elif len(initial) != 1 or not initial.isalpha():
-            error = "Choose the first letter of your last name."
         elif kind not in CLASS_STATS:
             error = "Choose Mage, Warrior or Healer."
         elif avatar not in [kind.lower() + "-" + g + n for g in "mf" for n in "123"]:
@@ -686,7 +683,7 @@ class Handler(BaseHTTPRequestHandler):
                 _signups.clear()
 
         stats = CLASS_STATS[kind]
-        character = {"id": secrets.token_hex(6), "name": first + " " + initial + ".", "type": kind,
+        character = {"id": secrets.token_hex(6), "name": first, "type": kind,
                      "xp": 0, "ap": stats["ap"], "hp": stats["hp"], "team": "", "avatar": avatar,
                      "powers": [power_id] if power_id else []}
         error = add_signup_character(character, code)

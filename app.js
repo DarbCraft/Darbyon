@@ -1114,7 +1114,7 @@ const Darbyon = (() => {
         write('signup', [{ open: !!open }]);
     }
 
-    // For a new student: { first, initial, type, avatar, powerId, code }.
+    // For a new student: { first, type, avatar, powerId, code }.
     const signup = details => postJson('api/signup', details);
 
     // ---- Power requests (students ask, the teacher approves) ---------------

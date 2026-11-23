@@ -1005,9 +1005,6 @@ a, button, select, input, label, summary { -webkit-tap-highlight-color: transpar
 .signup-dots .dot.now { background: var(--ink); }
 .signup-actions { justify-content: space-between; margin-top: 18px; }
 .signup-input { max-width: 420px; font-size: 1.5rem !important; font-weight: 800 !important; margin-top: 8px; }
-.letter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; margin-top: 12px; }
-button.letter { padding: 10px 0; font-size: 1.3rem; color: var(--ink); background: var(--sky); border-radius: 14px; }
-button.letter[aria-pressed="true"] { color: #fff; background: var(--ink); }
 .signup-preview { min-height: 1.6em; margin: 16px 0 0; font-size: 1.3rem; font-weight: 900; }
 .signup-preview.clash { color: var(--danger); font-size: 1.05rem; }
 .class-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 12px; }
