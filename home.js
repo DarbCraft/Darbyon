@@ -72,6 +72,23 @@ Darbyon.ready(() => {
         card.appendChild(el('p', event.text, 'destiny-text'));
         const result = outcome(event);
         if (result) card.appendChild(el('p', result, 'destiny-outcome'));
+        if (Darbyon.role() === 'teacher') {
+            const notice = el('p', '', 'notice error');
+            notice.setAttribute('role', 'alert');
+            const undo = el('button', 'Undo this spin', 'soft small destiny-undo');
+            undo.type = 'button';
+            undo.addEventListener('click', () => {
+                const done = Darbyon.undoSpin();
+                if (!done.ok) {
+                    notice.textContent = done.error;
+                    return;
+                }
+                renderTable();
+                renderDestiny();
+            });
+            card.appendChild(undo);
+            card.appendChild(notice);
+        }
         destinyBody.appendChild(card);
     }
 

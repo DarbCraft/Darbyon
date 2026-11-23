@@ -18,6 +18,16 @@
     <nav id="nav" aria-label="Pages"></nav>
     <h1>Settings</h1>
 
+    <div class="tabs" role="tablist" aria-label="Settings sections">
+        <button type="button" role="tab" id="tab-players" data-tab="players" aria-controls="panel-players">Players and Teams</button>
+        <button type="button" role="tab" id="tab-logins" data-tab="logins" aria-controls="panel-logins">Logins</button>
+        <button type="button" role="tab" id="tab-powers" data-tab="powers" aria-controls="panel-powers">Powers</button>
+        <button type="button" role="tab" id="tab-wheel" data-tab="wheel" aria-controls="panel-wheel">Wheel and Damage</button>
+        <button type="button" role="tab" id="tab-backup" data-tab="backup" aria-controls="panel-backup">Backup</button>
+        <button type="button" role="tab" id="tab-all" data-tab="all" class="tab-all">Everything</button>
+    </div>
+
+    <section class="tab-panel" id="panel-players" data-tab="players" role="tabpanel" aria-labelledby="tab-players">
     <h2>Add Character</h2>
     <form id="addCharacterForm" class="panel">
         <div class="field">
@@ -70,6 +80,31 @@
         </table>
     </div>
 
+    <h2>Create New Team</h2>
+    <form id="teamForm" class="panel">
+        <div class="field">
+            <label for="teamName">Team Name</label>
+            <input type="text" id="teamName" name="teamName" required>
+        </div>
+        <button type="submit">Add Team</button>
+    </form>
+
+    <h2>Teams List</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Team Name</th>
+                    <th>Members</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="teamsTableBody"></tbody>
+        </table>
+    </div>
+    </section>
+
+    <section class="tab-panel" id="panel-logins" data-tab="logins" role="tabpanel" aria-labelledby="tab-logins">
     <h2>Student Sign-Up</h2>
     <div class="panel signup-setting">
         <p class="hint">
@@ -105,57 +140,9 @@
             <tbody id="codesTableBody"></tbody>
         </table>
     </div>
-    
-    <h2>Create New Team</h2>
-    <form id="teamForm" class="panel">
-        <div class="field">
-            <label for="teamName">Team Name</label>
-            <input type="text" id="teamName" name="teamName" required>
-        </div>
-        <button type="submit">Add Team</button>
-    </form>
+    </section>
 
-    <h2>Teams List</h2>
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Team Name</th>
-                    <th>Members</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="teamsTableBody"></tbody>
-        </table>
-    </div>
-
-    <h2>Add Daily Message</h2>
-    <form id="messageForm" class="panel">
-        <div class="field wide">
-            <label for="messageName">Daily News Item</label>
-            <input type="text" id="messageName" name="messageName" required>
-        </div>
-        <div class="field wide">
-            <label for="messageDescription">Description</label>
-            <textarea id="messageDescription" name="messageDescription" required></textarea>
-        </div>
-        <button type="submit">Add News Item</button>
-    </form>
-
-    <h2>Daily News</h2>
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="messagesTableBody"></tbody>
-        </table>
-    </div>
-
+    <section class="tab-panel" id="panel-powers" data-tab="powers" role="tabpanel" aria-labelledby="tab-powers">
     <h2>Power Pack</h2>
     <div class="panel signup-setting">
         <p class="hint">
@@ -259,28 +246,9 @@
             <tbody id="powersTableBody"></tbody>
         </table>
     </div>
+    </section>
 
-    <h2>Battle Punishments</h2>
-    <p class="hint">When a player's HP reaches 0 they fall into Battle and spin a wheel of these punishments.</p>
-    <form id="punishmentForm" class="panel">
-        <div class="field wide">
-            <label for="punishmentText">New Punishment</label>
-            <input type="text" id="punishmentText" name="punishmentText" maxlength="60" required>
-        </div>
-        <button type="submit">Add Punishment</button>
-    </form>
-    <div class="table-wrap" style="margin-top:12px">
-        <table>
-            <thead>
-                <tr>
-                    <th>Punishment</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="punishmentsTableBody"></tbody>
-        </table>
-    </div>
-
+    <section class="tab-panel" id="panel-wheel" data-tab="wheel" role="tabpanel" aria-labelledby="tab-wheel">
     <h2>Wheel of Destiny</h2>
     <p class="hint">The events on the wheel you spin once a day on the Home page. Game events change stats by themselves.
         In the text, <strong>{name}</strong> becomes the chosen player and <strong>{team}</strong> the chosen team.</p>
@@ -373,6 +341,56 @@
         </table>
     </div>
 
+    <h2>Battle Punishments</h2>
+    <p class="hint">When a player's HP reaches 0 they fall into Battle and spin a wheel of these punishments.</p>
+    <form id="punishmentForm" class="panel">
+        <div class="field wide">
+            <label for="punishmentText">New Punishment</label>
+            <input type="text" id="punishmentText" name="punishmentText" maxlength="60" required>
+        </div>
+        <button type="submit">Add Punishment</button>
+    </form>
+    <div class="table-wrap" style="margin-top:12px">
+        <table>
+            <thead>
+                <tr>
+                    <th>Punishment</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="punishmentsTableBody"></tbody>
+        </table>
+    </div>
+
+    <h2>Add Daily Message</h2>
+    <form id="messageForm" class="panel">
+        <div class="field wide">
+            <label for="messageName">Daily News Item</label>
+            <input type="text" id="messageName" name="messageName" required>
+        </div>
+        <div class="field wide">
+            <label for="messageDescription">Description</label>
+            <textarea id="messageDescription" name="messageDescription" required></textarea>
+        </div>
+        <button type="submit">Add News Item</button>
+    </form>
+
+    <h2>Daily News</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="messagesTableBody"></tbody>
+        </table>
+    </div>
+    </section>
+
+    <section class="tab-panel" id="panel-backup" data-tab="backup" role="tabpanel" aria-labelledby="tab-backup">
     <h2>Backup and Restore</h2>
     <div class="panel">
         <p class="hint" id="backupHint" style="margin-top:0">
@@ -388,6 +406,7 @@
     </div>
 
     <div id="printCards" class="print-cards" aria-hidden="true"></div>
+    </section>
 
     <script src="app.js"></script>
     <script src="import.js"></script>

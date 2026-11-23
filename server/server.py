@@ -77,6 +77,7 @@ STATIC_TYPES = {
     ".css": "text/css; charset=utf-8",
     ".jpeg": "image/jpeg", ".jpg": "image/jpeg", ".png": "image/png",
     ".webp": "image/webp", ".svg": "image/svg+xml", ".ico": "image/x-icon",
+    ".woff": "font/woff",
     ".webmanifest": "application/manifest+json",
 }
 
@@ -203,6 +204,19 @@ def to_int(value):
         return int(value)
     except (TypeError, ValueError):
         return 0
+
+
+HISTORY_DAYS = 400           # keep about a school year of history
+HISTORY_LIMIT = 30000        # and never more than this many entries
+
+
+def tidy_history(e):
+    """One history entry, cut down to its known short fields."""
+    kind = e.get("k") if e.get("k") in ("stat", "power", "battle") else "stat"
+    stat = e.get("s") if e.get("s") in ("xp", "ap", "hp") else ""
+    return {"t": to_int(e.get("t")), "c": str(e.get("c", ""))[:64], "n": str(e.get("n", ""))[:40],
+            "k": kind, "s": stat, "d": to_int(e.get("d")), "r": str(e.get("r", ""))[:120],
+            "p": str(e.get("p", ""))[:40], "u": str(e.get("u", ""))[:32]}
 
 
 XP_PER_LEVEL = 5000          # must match app.js
@@ -570,6 +584,8 @@ class Handler(BaseHTTPRequestHandler):
         path = unquote(urlsplit(self.path).path)
         if path == "/api/state":
             self.get_state()
+        elif path == "/api/history":
+            self.get_history()
         elif path == "/robots.txt":
             self.send_body(HTTPStatus.OK, b"User-agent: *\nDisallow: /\n", "text/plain; charset=utf-8")
         elif path.startswith("/api/"):
@@ -585,7 +601,7 @@ class Handler(BaseHTTPRequestHandler):
                   "/api/student-login": self.post_student_login, "/api/student-logout": self.post_student_logout,
                   "/api/power-request": self.post_power_request, "/api/power-request-cancel": self.post_request_cancel,
                   "/api/vote": self.post_vote, "/api/request-resolve": self.post_request_resolve,
-                  "/api/signup": self.post_signup}
+                  "/api/signup": self.post_signup, "/api/history": self.post_history}
         if path not in routes:
             self.close_connection = True
             self.send_json(HTTPStatus.NOT_FOUND, {"error": "Not found."})
@@ -772,6 +788,35 @@ class Handler(BaseHTTPRequestHandler):
         update_server_key("powerRequests", cancel)
         self.send_json(HTTPStatus.OK, {"ok": True})
 
+    # -- history: what changed for each student, for the weekly summary --
+    # Kept apart from the rest of the class's data so the pages that refresh
+    # every few seconds never have to download it.
+
+    def get_history(self):
+        if self.role() != "teacher":
+            self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Log in as the teacher to see this."})
+            return
+        with connect() as db:
+            row = db.execute("SELECT value FROM data WHERE key = 'history'").fetchone()
+        self.send_json(HTTPStatus.OK, {"entries": json.loads(row[0]) if row else []})
+
+    def post_history(self, body):
+        """Adds entries ({"add": [...]}) or removes an undone action's entries ({"remove": undoId})."""
+        if self.role() != "teacher":
+            self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Log in as the teacher to do this."})
+            return
+        add = body.get("add") if isinstance(body.get("add"), list) else []
+        remove = str(body.get("remove") or "")[:32]
+        clean = [tidy_history(e) for e in add[:500] if isinstance(e, dict)]
+        cutoff = (time.time() - HISTORY_DAYS * 86400) * 1000
+
+        def change(entries):
+            kept = [e for e in entries + clean if isinstance(e, dict) and to_int(e.get("t")) > cutoff
+                    and not (remove and e.get("u") == remove)]
+            return kept[-HISTORY_LIMIT:]
+        update_server_key("history", change)
+        self.send_json(HTTPStatus.OK, {"ok": True})
+
     def post_request_resolve(self, body):
         """The teacher has approved or declined a request (the power itself is applied by their page)."""
         if self.role() != "teacher":
@@ -882,7 +927,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_body(HTTPStatus.NOT_FOUND, b"Not found", "text/plain; charset=utf-8")
             return
         # Pictures may be kept for five minutes, so a new avatar or icon shows up soon after an update.
-        cache = "public, max-age=300" if content_type.startswith("image/") else "no-cache"
+        cache = "public, max-age=300" if content_type.startswith(("image/", "font/")) else "no-cache"
         self.send_body(HTTPStatus.OK, target.read_bytes(), content_type, [("Cache-Control", cache)])
 
 

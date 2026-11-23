@@ -21,8 +21,10 @@ Darbyon.ready(() => {
 
     // On a phone the tools are stacked down the page instead of floating,
     // so they cannot be dragged or resized there.
+    // Projector mode lines the tools up in a grid and makes them big, so
+    // they cannot be dragged there either.
     const phone = window.matchMedia('(max-width: 700px)');
-    const stacked = () => phone.matches;
+    const stacked = () => phone.matches || board.classList.contains('projector');
 
     // ---- Small helpers ---------------------------------------------------
 
@@ -231,6 +233,7 @@ Darbyon.ready(() => {
         node.style.left = spot.x + 'px';
         node.style.top = spot.y + 'px';
         open[name] = { node: node, tool: instance };
+        countTools();
         if (!stacked()) keepInside(node);
         makeDraggable(node, head);
         makeResizable(node);
@@ -246,6 +249,7 @@ Darbyon.ready(() => {
         if (entry.tool.close) entry.tool.close();
         entry.node.remove();
         delete open[name];
+        countTools();
         empty.hidden = Object.keys(open).length > 0;
         saveLayout();
     }
@@ -945,8 +949,21 @@ Darbyon.ready(() => {
             const reasons = el('div', null, 'damage-buttons');
             const notice = el('p', '', 'notice');
             notice.setAttribute('role', 'status');
+            const undoRow = el('div', null, 'damage-undo');
+            let lastHit = '';
+            const undo = button('Undo', 'soft small', () => {
+                const label = Darbyon.undoAction(lastHit);
+                notice.textContent = label ? 'Undone: ' + label : 'Something else has changed since, so use Undo on Update Values.';
+                notice.className = 'notice ' + (label ? 'success' : 'error');
+                lastHit = '';
+                undo.hidden = true;
+                refreshAll();
+            });
+            undo.hidden = true;
+            undoRow.appendChild(notice);
+            undoRow.appendChild(undo);
             body.appendChild(el('p', 'Tap players, then a reason.', 'hint'));
-            [players, reasons, notice].forEach(n => body.appendChild(n));
+            [players, reasons, undoRow].forEach(n => body.appendChild(n));
 
             function draw() {
                 players.innerHTML = '';
@@ -975,6 +992,8 @@ Darbyon.ready(() => {
                         }
                         const names = Darbyon.getCharacters().filter(p => chosen.has(p.id)).map(p => p.name);
                         const fallen = Darbyon.dealDamage(ids, damage.id);
+                        lastHit = Darbyon.lastUndoId();
+                        undo.hidden = !lastHit;
                         chosen.clear();
                         notice.textContent = '−' + damage.hp + ' HP to ' + names.join(', ') + ' (' + damage.text + ')';
                         notice.className = 'notice success';
@@ -1007,6 +1026,31 @@ Darbyon.ready(() => {
 
     // Full screen: Safari on iPad needs the older "webkit" names; iPhones
     // cannot do it at all, so the button is hidden there.
+    // ---- Projector mode --------------------------------------------------
+
+    const PROJECTOR_KEY = 'darbyon-board-projector';
+    const projectorButton = document.getElementById('projectorButton');
+
+    // The grid needs to know how many tools are open to choose its columns.
+    function countTools() {
+        board.dataset.tools = Math.min(Object.keys(open).length, 4);
+    }
+
+    function setProjector(on) {
+        board.classList.toggle('projector', on);
+        projectorButton.setAttribute('aria-pressed', on ? 'true' : 'false');
+        projectorButton.lastChild.textContent = on ? ' Exit Projector' : ' Projector';
+        try { localStorage.setItem(PROJECTOR_KEY, on ? '1' : ''); } catch (err) { /* storage off */ }
+        if (!on) Object.values(open).forEach(entry => keepInside(entry.node));
+    }
+
+    projectorButton.addEventListener('click', () => {
+        const on = !board.classList.contains('projector');
+        setProjector(on);
+        // Projector mode is meant for the big screen, so fill it.
+        if (on && canFullscreen && !fullscreenElement()) (board.requestFullscreen || board.webkitRequestFullscreen).call(board);
+    });
+
     const fullscreenButton = document.getElementById('fullscreenButton');
     const fullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement;
     const canFullscreen = !!(board.requestFullscreen || board.webkitRequestFullscreen);
@@ -1045,6 +1089,9 @@ Darbyon.ready(() => {
 
     const layout = loadLayout();
     setBackground(layout.background);
+    let projectorWas = '';
+    try { projectorWas = localStorage.getItem(PROJECTOR_KEY); } catch (err) { /* storage off */ }
+    setProjector(!!projectorWas);
     (layout.open || []).forEach(place => { if (TOOLS[place.name]) openTool(place.name, place); });
     empty.hidden = Object.keys(open).length > 0;
     Darbyon.onChange(refreshAll, { poll: Darbyon.isServer(), every: 3000 });

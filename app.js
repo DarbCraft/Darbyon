@@ -395,13 +395,76 @@ const Darbyon = (() => {
     }
 
     // Saves the characters. Pass a label to make the change undoable.
-    function saveCharacters(characters, undoLabel) {
+    // Saves the class. With an undoLabel the old class is kept so Undo can
+    // put it back; `extra` may hold { dailyEvent } to restore as well.
+    // Returns the undo id (or '' when nothing can be undone).
+    let lastUndo = '';
+    function saveCharacters(characters, undoLabel, extra) {
+        let id = '';
         if (undoLabel) {
+            id = newId();
             const stack = read('undoStack', []);
-            stack.push({ label: undoLabel, characters: getCharacters() });
+            stack.push(Object.assign({ id: id, label: undoLabel, characters: getCharacters() }, extra || {}));
             write('undoStack', stack.slice(-UNDO_LIMIT));
+            lastUndo = id;
         }
         write('characters', characters);
+        return id;
+    }
+
+    // ---- History (for the weekly summary) ---------------------------------
+    // Short entries: t time, c character id, n name, k kind ('stat', 'power'
+    // or 'battle'), s stat, d change, r reason, p power, u undo id.
+    // On the class server they live apart from everything else, so the pages
+    // that refresh every few seconds never download them.
+
+    const HISTORY_LIMIT = 30000;
+    let historyQueue = [];
+    let historyTimer = null;
+
+    function recordHistory(entries, undoId) {
+        if (!entries.length) return;
+        const now = Date.now();
+        entries = entries.map(e => Object.assign({ t: now, u: undoId || '' }, e));
+        if (mode !== 'server') {
+            write('history', read('history', []).concat(entries).slice(-HISTORY_LIMIT));
+            return;
+        }
+        historyQueue = historyQueue.concat(entries);
+        clearTimeout(historyTimer);
+        historyTimer = setTimeout(sendHistory, 400);
+    }
+
+    async function sendHistory(remove) {
+        const batch = historyQueue;
+        historyQueue = [];
+        const result = await postJson('api/history', remove ? { add: batch, remove: remove } : { add: batch });
+        if (!result.ok) {
+            historyQueue = batch.concat(historyQueue);          // try again with the next change
+            if (remove) setTimeout(() => sendHistory(remove), 3000);
+        }
+    }
+
+    function forgetHistory(undoId) {
+        if (!undoId) return;
+        if (mode !== 'server') {
+            write('history', read('history', []).filter(e => e.u !== undoId));
+            return;
+        }
+        clearTimeout(historyTimer);
+        sendHistory(undoId);
+    }
+
+    async function getHistory() {
+        if (mode !== 'server') return read('history', []);
+        clearTimeout(historyTimer);
+        if (historyQueue.length) await sendHistory();
+        try {
+            const response = await api('api/history');
+            return response.ok ? ((await response.json()).entries || []) : [];
+        } catch (err) {
+            return [];
+        }
     }
 
     function addCharacter(name, type) {
@@ -459,17 +522,22 @@ const Darbyon = (() => {
     // A player guarded by a Warrior's Protect loses nothing; the Warrior
     // takes half the damage (rounded up) instead, and the guard is used up.
     // `reason` (optional) is added to the change log.
-    function adjustStat(ids, stat, amount, reason) {
+    function adjustStat(ids, stat, amount, reason, undoExtra) {
         amount = toInt(amount);
         const fallen = [];
         if (!amount || ['xp', 'ap', 'hp'].indexOf(stat) === -1) return fallen;
         const characters = getCharacters();
         const entries = [];
+        const history = [];
         const why = reason ? ' (' + reason + ')' : '';
-        const hurt = (c, damage) => {
+        const hurt = (c, damage, note) => {
             const before = c.hp;
             c.hp = Math.max(0, before - damage);
-            if (before > 0 && c.hp === 0) fallen.push({ id: c.id, name: c.name });
+            if (c.hp !== before) history.push({ c: c.id, n: c.name, k: 'stat', s: 'hp', d: c.hp - before, r: note || reason || '' });
+            if (before > 0 && c.hp === 0) {
+                fallen.push({ id: c.id, name: c.name });
+                history.push({ c: c.id, n: c.name, k: 'battle', r: note || reason || '' });
+            }
             return before;
         };
         characters.forEach(c => {
@@ -479,20 +547,24 @@ const Darbyon = (() => {
             if (stat === 'hp' && amount < 0 && c.shield) c.shield = '';
             if (guard) {
                 const damage = Math.ceil(-amount / 2);
-                const before = hurt(guard, damage);
+                const before = hurt(guard, damage, 'Protected ' + c.name + (reason ? ' from: ' + reason : ''));
                 entries.push(guard.name + ' protected ' + c.name + ' / HP / ' + before + ' -> ' + guard.hp + why);
                 return;
             }
             const before = c[stat];
             if (stat === 'hp' && amount < 0) hurt(c, -amount);
-            else c[stat] = Math.max(0, before + amount);
+            else {
+                c[stat] = Math.max(0, before + amount);
+                if (c[stat] !== before) history.push({ c: c.id, n: c.name, k: 'stat', s: stat, d: c[stat] - before, r: reason || '' });
+            }
             entries.push(c.name + ' / ' + stat.toUpperCase() + ' / ' + before + ' -> ' + c[stat] + why);
         });
         if (!entries.length) return fallen;
         const sign = amount > 0 ? '+' : '';
         const who = entries.length === 1 ? entries[0].split(' / ')[0] : entries.length + ' players';
-        saveCharacters(characters, sign + amount + ' ' + stat.toUpperCase() + ' to ' + who + why);
+        const undoId = saveCharacters(characters, sign + amount + ' ' + stat.toUpperCase() + ' to ' + who + why, undoExtra);
         entries.forEach(addLog);
+        recordHistory(history, undoId);
         return fallen;
     }
 
@@ -508,9 +580,18 @@ const Darbyon = (() => {
         const last = stack.pop();
         if (!last) return null;
         write('characters', last.characters);
+        if (last.dailyEvent !== undefined) write('dailyEvent', last.dailyEvent);
         write('undoStack', stack);
+        forgetHistory(last.id);
         addLog('Undid: ' + last.label);
         return last.label;
+    }
+
+    // Undoes one particular action, but only if nothing has been changed
+    // since; otherwise returns null and changes nothing.
+    function undoAction(id) {
+        const stack = read('undoStack', []);
+        return id && stack.length && stack[stack.length - 1].id === id ? undo() : null;
     }
 
     // ---- Change log -------------------------------------------------------
@@ -736,6 +817,7 @@ const Darbyon = (() => {
         }
 
         const fallen = [];
+        const startStats = new Map(characters.map(c => [c.id, { xp: c.xp, ap: c.ap, hp: c.hp }]));
         const userHpBefore = user.hp;
         user.ap -= power.apCost;
         user.xp = Math.max(0, user.xp + power.xp);
@@ -759,7 +841,17 @@ const Darbyon = (() => {
             everyone.forEach(affect);
             summary += ' for team ' + user.team;
         }
-        saveCharacters(characters, summary);
+        const history = [{ c: user.id, n: user.name, k: 'power', p: power.name,
+                           r: target ? target.name : everyone.length ? 'team ' + user.team : '' }];
+        characters.forEach(c => {
+            const was = startStats.get(c.id);
+            const why = 'Power: ' + power.name + (c.id === user.id ? '' : ' from ' + user.name);
+            ['xp', 'ap', 'hp'].forEach(stat => {
+                if (c[stat] !== was[stat]) history.push({ c: c.id, n: c.name, k: 'stat', s: stat, d: c[stat] - was[stat], r: why });
+            });
+        });
+        fallen.forEach(f => history.push({ c: f.id, n: f.name, k: 'battle', r: 'Power: ' + power.name }));
+        recordHistory(history, saveCharacters(characters, summary));
         addLog(summary + (power.reward ? ' (reward: ' + power.reward + ')' : ''));
         return { ok: true, summary: summary, reward: power.reward, fallen: fallen };
     }
@@ -863,15 +955,33 @@ const Darbyon = (() => {
             }
         }
         const text = event.text.replace(/\{name\}/g, chosen || 'someone').replace(/\{team\}/g, chosen || 'a team');
-        const fallen = ids.length && event.amount ? adjustStat(ids, event.stat, event.amount, 'Wheel of Destiny: ' + event.name) : [];
+        lastUndo = '';
+        const fallen = ids.length && event.amount
+            ? adjustStat(ids, event.stat, event.amount, 'Wheel of Destiny: ' + event.name, { dailyEvent: read('dailyEvent', []) }) : [];
         write('dailyEvent', [{ date: perthDate(), name: event.name, text: text, kind: event.kind,
-                               who: event.who, stat: event.stat, amount: event.amount, chosen: chosen, ids: ids }]);
+                               who: event.who, stat: event.stat, amount: event.amount, chosen: chosen, ids: ids, undo: lastUndo }]);
         addLog('Wheel of Destiny: ' + event.name + '. ' + text);
         return { index: index, event: todaysEvent(), fallen: fallen };
     }
 
     function clearTodaysEvent() {
         write('dailyEvent', []);
+    }
+
+    // Takes back today's spin: its stat changes too, as long as nothing else
+    // has changed since. Returns { ok } or { ok: false, error }.
+    function undoSpin() {
+        const today = todaysEvent();
+        if (!today) return { ok: false, error: 'The wheel has not been spun today.' };
+        if (today.undo) {
+            if (!undoAction(today.undo)) {
+                return { ok: false, error: 'Other changes have been made since the spin, so it cannot be undone here. Use Undo on Update Values.' };
+            }
+        } else {
+            clearTodaysEvent();
+            addLog('Undid: Wheel of Destiny spin');
+        }
+        return { ok: true };
     }
 
     // ---- Quick Damage -----------------------------------------------------
@@ -892,6 +1002,7 @@ const Darbyon = (() => {
     function dealDamage(ids, damageId) {
         const damage = getDamages().find(d => d.id === damageId);
         if (!damage || !ids.length) return [];
+        lastUndo = '';
         return adjustStat(ids, 'hp', -damage.hp, damage.text);
     }
 
@@ -1094,6 +1205,7 @@ const Darbyon = (() => {
         { href: 'board.html', label: 'Board', group: 'teacher' },
         { href: 'update-values.html', label: 'Update Values', group: 'teacher' },
         { href: 'powers.html', label: 'Powers', group: 'teacher' },
+        { href: 'summary.html', label: 'Summary', group: 'teacher' },
         { href: 'settings.html', label: 'Settings', group: 'teacher' }
     ];
 
@@ -1308,9 +1420,9 @@ const Darbyon = (() => {
         cricket: '<path d="M14.3 3.7l3 3-8.6 8.6-3-3z" fill="#f3d9a4"/><path d="M5.7 15.3 3.3 17.7l1.9 1.9 2.4-2.4" stroke-width="2.4"/><circle cx="17" cy="16.5" r="3.3" fill="#e0453a"/><path d="M15 14.6c1.2.5 2.1 1.6 2.4 3.1"/>',
         basketball: '<circle cx="12" cy="12" r="9" fill="#f28a30"/><path d="M3 12h18M12 3v18M5.6 5.6c2.4 2.4 2.4 10.4 0 12.8M18.4 5.6c-2.4 2.4-2.4 10.4 0 12.8"/>',
         soccer: '<circle cx="12" cy="12" r="9" fill="#fff"/><path d="M12 8.3l3.4 2.5-1.3 4h-4.2l-1.3-4z" fill="currentColor"/><path d="M12 8.3V3.2M15.4 10.8l4.6-1.6M14.1 14.8l2.8 4.1M9.9 14.8l-2.8 4.1M8.6 10.8 4 9.2"/>',
-        medal1: '<path d="M8 3h3l1.5 5.5L10 9.5zM16 3h-3l-1.5 5.5L14 9.5z" fill="#5aa9ff"/><circle cx="12" cy="14.5" r="6.2" fill="#ffc533"/><text x="12" y="17.8" text-anchor="middle" font-size="9" font-weight="900" fill="currentColor" stroke="none" font-family="system-ui,Arial,sans-serif">1</text>',
-        medal2: '<path d="M8 3h3l1.5 5.5L10 9.5zM16 3h-3l-1.5 5.5L14 9.5z" fill="#ff8a8d"/><circle cx="12" cy="14.5" r="6.2" fill="#d5dde8"/><text x="12" y="17.8" text-anchor="middle" font-size="9" font-weight="900" fill="currentColor" stroke="none" font-family="system-ui,Arial,sans-serif">2</text>',
-        medal3: '<path d="M8 3h3l1.5 5.5L10 9.5zM16 3h-3l-1.5 5.5L14 9.5z" fill="#7fdcbb"/><circle cx="12" cy="14.5" r="6.2" fill="#e3a46c"/><text x="12" y="17.8" text-anchor="middle" font-size="9" font-weight="900" fill="currentColor" stroke="none" font-family="system-ui,Arial,sans-serif">3</text>'
+        medal1: '<path d="M8 3h3l1.5 5.5L10 9.5zM16 3h-3l-1.5 5.5L14 9.5z" fill="#5aa9ff"/><circle cx="12" cy="14.5" r="6.2" fill="#ffc533"/><text x="12" y="17.8" text-anchor="middle" font-size="9" font-weight="900" fill="currentColor" stroke="none" font-family="Darbyon Nunito,system-ui,Arial,sans-serif">1</text>',
+        medal2: '<path d="M8 3h3l1.5 5.5L10 9.5zM16 3h-3l-1.5 5.5L14 9.5z" fill="#ff8a8d"/><circle cx="12" cy="14.5" r="6.2" fill="#d5dde8"/><text x="12" y="17.8" text-anchor="middle" font-size="9" font-weight="900" fill="currentColor" stroke="none" font-family="Darbyon Nunito,system-ui,Arial,sans-serif">2</text>',
+        medal3: '<path d="M8 3h3l1.5 5.5L10 9.5zM16 3h-3l-1.5 5.5L14 9.5z" fill="#7fdcbb"/><circle cx="12" cy="14.5" r="6.2" fill="#e3a46c"/><text x="12" y="17.8" text-anchor="middle" font-size="9" font-weight="900" fill="currentColor" stroke="none" font-family="Darbyon Nunito,system-ui,Arial,sans-serif">3</text>'
     };
 
     // An icon as an <svg> element. Icons are decoration: the words next to
@@ -1472,6 +1584,7 @@ const Darbyon = (() => {
         getLog, addLog, clearLog,
         getTeams, addTeam, renameTeam, deleteTeam,
         icon, iconText, fillIcons, STAT_ICONS, EVENT_ICONS,
+        undoAction, lastUndoId: () => lastUndo, undoSpin, getHistory,
         getPowers, savePower, deletePower, applyPower, describeEffect, powersFor,
         addPowerPack, powerLock, describePower, REACH, POWER_PACK,
         getEvents, saveEvents, spinDestiny, todaysEvent, clearTodaysEvent, perthDate, EVENT_KINDS,

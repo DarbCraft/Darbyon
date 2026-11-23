@@ -15,7 +15,7 @@ Darbyon.Wheel = (() => {
     // Shrinks the label, then trims it, until it fits along its slice.
     function fitLabel(ctx, text, maxWidth, biggest) {
         let size = biggest;
-        const setFont = () => { ctx.font = '600 ' + size + 'px system-ui, Arial, sans-serif'; };
+        const setFont = () => { ctx.font = '800 ' + size + 'px "Darbyon Nunito", system-ui, Arial, sans-serif'; };
         setFont();
         while (size > biggest * 0.66 && ctx.measureText(text).width > maxWidth) {
             size -= 2;
@@ -29,6 +29,12 @@ Darbyon.Wheel = (() => {
     }
 
     function draw(canvas, labels) {
+        // A canvas cannot wait for the site font by itself: draw now, and
+        // once more when the font has arrived.
+        if (document.fonts && !canvas.dataset.fontWait && !document.fonts.check('800 20px "Darbyon Nunito"')) {
+            canvas.dataset.fontWait = '1';
+            document.fonts.load('800 20px "Darbyon Nunito"').then(() => draw(canvas, labels), () => {});
+        }
         const size = canvas.width;
         const ctx = canvas.getContext('2d');
         const r = size / 2;

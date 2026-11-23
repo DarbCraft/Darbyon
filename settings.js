@@ -884,6 +884,42 @@ Darbyon.ready(() => {
 
     // New students may sign up while this page is open, so keep up with them.
     Darbyon.onChange(renderAll, { poll: Darbyon.isServer(), every: 8000 });
+    // ---- Tabs ----
+    // The last tab used is remembered on this device. A link like
+    // settings.html#powers opens that tab.
+
+    const TAB_KEY = 'darbyon-settings-tab';
+    const tabButtons = Array.from(document.querySelectorAll('.tabs [data-tab]'));
+
+    function showTab(name) {
+        if (!tabButtons.some(b => b.dataset.tab === name)) name = 'players';
+        tabButtons.forEach(b => {
+            b.setAttribute('aria-selected', b.dataset.tab === name ? 'true' : 'false');
+            b.tabIndex = b.dataset.tab === name ? 0 : -1;
+        });
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.hidden = name !== 'all' && panel.dataset.tab !== name;
+        });
+        try { localStorage.setItem(TAB_KEY, name); } catch (err) { /* private browsing */ }
+    }
+
+    tabButtons.forEach((b, i) => {
+        b.addEventListener('click', () => showTab(b.dataset.tab));
+        b.addEventListener('keydown', event => {
+            const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+            if (!step) return;
+            const next = tabButtons[(i + step + tabButtons.length) % tabButtons.length];
+            next.focus();
+            showTab(next.dataset.tab);
+        });
+    });
+
+    let firstTab = location.hash.slice(1);
+    if (!firstTab) {
+        try { firstTab = localStorage.getItem(TAB_KEY); } catch (err) { firstTab = ''; }
+    }
+    showTab(firstTab || 'players');
+
     resetPowerForm();
     resetEventForm();
     renderAll();

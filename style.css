@@ -1,3 +1,13 @@
+/* The site's one font: Nunito (SIL Open Font License, see fonts/OFL.txt),
+   served from this site so every iPad and laptop looks the same. */
+@font-face {
+    font-family: "Darbyon Nunito";
+    src: url("fonts/nunito.woff") format("woff");
+    font-weight: 200 1000;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* DårbCRÅFT shared styles: the bright classroom scoreboard look.
    Every page loads this one file. Colours are set once, just below. */
 
@@ -27,7 +37,7 @@ body:not(.ready) > *:not(.site-header) { visibility: hidden; }
 body {
     margin: 0;
     padding: 0 40px 64px;
-    font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    font-family: "Darbyon Nunito", "Nunito", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
     font-size: 19px;
     line-height: 1.45;
     color: var(--ink);
@@ -793,7 +803,7 @@ button.widget-close:hover { color: var(--ink); background: #fff; }
 .analogue-clock .clock-face { fill: #fff; stroke: var(--ink); stroke-width: 6; }
 .analogue-clock .tick { stroke: #9fb3d9; stroke-width: 2; stroke-linecap: round; }
 .analogue-clock .tick.big { stroke: var(--ink); stroke-width: 4; }
-.analogue-clock .clock-number { font: 900 17px ui-rounded, "Nunito", system-ui, sans-serif; fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
+.analogue-clock .clock-number { font: 900 15px "Darbyon Nunito", system-ui, sans-serif; fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
 .analogue-clock .hand { stroke-linecap: round; }
 .analogue-clock .hour { stroke: var(--ink); stroke-width: 8; }
 .analogue-clock .minute { stroke: var(--ink); stroke-width: 5; }
@@ -1088,3 +1098,69 @@ summary svg.icon { margin-left: 2px; }
 /* Team tiles are coloured, so the ball keeps its own colours on a white disc */
 .picture-emoji, .slot-emoji, .login-card-emoji { display: inline-grid; place-items: center; }
 .picture-emoji svg.icon, .slot-emoji svg.icon, .login-card-emoji svg.icon { color: #17264d; background: #fff; border-radius: 50%; padding: 0.12em; }
+
+/* Undo next to the action it takes back */
+.destiny-undo { margin-top: 14px; }
+.destiny-card .notice:empty { display: none; }
+.damage-undo { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.damage-undo .notice { flex: 1 1 200px; margin: 0; }
+.damage-undo .notice:empty { display: none; }
+
+/* =====================================================================
+   Weekly Summary
+   ===================================================================== */
+
+.week-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.week-bar h2 { margin: 0; font-size: 1.3rem; text-align: center; flex: 1 1 260px; }
+.week-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 16px 0; }
+.week-tile { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; padding: 14px 18px; }
+.week-tile svg.icon { grid-row: span 2; width: 2.2rem; height: 2.2rem; }
+.week-tile strong { font-size: 1.8rem; line-height: 1; }
+.week-tile span { font-weight: 700; color: var(--muted); }
+.summary-actions { align-items: center; }
+.summary-actions .notice { margin: 0; }
+.summary-reasons { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.summary-comment { min-width: 280px; }
+.summary-comment span { display: block; margin-bottom: 6px; }
+
+/* =====================================================================
+   Settings tabs
+   ===================================================================== */
+
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; padding: 6px; background: #fff;
+        border: 3px solid var(--ink); border-radius: 22px; position: sticky; top: 8px; z-index: 5; }
+.tabs button { flex: 1 1 auto; padding: 10px 16px; color: var(--ink); background: transparent; box-shadow: none; border-radius: 16px; }
+.tabs button:hover { background: var(--sky); }
+.tabs button[aria-selected="true"] { color: #fff; background: var(--ink); }
+.tabs .tab-all { flex: 0 1 auto; font-weight: 700; color: var(--muted); }
+.tab-panel > h2:first-child { margin-top: 0; }
+@media (max-width: 700px) {
+    .tabs { position: static; }
+    .tabs button { flex: 1 1 40%; padding: 8px 10px; font-size: 0.95rem; }
+}
+
+/* =====================================================================
+   Board: projector mode. Tools fill the screen in a grid and everything
+   in them is drawn larger, to read from the back of the room.
+   ===================================================================== */
+
+.board.projector .board-widgets { display: grid; gap: 18px; padding: 18px; overflow: auto; align-content: stretch;
+                                  grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); }
+.board.projector[data-tools="1"] .board-widgets { grid-template-columns: minmax(0, 1fr); }
+.board.projector[data-tools="2"] .board-widgets { grid-auto-rows: minmax(0, 1fr); }
+.board.projector .widget { position: relative !important; left: auto !important; top: auto !important;
+                           width: auto !important; height: auto !important; min-height: 0; z-index: auto !important; }
+.board.projector .widget-head { cursor: default; padding: 12px 18px; }
+.board.projector .widget-head h2 { font-size: 1.7rem; }
+.board.projector .widget-body { zoom: 1.2; }
+.board.projector[data-tools="2"] .widget-body { zoom: 1.5; }
+.board.projector[data-tools="1"] .widget-body { zoom: 2; }
+.board.projector .resize-grip { display: none; }
+/* The clock is sized by the screen height; zoom would make it larger, so allow for it. */
+.board.projector .analogue-clock { max-height: 26vh; }
+.board.projector[data-tools="2"] .analogue-clock { max-height: 48vh; }
+.board.projector[data-tools="1"] .analogue-clock { max-height: 34vh; }
+.board.projector .widget-picker .avatar-big, .board.projector .widget-picker img.avatar { max-height: 18vh; width: auto; }
+.board.projector .board-empty { position: static; }
+#projectorButton[aria-pressed="true"] { color: var(--ink); background: var(--sun); }
+@media (max-width: 700px) { #projectorButton { display: none; } }

@@ -165,6 +165,17 @@ students appear within about 8 seconds.
   **Damage** tool), then tap a reason. The HP comes off and the reason is logged.
   Edit the reasons on Settings.
 
+## Weekly Summary, undo and projector mode
+
+- **Summary** (in the menu) shows each student's week: XP earned, HP lost and why,
+  HP healed, powers used and Battles, with a sentence you can copy into SEQTA.
+  It counts changes from when this update was installed. The history is kept on the
+  Pi for about a year and is only downloaded by the Summary page.
+- **Undo this spin** (Home) and **Undo** (the Board's Damage tool) take back the last
+  action straight away, as long as nothing else has changed since.
+- **Projector** on the Board lines the open tools up to fill the screen and makes
+  them bigger.
+
 ## The classroom Board
 
 **Board** is the page for the projector. Open tools from the bar along the

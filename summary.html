@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#17264d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="DårbCRÅFT">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <title>Weekly Summary</title>
+    <link rel="icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-teacher-page>
+    <nav id="nav" aria-label="Pages"></nav>
+    <h1>Weekly Summary</h1>
+
+    <div class="panel week-bar">
+        <button type="button" id="weekBack" class="secondary small">Previous Week</button>
+        <h2 id="weekTitle">This Week</h2>
+        <button type="button" id="weekNext" class="secondary small">Next Week</button>
+    </div>
+
+    <div id="weekTotals" class="week-totals"></div>
+
+    <div class="actions summary-actions">
+        <button type="button" id="copyAll">Copy All Comments</button>
+        <p id="copyNotice" class="notice" role="status"></p>
+    </div>
+    <p class="hint">Comments are a starting point for SEQTA: copy one, then add your own words.
+        The summary counts changes made since this update was installed.</p>
+
+    <div class="table-wrap">
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th class="num">XP Gained</th>
+                    <th class="num">HP Lost</th>
+                    <th class="num">HP Healed</th>
+                    <th>Powers Used</th>
+                    <th class="num">Battles</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody id="summaryBody"></tbody>
+        </table>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="summary.js"></script>
+</body>
+</html>
