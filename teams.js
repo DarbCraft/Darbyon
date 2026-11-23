@@ -3,13 +3,19 @@ Darbyon.ready(() => {
     const { el } = Darbyon;
     const container = document.getElementById('teamsContainer');
 
-    const PLACES = ['🥇', '🥈', '🥉'];
+    const PLACES = ['medal1', 'medal2', 'medal3'];
+    // A medal for the top three, a number after that.
+    function placeBadge(place) {
+        const badge = el('span', PLACES[place] ? null : String(place + 1), 'place');
+        if (PLACES[place]) badge.appendChild(Darbyon.icon(PLACES[place]));
+        return badge;
+    }
     const totalXp = members => members.reduce((sum, c) => sum + c.xp, 0);
 
     function addCard(title, members, place) {
         const card = el('section', null, 'panel team-card' + (place === 0 ? ' first' : ''));
         const heading = el('h2', null, 'team-heading');
-        if (place !== undefined) heading.appendChild(el('span', PLACES[place] || String(place + 1), 'place'));
+        if (place !== undefined) heading.appendChild(placeBadge(place));
         heading.appendChild(el('span', title));
         card.appendChild(heading);
 
@@ -62,7 +68,7 @@ Darbyon.ready(() => {
         const top = Math.max(1, totalXp(ranked[0].members));
         ranked.forEach((team, place) => {
             const row = el('div', null, 'leader-row');
-            row.appendChild(el('span', PLACES[place] || String(place + 1), 'place'));
+            row.appendChild(placeBadge(place));
             row.appendChild(el('span', team.name, 'leader-name'));
             const bar = el('div', null, 'leader-bar');
             const fill = el('div', null, 'leader-fill');

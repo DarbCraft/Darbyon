@@ -75,7 +75,7 @@ Darbyon.ready(() => {
                 const result = Darbyon.applyPower(player.id, powerSelect.value, targetSelect.value);
                 if (result.ok) {
                     render();
-                    showNotice(result.summary + '.' + (result.reward ? ' 🎁 Reward: ' + result.reward : ''), 'success');
+                    showNotice(result.summary + '.' + (result.reward ? ' Reward: ' + result.reward : ''), 'success');
                     Darbyon.Battle.start(result.fallen);
                 } else {
                     showNotice(result.error, 'error');

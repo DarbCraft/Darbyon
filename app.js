@@ -47,18 +47,18 @@ const Darbyon = (() => {
     // symbol. `name` is the short name on the button, `full` the full name.
     // The order matters: saved picture passwords are positions in this list.
     const PICTURES = [
-        { emoji: '🏉', name: 'Eagles',    full: 'West Coast Eagles',   colour: '#003087', text: '#f2a900' },
-        { emoji: '🏉', name: 'Dockers',   full: 'Fremantle Dockers',   colour: '#2a0d54', text: '#ffffff' },
-        { emoji: '🏏', name: 'Scorchers', full: 'Perth Scorchers',     colour: '#f26722', text: '#1b1400' },
-        { emoji: '🏀', name: 'Wildcats',  full: 'Perth Wildcats',      colour: '#b3122a', text: '#ffffff' },
-        { emoji: '⚽', name: 'Liverpool', full: 'Liverpool',           colour: '#c8102e', text: '#ffffff' },
-        { emoji: '⚽', name: 'Arsenal',   full: 'Arsenal',             colour: '#ffffff', text: '#db0007' },
-        { emoji: '⚽', name: 'Man Utd',   full: 'Manchester United',   colour: '#1b1b1b', text: '#fbe122' },
-        { emoji: '⚽', name: 'Chelsea',   full: 'Chelsea',             colour: '#034694', text: '#ffffff' },
-        { emoji: '🏀', name: 'Lakers',    full: 'Los Angeles Lakers',  colour: '#552583', text: '#fdb927' },
-        { emoji: '🏀', name: 'Warriors',  full: 'Golden State Warriors', colour: '#1d428a', text: '#ffc72c' },
-        { emoji: '🏀', name: 'Celtics',   full: 'Boston Celtics',      colour: '#007a33', text: '#ffffff' },
-        { emoji: '🏏', name: 'Sixers',    full: 'Sydney Sixers',       colour: '#e6007e', text: '#ffffff' }
+        { sport: 'footy', name: 'Eagles',    full: 'West Coast Eagles',   colour: '#003087', text: '#f2a900' },
+        { sport: 'footy', name: 'Dockers',   full: 'Fremantle Dockers',   colour: '#2a0d54', text: '#ffffff' },
+        { sport: 'cricket', name: 'Scorchers', full: 'Perth Scorchers',     colour: '#f26722', text: '#1b1400' },
+        { sport: 'basketball', name: 'Wildcats',  full: 'Perth Wildcats',      colour: '#b3122a', text: '#ffffff' },
+        { sport: 'soccer', name: 'Liverpool', full: 'Liverpool',           colour: '#c8102e', text: '#ffffff' },
+        { sport: 'soccer', name: 'Arsenal',   full: 'Arsenal',             colour: '#ffffff', text: '#db0007' },
+        { sport: 'soccer', name: 'Man Utd',   full: 'Manchester United',   colour: '#1b1b1b', text: '#fbe122' },
+        { sport: 'soccer', name: 'Chelsea',   full: 'Chelsea',             colour: '#034694', text: '#ffffff' },
+        { sport: 'basketball', name: 'Lakers',    full: 'Los Angeles Lakers',  colour: '#552583', text: '#fdb927' },
+        { sport: 'basketball', name: 'Warriors',  full: 'Golden State Warriors', colour: '#1d428a', text: '#ffc72c' },
+        { sport: 'basketball', name: 'Celtics',   full: 'Boston Celtics',      colour: '#007a33', text: '#ffffff' },
+        { sport: 'cricket', name: 'Sixers',    full: 'Sydney Sixers',       colour: '#e6007e', text: '#ffffff' }
     ];
     const PICTURE_CODE_LENGTH = 3;
 
@@ -153,7 +153,7 @@ const Darbyon = (() => {
         { name: 'Backwards Line', kind: 'silly', who: 'none', text: 'Line up in reverse order today.' },
         { name: 'Animal Roll Call', kind: 'silly', who: 'none', text: 'Answer the roll in an animal voice.' }
     ];
-    const EVENT_KINDS = { game: '🎮 Game', learning: '📚 Learning', silly: '🤪 Silly' };
+    const EVENT_KINDS = { game: 'Game', learning: 'Learning', silly: 'Silly' };
 
     // Quick Damage: common reasons for losing HP, one tap each.
     const DEFAULT_DAMAGES = [
@@ -674,7 +674,7 @@ const Darbyon = (() => {
         else if (power.special === 'revive') lines.push('Fallen teammate: back with ' + Math.max(1, power.otherHp) + ' HP');
         else if (power.type === 'team' && others !== 'No effect') lines.push('Teammate: ' + others);
         else if (power.type === 'everyone' && others !== 'No effect') lines.push('Every teammate: ' + others);
-        if (power.reward) lines.push('🎁 ' + power.reward);
+        if (power.reward) lines.push('Reward: ' + power.reward);
         return lines;
     }
 
@@ -1266,7 +1266,87 @@ const Darbyon = (() => {
     // ---- Celebrations -----------------------------------------------------
 
     // Shows a short message at the top of the screen.
-    function toast(text) {
+    // ---- Icons -------------------------------------------------------------
+    // One hand-made set, drawn on a 24-unit grid with a thick rounded ink
+    // outline and the site's own colours, used everywhere instead of emoji.
+    const ICON_PATHS = {
+        heart: '<path d="M12 20.5S3.8 15.6 3.8 9.4A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 8.2 2.2c0 6.2-8.2 11.1-8.2 11.1z" fill="#ff6b6b"/>',
+        gem: '<path d="M7 4h10l4 5.2L12 20.5 3 9.2z" fill="#5aa9ff"/><path d="M3 9.2h18M9.3 4 7.8 9.2 12 20.5l4.2-11.3L14.7 4"/>',
+        star: '<path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6L12 16.8l-5.3 2.9 1.1-6-4.4-4.2 6-.8z" fill="#ffc533"/>',
+        gift: '<rect x="4" y="11" width="16" height="9.5" rx="1.5" fill="#ff8a8d"/><rect x="3" y="7.5" width="18" height="3.5" rx="1.2" fill="#ffc533"/><path d="M12 7.5v13M12 7.5C10.5 4 7 3.6 7 5.6S10 7.5 12 7.5zM12 7.5c1.5-3.5 5-3.9 5-1.9s-3 1.9-5 1.9z"/>',
+        lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="#c3b2fd"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5M12 14.5v2.5"/>',
+        sparkle: '<path d="M11 3.5c.8 4.6 2.4 6.2 7 7-4.6.8-6.2 2.4-7 7-.8-4.6-2.4-6.2-7-7 4.6-.8 6.2-2.4 7-7z" fill="#ffc533"/><path d="M18.5 15.5c.3 1.7.9 2.3 2.5 2.5-1.6.3-2.2.9-2.5 2.5-.3-1.6-.9-2.2-2.5-2.5 1.6-.2 2.2-.8 2.5-2.5z" fill="#ff8a8d"/>',
+        swords: '<path d="M5 3.5h3l8.5 8.5-3 3L5 6.5z" fill="#cfd8e3"/><path d="M19 3.5h-3L7.5 12l3 3L19 6.5z" fill="#cfd8e3"/><path d="M5.5 13.5l5 5M18.5 13.5l-5 5M8 16l-3.5 3.5M16 16l3.5 3.5"/>',
+        hourglass: '<path d="M7 3.5h10M7 20.5h10"/><path d="M8 3.5c0 5 8 4.5 8 8.5s-8 3.5-8 8.5h8c0-5-8-4.5-8-8.5s8-3.5 8-8.5z" fill="#fff6d6"/><path d="M9.5 18.5h5l-2.5-3z" fill="#ffc533" stroke="none"/>',
+        check: '<circle cx="12" cy="12" r="9" fill="#7fdcbb"/><path d="M7.8 12.4l2.8 2.8 5.6-6"/>',
+        cross: '<circle cx="12" cy="12" r="9" fill="#ff8a8d"/><path d="M9 9l6 6M15 9l-6 6"/>',
+        ballot: '<path d="M8 13V3.5h8V13" fill="#fff"/><path d="M10.5 7l1.2 1.3 2.3-2.6"/><rect x="3.5" y="12" width="17" height="8.5" rx="2" fill="#8ecbff"/><path d="M8 15.5h8"/>',
+        wheel: '<circle cx="12" cy="12" r="8.8" fill="#ffc533"/><path d="M12 12 12 3.2A8.8 8.8 0 0 1 20.8 12z" fill="#ff8a8d"/><path d="M12 12 12 20.8A8.8 8.8 0 0 1 3.2 12z" fill="#8ecbff"/><circle cx="12" cy="12" r="8.8"/><path d="M12 3.2v17.6M3.2 12h17.6"/><circle cx="12" cy="12" r="2" fill="#fff"/>',
+        timer: '<path d="M10 2.8h4M12 2.8v2.4"/><circle cx="12" cy="13.5" r="7.5" fill="#fff"/><path d="M12 13.5 15 10.5" stroke-width="2.4"/><path d="M12 6v1.3M19.5 13.5h-1.3M12 21v-1.3M4.5 13.5h1.3"/>',
+        stopwatch: '<path d="M10 2.8h4M12 2.8v2.4M18.4 6.6l1.4-1.4"/><circle cx="12" cy="13.5" r="7.5" fill="#7fdcbb"/><path d="M12 13.5V9" stroke-width="2.4"/>',
+        clock: '<circle cx="12" cy="12" r="8.8" fill="#fff"/><path d="M12 6.8V12l3.4 2.2" stroke-width="2.4"/>',
+        dice: '<rect x="3.5" y="3.5" width="17" height="17" rx="3.5" fill="#fff"/><g fill="currentColor" stroke="none"><circle cx="8.3" cy="8.3" r="1.5"/><circle cx="15.7" cy="8.3" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="8.3" cy="15.7" r="1.5"/><circle cx="15.7" cy="15.7" r="1.5"/></g>',
+        people: '<circle cx="9" cy="8" r="3.4" fill="#8ecbff"/><path d="M2.8 20c.6-3.8 3-5.8 6.2-5.8s5.6 2 6.2 5.8z" fill="#8ecbff"/><circle cx="16.5" cy="8.8" r="2.8" fill="#ffc533"/><path d="M15.8 13.9c2.8-.3 4.9 1.5 5.4 4.6h-4.4"/>',
+        speaker: '<path d="M3.5 9.2h3.8L12 5v14l-4.7-4.2H3.5z" fill="#8ecbff"/><path d="M15.5 9.3a3.8 3.8 0 0 1 0 5.4M18.3 6.6a7.6 7.6 0 0 1 0 10.8"/>',
+        burst: '<path d="M12 2.8l1.9 4.8 4.7-2.2-1.8 4.9 4.9 1.7-4.6 2.2 2.6 4.4-5-1.3-.6 5.1-2.1-4.6-3.6 3.6.3-5.1-5 .8 3.2-4-4.4-2.6 5-.9-.8-5 3.6 3.6z" fill="#ff8a5b"/>',
+        hand: '<path d="M8.2 12.5V6.3a1.5 1.5 0 0 1 3 0v5M11.2 11V4.8a1.5 1.5 0 0 1 3 0V11M14.2 11V6.3a1.5 1.5 0 0 1 3 0v7.4c0 4.3-2.5 7-6.2 7-3 0-4.6-1.6-6-4.2l-1.9-3.4a1.5 1.5 0 0 1 2.6-1.5l2.5 3.4" fill="#ffe0bd"/>',
+        palette: '<path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.6 0 2-1.2 1.4-2.3-.7-1.2 0-2.7 1.5-2.7h2.2c2 0 3.4-1.5 3.4-3.6C20.5 7.2 16.7 3.5 12 3.5z" fill="#fff6d6"/><g stroke="none"><circle cx="7.6" cy="11" r="1.6" fill="#ff6b6b"/><circle cx="10" cy="7.2" r="1.6" fill="#ffc533"/><circle cx="14.6" cy="7.2" r="1.6" fill="#7fdcbb"/><circle cx="17" cy="10.8" r="1.6" fill="#5aa9ff"/></g>',
+        expand: '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>',
+        mic: '<rect x="8.8" y="3" width="6.4" height="11" rx="3.2" fill="#8ecbff"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/>',
+        micOff: '<rect x="8.8" y="3" width="6.4" height="11" rx="3.2" fill="#cfd8e3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/><path d="M4 3.5l16 17" stroke-width="2.4"/>',
+        bell: '<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.8 2H4.2z" fill="#ffc533"/><path d="M10 20.5a2 2 0 0 0 4 0M12 3v2"/>',
+        bellOff: '<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.8 2H4.2z" fill="#cfd8e3"/><path d="M10 20.5a2 2 0 0 0 4 0M12 3v2"/><path d="M4 3.5l16 17" stroke-width="2.4"/>',
+        gear: '<path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M5.5 18.5l2.1-2.1M16.4 7.6l2.1-2.1" stroke-width="2.6"/><circle cx="12" cy="12" r="6" fill="#cfd8e3"/><circle cx="12" cy="12" r="2.2" fill="#fff"/>',
+        happy: '<circle cx="12" cy="12" r="9" fill="#ffd34d"/><g fill="currentColor" stroke="none"><circle cx="9" cy="10" r="1.2"/><circle cx="15" cy="10" r="1.2"/></g><path d="M8.3 14a4.3 4.3 0 0 0 7.4 0"/>',
+        neutral: '<circle cx="12" cy="12" r="9" fill="#ffd34d"/><g fill="currentColor" stroke="none"><circle cx="9" cy="10" r="1.2"/><circle cx="15" cy="10" r="1.2"/></g><path d="M8.8 15h6.4"/>',
+        upset: '<circle cx="12" cy="12" r="9" fill="#ff8a8d"/><path d="M7.6 8.8l2.4 1.4-2.4 1.4M16.4 8.8 14 10.2l2.4 1.4M8.5 16.5a4.3 4.3 0 0 1 7 0"/>',
+        quiet: '<circle cx="12" cy="12" r="9" fill="#7fdcbb"/><path d="M7.6 10.2a1.7 1.7 0 0 0 3 0M13.4 10.2a1.7 1.7 0 0 0 3 0"/><circle cx="12" cy="15.4" r="1.4"/>',
+        game: '<path d="M7 7.5h10a4.5 4.5 0 0 1 4.4 5.4l-.7 3.6a2.5 2.5 0 0 1-4.3 1.2L14.6 16H9.4l-1.8 1.7a2.5 2.5 0 0 1-4.3-1.2l-.7-3.6A4.5 4.5 0 0 1 7 7.5z" fill="#8ecbff"/><path d="M8 10.5v3M6.5 12h3"/><g fill="currentColor" stroke="none"><circle cx="15.5" cy="11" r="1.1"/><circle cx="17.3" cy="13" r="1.1"/></g>',
+        book: '<path d="M12 6.5C9.8 4.9 6.8 4.6 3.5 5.2v13c3.3-.6 6.3-.3 8.5 1.3 2.2-1.6 5.2-1.9 8.5-1.3v-13c-3.3-.6-6.3-.3-8.5 1.3z" fill="#fff"/><path d="M12 6.5v13"/><path d="M6.3 9c1.5-.1 2.7.1 3.5.6M6.3 12c1.5-.1 2.7.1 3.5.6M14.2 9.6c.8-.5 2-.7 3.5-.6"/>',
+        silly: '<circle cx="12" cy="12" r="9" fill="#ffd34d"/><path d="M7.5 9.8 10 9M14 10.2a1.6 1.6 0 1 0 3.2 0 1.6 1.6 0 1 0-3.2 0"/><path d="M8 14h8M11 14v2.6a1.6 1.6 0 0 0 3.2 0V14" fill="#ff8a8d"/>',
+        footy: '<ellipse cx="12" cy="12" rx="9.2" ry="5.8" transform="rotate(-35 12 12)" fill="#c8743a"/><path d="M8.8 15.2l6.4-6.4M10 11.6l1.3 1.3M11.4 10.2l1.3 1.3M12.8 8.8l1.3 1.3"/>',
+        cricket: '<path d="M14.3 3.7l3 3-8.6 8.6-3-3z" fill="#f3d9a4"/><path d="M5.7 15.3 3.3 17.7l1.9 1.9 2.4-2.4" stroke-width="2.4"/><circle cx="17" cy="16.5" r="3.3" fill="#e0453a"/><path d="M15 14.6c1.2.5 2.1 1.6 2.4 3.1"/>',
+        basketball: '<circle cx="12" cy="12" r="9" fill="#f28a30"/><path d="M3 12h18M12 3v18M5.6 5.6c2.4 2.4 2.4 10.4 0 12.8M18.4 5.6c-2.4 2.4-2.4 10.4 0 12.8"/>',
+        soccer: '<circle cx="12" cy="12" r="9" fill="#fff"/><path d="M12 8.3l3.4 2.5-1.3 4h-4.2l-1.3-4z" fill="currentColor"/><path d="M12 8.3V3.2M15.4 10.8l4.6-1.6M14.1 14.8l2.8 4.1M9.9 14.8l-2.8 4.1M8.6 10.8 4 9.2"/>',
+        medal1: '<path d="M8 3h3l1.5 5.5L10 9.5zM16 3h-3l-1.5 5.5L14 9.5z" fill="#5aa9ff"/><circle cx="12" cy="14.5" r="6.2" fill="#ffc533"/><text x="12" y="17.8" text-anchor="middle" font-size="9" font-weight="900" fill="currentColor" stroke="none" font-family="system-ui,Arial,sans-serif">1</text>',
+        medal2: '<path d="M8 3h3l1.5 5.5L10 9.5zM16 3h-3l-1.5 5.5L14 9.5z" fill="#ff8a8d"/><circle cx="12" cy="14.5" r="6.2" fill="#d5dde8"/><text x="12" y="17.8" text-anchor="middle" font-size="9" font-weight="900" fill="currentColor" stroke="none" font-family="system-ui,Arial,sans-serif">2</text>',
+        medal3: '<path d="M8 3h3l1.5 5.5L10 9.5zM16 3h-3l-1.5 5.5L14 9.5z" fill="#7fdcbb"/><circle cx="12" cy="14.5" r="6.2" fill="#e3a46c"/><text x="12" y="17.8" text-anchor="middle" font-size="9" font-weight="900" fill="currentColor" stroke="none" font-family="system-ui,Arial,sans-serif">3</text>'
+    };
+
+    // An icon as an <svg> element. Icons are decoration: the words next to
+    // them carry the meaning, so screen readers skip them.
+    function icon(name, className) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('class', 'icon' + (className ? ' ' + className : ''));
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '2');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        svg.innerHTML = ICON_PATHS[name] || '';
+        return svg;
+    }
+
+    // An element holding an icon and then some words.
+    function iconText(name, text, tag, className) {
+        const node = el(tag || 'span', null, className);
+        node.appendChild(icon(name));
+        node.appendChild(document.createTextNode(' ' + text));
+        return node;
+    }
+
+    // Fills <span data-icon="name"></span> placeholders written in the pages.
+    function fillIcons(root) {
+        (root || document).querySelectorAll('[data-icon]:empty').forEach(spot => spot.appendChild(icon(spot.dataset.icon)));
+    }
+
+    const STAT_ICONS = { xp: 'star', ap: 'gem', hp: 'heart' };
+    const EVENT_ICONS = { game: 'game', learning: 'book', silly: 'silly' };
+
+    function toast(text, iconName) {
         let holder = document.getElementById('toasts');
         if (!holder) {
             holder = el('div', null, 'toasts');
@@ -1274,7 +1354,8 @@ const Darbyon = (() => {
             holder.setAttribute('aria-live', 'polite');
             document.body.appendChild(holder);
         }
-        const item = el('div', text, 'toast');
+        const item = iconName ? iconText(iconName, text, 'div') : el('div', text);
+        item.classList.add('toast');
         holder.appendChild(item);
         setTimeout(() => item.remove(), 7000);
     }
@@ -1287,7 +1368,7 @@ const Darbyon = (() => {
         getCharacters().forEach(c => {
             levels[c.id] = getLevel(c.xp);
             if (knownLevels && knownLevels[c.id] && levels[c.id] > knownLevels[c.id]) {
-                toast('⭐ ' + c.name + ' reached level ' + levels[c.id] + '!');
+                toast(c.name + ' reached level ' + levels[c.id] + '!', 'star');
             }
         });
         knownLevels = levels;
@@ -1329,6 +1410,7 @@ const Darbyon = (() => {
             await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
         }
         buildHeader();
+        fillIcons();
         try {
             const response = await api('api/state');
             if (response.status >= 500) {
@@ -1389,6 +1471,7 @@ const Darbyon = (() => {
         peekUndo, undo,
         getLog, addLog, clearLog,
         getTeams, addTeam, renameTeam, deleteTeam,
+        icon, iconText, fillIcons, STAT_ICONS, EVENT_ICONS,
         getPowers, savePower, deletePower, applyPower, describeEffect, powersFor,
         addPowerPack, powerLock, describePower, REACH, POWER_PACK,
         getEvents, saveEvents, spinDestiny, todaysEvent, clearTodaysEvent, perthDate, EVENT_KINDS,

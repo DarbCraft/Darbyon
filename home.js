@@ -65,7 +65,7 @@ Darbyon.ready(() => {
         destinyBody.innerHTML = '';
         const card = el('div', null, 'destiny-card kind-' + event.kind);
         const top = el('div', null, 'destiny-top');
-        top.appendChild(el('span', Darbyon.EVENT_KINDS[event.kind] || '', 'tag destiny-kind'));
+        top.appendChild(Darbyon.iconText(Darbyon.EVENT_ICONS[event.kind] || 'game', Darbyon.EVENT_KINDS[event.kind] || '', 'span', 'tag destiny-kind'));
         top.appendChild(el('span', 'Today', 'destiny-date'));
         card.appendChild(top);
         card.appendChild(el('p', event.name, 'destiny-name'));

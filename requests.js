@@ -29,7 +29,7 @@ Darbyon.Requests = (() => {
             text.appendChild(document.createTextNode(' wants to use ' + request.powerName +
                 (request.targetName ? ' on ' + request.targetName : '') + ' (' + request.apCost + ' AP)'));
             const power = Darbyon.getPowers().find(p => p.id === request.powerId);
-            if (power && power.reward) text.appendChild(el('span', '🎁 ' + power.reward, 'request-reward'));
+            if (power && power.reward) text.appendChild(Darbyon.iconText('gift', power.reward, 'span', 'request-reward'));
             who.appendChild(text);
             row.appendChild(who);
 
@@ -39,7 +39,7 @@ Darbyon.Requests = (() => {
                 const result = await Darbyon.answerRequest(request, approve);
                 if (result.ok && approve && Darbyon.Battle) Darbyon.Battle.start(result.fallen || []);
                 if (afterAnswer) {
-                    afterAnswer(result.ok ? (approve ? result.summary + '.' + (result.reward ? ' 🎁 Reward: ' + result.reward : '') : 'Declined ' + student.name + "'s " + request.powerName + '.')
+                    afterAnswer(result.ok ? (approve ? result.summary + '.' + (result.reward ? ' Reward: ' + result.reward : '') : 'Declined ' + student.name + "'s " + request.powerName + '.')
                                           : result.error, result.ok ? 'success' : 'error');
                 }
             };

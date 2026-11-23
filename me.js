@@ -57,7 +57,9 @@ Darbyon.ready(() => {
         if (!Darbyon.signupIsOpen()) return null;
         const box = el('div', null, 'panel new-player');
         box.appendChild(el('p', 'Not on the list yet?'));
-        box.appendChild(button('✨ I am new: make my character', '', () => startSignup()));
+        const fresh = button('', '', () => startSignup());
+        fresh.appendChild(Darbyon.iconText('sparkle', 'I am new: make my character'));
+        box.appendChild(fresh);
         return box;
     }
 
@@ -77,7 +79,7 @@ Darbyon.ready(() => {
                 if (picture) {
                     slot.style.background = picture.colour;
                     slot.style.color = picture.text;
-                    slot.appendChild(el('span', picture.emoji, 'slot-emoji'));
+                    slot.appendChild(Darbyon.iconText(picture.sport, '', 'span', 'slot-emoji'));
                     slot.appendChild(el('span', picture.name, 'slot-name'));
                 }
                 slots.appendChild(slot);
@@ -112,7 +114,7 @@ Darbyon.ready(() => {
             key.setAttribute('aria-label', picture.full);
             key.style.background = picture.colour;
             key.style.color = picture.text;
-            key.appendChild(el('span', picture.emoji, 'picture-emoji'));
+            key.appendChild(Darbyon.iconText(picture.sport, '', 'span', 'picture-emoji'));
             key.appendChild(el('span', picture.name, 'picture-name'));
             pad.appendChild(key);
         });
@@ -252,7 +254,10 @@ Darbyon.ready(() => {
                     card.appendChild(Darbyon.avatarImage({ avatar: type.toLowerCase() + (i % 2 ? '-f1' : '-m1') }, 'avatar-big'));
                     card.appendChild(el('strong', type));
                     card.appendChild(el('span', CLASS_INFO[type] || '', 'class-text'));
-                    card.appendChild(el('span', '❤️ ' + stats.hp + ' HP   💎 ' + stats.ap + ' AP', 'class-stats'));
+                    const statLine = el('span', null, 'class-stats');
+                    statLine.appendChild(Darbyon.iconText('heart', stats.hp + ' HP'));
+                    statLine.appendChild(Darbyon.iconText('gem', stats.ap + ' AP'));
+                    card.appendChild(statLine);
                     grid.appendChild(card);
                 });
                 panel.appendChild(grid);
@@ -305,7 +310,7 @@ Darbyon.ready(() => {
                         if (picture) {
                             slot.style.background = picture.colour;
                             slot.style.color = picture.text;
-                            slot.appendChild(el('span', picture.emoji, 'slot-emoji'));
+                            slot.appendChild(Darbyon.iconText(picture.sport, '', 'span', 'slot-emoji'));
                             slot.appendChild(el('span', picture.name, 'slot-name'));
                         }
                         slots.appendChild(slot);
@@ -335,7 +340,7 @@ Darbyon.ready(() => {
                     key.setAttribute('aria-label', picture.full);
                     key.style.background = picture.colour;
                     key.style.color = picture.text;
-                    key.appendChild(el('span', picture.emoji, 'picture-emoji'));
+                    key.appendChild(Darbyon.iconText(picture.sport, '', 'span', 'picture-emoji'));
                     key.appendChild(el('span', picture.name, 'picture-name'));
                     pad.appendChild(key);
                 });
@@ -354,7 +359,7 @@ Darbyon.ready(() => {
                 about.appendChild(Darbyon.typeTag(answers.type));
                 const power = powers.find(p => p.id === answers.powerId);
                 if (power) about.appendChild(el('p', 'First power: ' + power.name));
-                about.appendChild(el('p', 'Secret teams: ' + answers.code.map(i => Darbyon.PICTURES[i].emoji + ' ' + Darbyon.PICTURES[i].name).join(', then ')));
+                about.appendChild(el('p', 'Secret teams: ' + answers.code.map(i => Darbyon.PICTURES[i].name).join(', then ')));
                 card.appendChild(about);
                 panel.appendChild(card);
                 const nav = navigation(panel, true, 'Make My Character', async () => {
@@ -376,13 +381,14 @@ Darbyon.ready(() => {
     // A power's card: name, cost, who it reaches and what it does.
     function powerCard(power, chosen, locked) {
         const card = el('div', null, 'power-card' + (chosen ? ' chosen' : '') + (locked ? ' locked' : ''));
-        card.appendChild(el('h3', (locked ? '🔒 ' : '') + power.name));
+        card.appendChild(locked ? Darbyon.iconText('lock', power.name, 'h3') : el('h3', power.name));
         const tags = el('p', null, 'power-tags');
         tags.appendChild(el('span', power.apCost + ' AP', 'power-cost'));
         tags.appendChild(el('span', Darbyon.REACH[power.type], 'power-reach'));
         card.appendChild(tags);
         if (power.about) card.appendChild(el('p', power.about, 'power-about'));
-        Darbyon.describePower(power).forEach(line => card.appendChild(el('p', line, line.startsWith('🎁') ? 'power-reward' : '')));
+        Darbyon.describePower(power).forEach(line => card.appendChild(line.startsWith('Reward: ')
+            ? Darbyon.iconText('gift', line.slice(8), 'p', 'power-reward') : el('p', line)));
         return card;
     }
 
@@ -393,9 +399,11 @@ Darbyon.ready(() => {
     let notice = { text: '', kind: '' };
     const dismissed = new Set();
 
-    function statTile(emoji, label, value, extra) {
+    function statTile(iconName, label, value, extra) {
         const tile = el('div', null, 'stat-tile');
-        tile.appendChild(el('span', emoji, 'stat-emoji'));
+        const art = el('span', null, 'stat-emoji');
+        art.appendChild(Darbyon.icon(iconName));
+        tile.appendChild(art);
         tile.appendChild(el('span', value, 'stat-value'));
         tile.appendChild(el('span', label + (extra ? ' · ' + extra : ''), 'stat-label'));
         return tile;
@@ -410,7 +418,11 @@ Darbyon.ready(() => {
         const overlay = el('div', null, 'level-up');
         overlay.setAttribute('role', 'alert');
         const card = el('div', null, 'level-up-card');
-        card.appendChild(el('p', '⭐ Level up! ⭐', 'level-up-title'));
+        const levelTitle = el('p', null, 'level-up-title');
+        levelTitle.appendChild(Darbyon.icon('star'));
+        levelTitle.appendChild(document.createTextNode(' Level up! '));
+        levelTitle.appendChild(Darbyon.icon('star'));
+        card.appendChild(levelTitle);
         card.appendChild(el('p', 'You are now level ' + level + '!', 'level-up-text'));
         card.appendChild(button('Awesome!', '', () => overlay.remove()));
         overlay.appendChild(card);
@@ -455,9 +467,9 @@ Darbyon.ready(() => {
             : (Darbyon.XP_PER_LEVEL - into) + ' XP to level ' + (level + 1), 'hint'));
 
         const stats = el('div', null, 'stat-row');
-        stats.appendChild(statTile('🏅', 'XP', me.xp));
-        stats.appendChild(statTile('💎', 'AP', me.ap));
-        stats.appendChild(statTile('❤️', 'HP', me.hp, me.hp === 0 ? 'in Battle' : ''));
+        stats.appendChild(statTile('star', 'XP', me.xp));
+        stats.appendChild(statTile('gem', 'AP', me.ap));
+        stats.appendChild(statTile('heart', 'HP', me.hp, me.hp === 0 ? 'in Battle' : ''));
         about.appendChild(stats);
         hero.appendChild(about);
         main.appendChild(hero);
@@ -468,8 +480,8 @@ Darbyon.ready(() => {
         const latest = info.requests.filter(r => r.status !== 'pending' && !dismissed.has(r.id)).pop();
         if (pending) {
             const box = el('section', null, 'panel request-status waiting');
-            box.appendChild(el('p', '⏳ Waiting for your teacher to say yes to ' + pending.powerName +
-                (pending.targetName ? ' on ' + pending.targetName : '') + '.'));
+            box.appendChild(Darbyon.iconText('hourglass', 'Waiting for your teacher to say yes to ' + pending.powerName +
+                (pending.targetName ? ' on ' + pending.targetName : '') + '.', 'p'));
             box.appendChild(button('Cancel', 'secondary small', async () => {
                 await Darbyon.cancelRequest();
                 await Darbyon.refresh(true);
@@ -478,8 +490,8 @@ Darbyon.ready(() => {
         } else if (latest && Date.now() / 1000 - (latest.resolved || 0) < 15 * 60) {
             const approved = latest.status === 'approved';
             const box = el('section', null, 'panel request-status ' + (approved ? 'approved' : 'declined'));
-            box.appendChild(el('p', approved ? '✅ ' + latest.powerName + ' worked!'
-                : '❌ ' + latest.powerName + ' was not used this time.' + (latest.note ? ' ' + latest.note : '')));
+            box.appendChild(approved ? Darbyon.iconText('check', latest.powerName + ' worked!', 'p')
+                : Darbyon.iconText('cross', latest.powerName + ' was not used this time.' + (latest.note ? ' ' + latest.note : ''), 'p'));
             box.appendChild(button('OK', 'secondary small', () => { dismissed.add(latest.id); render(); }));
             main.appendChild(box);
         }
@@ -488,7 +500,7 @@ Darbyon.ready(() => {
         const poll = Darbyon.getPoll();
         if (poll && poll.open) {
             const box = el('section', null, 'panel poll-vote');
-            box.appendChild(el('h2', '🗳️ ' + poll.question));
+            box.appendChild(Darbyon.iconText('ballot', poll.question, 'h2'));
             const choices = el('div', null, 'poll-choices');
             poll.options.forEach((text, index) => {
                 const choice = button(text, info.vote === index ? 'poll-choice chosen' : 'poll-choice secondary', async () => {

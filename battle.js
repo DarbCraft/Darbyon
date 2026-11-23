@@ -24,7 +24,7 @@ Darbyon.Battle = (() => {
         dialog.className = 'battle';
         dialog.setAttribute('aria-labelledby', 'battleTitle');
 
-        const title = el('h2', '⚔️ Battle!');
+        const title = Darbyon.iconText('swords', 'Battle!', 'h2');
         title.id = 'battleTitle';
         who = el('p', '', 'who');
 

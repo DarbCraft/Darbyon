@@ -558,7 +558,10 @@ Darbyon.ready(() => {
             let nextPenaltyAt = 0;
 
             // ---- The meter
-            const face = el('div', '🙂', 'noise-face');
+            const face = el('div', null, 'noise-face');
+            const setFace = name => face.replaceChildren(Darbyon.icon(name));
+            const label = (node, iconName, text) => node.replaceChildren(Darbyon.icon(iconName), document.createTextNode(' ' + text));
+            setFace('happy');
             const meter = el('div', null, 'noise-meter');
             const fill = el('div', null, 'noise-fill');
             const line = el('div', null, 'noise-line');
@@ -567,7 +570,8 @@ Darbyon.ready(() => {
             const status = el('p', 'Press Start Listening to use the microphone.', 'noise-status');
 
             const go = button('Start Listening', '', () => (stream ? stopListening() : startListening()));
-            const mute = button('🎙️ Mute Mic', 'secondary', () => setMuted(!muted));
+            const mute = button('', 'secondary', () => setMuted(!muted));
+            label(mute, 'mic', 'Mute Mic');
             mute.disabled = true;
             const sounds = button('', 'secondary', () => {
                 settings.sounds = !settings.sounds;
@@ -575,7 +579,7 @@ Darbyon.ready(() => {
                 drawSounds();
             });
             const drawSounds = () => {
-                sounds.textContent = settings.sounds ? '🔔 Sounds On' : '🔕 Sounds Off';
+                label(sounds, settings.sounds ? 'bell' : 'bellOff', settings.sounds ? 'Sounds On' : 'Sounds Off');
                 sounds.setAttribute('aria-pressed', settings.sounds ? 'true' : 'false');
             };
             drawSounds();
@@ -644,7 +648,7 @@ Darbyon.ready(() => {
             const penaltySwitch = switchButton(() => settings.penaltyOn,
                 () => { settings.penaltyOn = !settings.penaltyOn; nextPenaltyAt = 0; }, 'Penalty');
             const penaltyHead = el('div', null, 'rule-head');
-            penaltyHead.appendChild(el('strong', '😣 Penalty when too loud'));
+            penaltyHead.appendChild(Darbyon.iconText('upset', 'Penalty when too loud', 'strong'));
             penaltyHead.appendChild(penaltySwitch);
             const penaltyLine = el('div', null, 'rule-line');
             penaltyLine.appendChild(document.createTextNode('Everyone loses '));
@@ -664,7 +668,7 @@ Darbyon.ready(() => {
             const rewardSwitch = switchButton(() => settings.rewardOn,
                 () => { settings.rewardOn = !settings.rewardOn; quietSince = null; }, 'Reward');
             const rewardHead = el('div', null, 'rule-head');
-            rewardHead.appendChild(el('strong', '🌟 Reward for staying quiet'));
+            rewardHead.appendChild(Darbyon.iconText('star', 'Reward for staying quiet', 'strong'));
             rewardHead.appendChild(rewardSwitch);
             const rewardLine = el('div', null, 'rule-line');
             rewardLine.appendChild(document.createTextNode('Everyone gets '));
@@ -689,7 +693,7 @@ Darbyon.ready(() => {
             const more = document.createElement('details');
             more.className = 'noise-details';
             more.open = settings.settingsOpen !== false;
-            more.appendChild(el('summary', '⚙️ Loudness, penalty and reward'));
+            more.appendChild(Darbyon.iconText('gear', 'Loudness, penalty and reward', 'summary'));
             [limitRow, penaltyBox, rewardBox].forEach(n => more.appendChild(n));
             more.addEventListener('toggle', () => { settings.settingsOpen = more.open; remember(); });
 
@@ -729,14 +733,14 @@ Darbyon.ready(() => {
             function setMuted(on) {
                 muted = on;
                 if (stream) stream.getAudioTracks().forEach(track => { track.enabled = !on; });
-                mute.textContent = on ? '🎙️ Unmute Mic' : '🎙️ Mute Mic';
+                label(mute, on ? 'micOff' : 'mic', on ? 'Unmute Mic' : 'Mute Mic');
                 mute.setAttribute('aria-pressed', on ? 'true' : 'false');
                 node.classList.toggle('muted', on);
                 if (on) {
                     level = 0;
                     loudSince = quietSince = null;
                     fill.style.width = '0%';
-                    face.textContent = '🤫';
+                    setFace('quiet');
                     status.textContent = 'Microphone muted.';
                     node.classList.remove('too-loud');
                 }
@@ -751,10 +755,10 @@ Darbyon.ready(() => {
                 loudSince = quietSince = null;
                 go.textContent = 'Start Listening';
                 mute.disabled = true;
-                mute.textContent = '🎙️ Mute Mic';
+                label(mute, 'mic', 'Mute Mic');
                 node.classList.remove('muted', 'too-loud');
                 fill.style.width = '0%';
-                face.textContent = '🙂';
+                setFace('happy');
                 status.textContent = 'Stopped.';
             }
 
@@ -763,7 +767,7 @@ Darbyon.ready(() => {
                 const over = level > limitValue;
                 fill.style.width = level.toFixed(0) + '%';
                 fill.className = 'noise-fill ' + (over ? 'loud' : level > limitValue * 0.75 ? 'warm' : 'calm');
-                face.textContent = over ? '😣' : level > limitValue * 0.75 ? '😐' : '🙂';
+                setFace(over ? 'upset' : level > limitValue * 0.75 ? 'neutral' : 'happy');
                 node.classList.toggle('too-loud', over);
                 const now = Date.now();
                 loudSince = over ? (loudSince || now) : null;
@@ -800,7 +804,7 @@ Darbyon.ready(() => {
                 Darbyon.addLog('Noise meter: too loud, everyone loses ' + text);
                 const fallen = giveEveryone(settings.penaltyStat, -settings.penaltyAmount);
                 if (settings.sounds) beep(2);
-                Darbyon.toast('🔊 Too loud! Everyone loses ' + text + '.');
+                Darbyon.toast('Too loud! Everyone loses ' + text + '.', 'speaker');
                 if (fallen.length) Darbyon.Battle.start(fallen);
             }
 
@@ -810,7 +814,7 @@ Darbyon.ready(() => {
                 Darbyon.addLog('Noise meter: quiet working, everyone gets ' + text);
                 giveEveryone(settings.rewardStat, settings.rewardAmount);
                 if (settings.sounds) beep(1);
-                Darbyon.toast('🌟 Great quiet working! Everyone gets ' + text + '.');
+                Darbyon.toast('Great quiet working! Everyone gets ' + text + '.', 'star');
             }
 
             return { close: stopListening };
@@ -957,7 +961,7 @@ Darbyon.ready(() => {
                     pick.setAttribute('aria-pressed', chosen.has(player.id) ? 'true' : 'false');
                     pick.appendChild(Darbyon.avatarImage(player));
                     pick.appendChild(el('span', player.name));
-                    pick.appendChild(el('span', '❤️ ' + player.hp, 'damage-hp'));
+                    pick.appendChild(Darbyon.iconText('heart', player.hp, 'span', 'damage-hp'));
                     players.appendChild(pick);
                 });
                 reasons.innerHTML = '';

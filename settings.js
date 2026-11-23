@@ -737,7 +737,7 @@ Darbyon.ready(() => {
     // ---- Student logins ----
 
     function pictureText(code) {
-        return code.map(i => Darbyon.PICTURES[i].emoji + ' ' + Darbyon.PICTURES[i].full).join('  →  ');
+        return code.map(i => Darbyon.PICTURES[i].full).join('  →  ');
     }
 
     function renderCodes() {
@@ -794,7 +794,7 @@ Darbyon.ready(() => {
                 const tile = el('span', null, 'login-card-tile');
                 tile.style.background = picture.colour;
                 tile.style.color = picture.text;
-                tile.appendChild(el('span', picture.emoji, 'login-card-emoji'));
+                tile.appendChild(Darbyon.iconText(picture.sport, '', 'span', 'login-card-emoji'));
                 tile.appendChild(el('span', picture.name));
                 pic.appendChild(tile);
                 pictures.appendChild(pic);

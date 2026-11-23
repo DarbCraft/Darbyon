@@ -42,7 +42,8 @@ Darbyon.ready(() => {
     }
 
     function statButton(playerId, stat, label) {
-        const button = el('button', label, 'small soft');
+        const button = el('button', null, 'small soft');
+        button.appendChild(Darbyon.iconText(Darbyon.STAT_ICONS[stat], label));
         button.type = 'button';
         button.addEventListener('click', () => award([playerId], stat));
         return button;
@@ -75,9 +76,9 @@ Darbyon.ready(() => {
 
             const updateCell = document.createElement('td');
             const buttons = el('div', null, 'actions');
-            buttons.appendChild(statButton(player.id, 'xp', '🏅 XP'));
-            buttons.appendChild(statButton(player.id, 'ap', '💎 AP'));
-            buttons.appendChild(statButton(player.id, 'hp', '❤️ HP'));
+            buttons.appendChild(statButton(player.id, 'xp', 'XP'));
+            buttons.appendChild(statButton(player.id, 'ap', 'AP'));
+            buttons.appendChild(statButton(player.id, 'hp', 'HP'));
             updateCell.appendChild(buttons);
             row.appendChild(updateCell);
 
