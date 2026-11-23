@@ -59,7 +59,16 @@ REQUESTS_KEPT_HOURS = 24
 CLASS_STATS = {"Mage": {"hp": 6, "ap": 30}, "Warrior": {"hp": 10, "ap": 15}, "Healer": {"hp": 8, "ap": 20}}
 MAX_PLAYERS = 80
 SIGNUPS_PER_DEVICE_PER_HOUR = 8
-_signups = {}                 # device address -> times of recent sign-ups
+_signups = {}                 # device -> times of recent sign-ups
+
+# At school every iPad shares the school's one internet address, so each
+# browser also gets its own random device cookie. The strict limits apply to
+# each device; the whole address gets these looser ones, so one child's wrong
+# guesses cannot lock out the class. A request with no device cookie (not a
+# browser using the site normally) is held to the strict limits by address.
+DEVICE_COOKIE = "darbyon_device"
+ADDRESS_LOGIN_ATTEMPTS = 60   # wrong guesses per address per LOGIN_WINDOW_SECONDS
+ADDRESS_SIGNUPS_PER_HOUR = 60
 
 # Only these kinds of file are ever sent to a browser.
 STATIC_TYPES = {
@@ -359,8 +368,9 @@ def end_all_sessions():
         db.execute("DELETE FROM sessions")
 
 
-def too_many_failures(address):
+def too_many_failures(address, limit=None):
     """True if this device has guessed wrong too often. address may be None (unknown)."""
+    limit = limit or LOGIN_ATTEMPTS
     if address is None:
         return False
     with _failed_lock:
@@ -369,13 +379,14 @@ def too_many_failures(address):
             _failed_logins[address] = recent
         else:
             _failed_logins.pop(address, None)
-        return len(recent) >= LOGIN_ATTEMPTS
+        return len(recent) >= limit
 
 
-def record_failure(address):
+def record_failure(address, overall=True):
     now = time.time()
     with _failed_lock:
-        _all_failures.append(now)
+        if overall:
+            _all_failures.append(now)
         if address is not None:
             _failed_logins.setdefault(address, []).append(now)
         if len(_failed_logins) > 5000:      # never let the list grow without limit
@@ -443,6 +454,28 @@ class Handler(BaseHTTPRequestHandler):
             return last[:64]
         return None if INTERNET_MODE else peer
 
+    def device_cookie(self):
+        """This browser's random device id, or None if it has not got one yet."""
+        value = self.cookie_value(DEVICE_COOKIE) or ""
+        return value if len(value) == 32 and all(c in "0123456789abcdef" for c in value) else None
+
+    def guess_keys(self):
+        """(key, limit) pairs that wrong guesses from this request count against."""
+        address = self.device()
+        device = self.device_cookie()
+        if not device:
+            return [(address, LOGIN_ATTEMPTS)]
+        return [(address and "address:" + address, ADDRESS_LOGIN_ATTEMPTS), ("device:" + device, LOGIN_ATTEMPTS)]
+
+    def guesses_blocked(self, *extra):
+        return (any(too_many_failures(key, limit) for key, limit in self.guess_keys())
+                or any(too_many_failures(key) for key in extra))
+
+    def note_wrong_guess(self, *extra):
+        keys = [key for key, _ in self.guess_keys()] + list(extra)
+        for i, key in enumerate(keys):
+            record_failure(key, overall=(i == 0))     # the site-wide count goes up once per guess
+
     # -- helpers --
 
     def send_body(self, status, body, content_type, extra_headers=()):
@@ -459,6 +492,8 @@ class Handler(BaseHTTPRequestHandler):
                          "frame-ancestors 'none'")
         for name, value in extra_headers:
             self.send_header(name, value)
+        if not self.device_cookie():
+            self.send_header(*self.cookie(secrets.token_hex(16), 400 * 24 * 3600, DEVICE_COOKIE))
         self.end_headers()
         if self.command != "HEAD":
             self.wfile.write(body)
@@ -618,13 +653,21 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(HTTPStatus.BAD_REQUEST, {"error": error})
             return
 
-        device = self.device() or "unknown"
+        address = self.device() or "unknown"
+        device = self.device_cookie()
+        # Each iPad may add 8 players an hour; the school's shared address, 60.
+        limits = [("address:" + address, ADDRESS_SIGNUPS_PER_HOUR), ("device:" + device, SIGNUPS_PER_DEVICE_PER_HOUR)] \
+            if device else [("address:" + address, SIGNUPS_PER_DEVICE_PER_HOUR)]
         with _failed_lock:
-            recent = [t for t in _signups.get(device, []) if t > time.time() - 3600]
-            if len(recent) >= SIGNUPS_PER_DEVICE_PER_HOUR:
+            now = time.time()
+            recent = {key: [t for t in _signups.get(key, []) if t > now - 3600] for key, _ in limits}
+            if any(len(recent[key]) >= limit for key, limit in limits):
                 self.send_json(HTTPStatus.TOO_MANY_REQUESTS, {"error": "Too many new players from this device. Ask your teacher."})
                 return
-            _signups[device] = recent + [time.time()]
+            for key, _ in limits:
+                _signups[key] = recent[key] + [now]
+            if len(_signups) > 5000:
+                _signups.clear()
 
         stats = CLASS_STATS[kind]
         character = {"id": secrets.token_hex(6), "name": first + " " + initial + ".", "type": kind,
@@ -651,8 +694,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         character_id = str(body.get("id", ""))[:64]
         code = body.get("code")
-        device = self.device()
-        if too_many_failures(device) or too_many_failures("student:" + character_id):
+        if self.guesses_blocked("student:" + character_id):
             self.send_json(HTTPStatus.TOO_MANY_REQUESTS,
                            {"error": "Too many wrong tries. Wait five minutes and try again."})
             return
@@ -662,8 +704,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         guess = [to_int(i) for i in code] if isinstance(code, list) else []
         if not hmac.compare_digest(json.dumps(guess), json.dumps(expected)):
-            record_failure(device)
-            record_failure("student:" + character_id)
+            self.note_wrong_guess("student:" + character_id)
             self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Those are not your pictures. Try again."})
             return
         end_session(self.cookie_value(STUDENT_COOKIE))
@@ -773,7 +814,6 @@ class Handler(BaseHTTPRequestHandler):
         self.send_json(HTTPStatus.OK, {"ok": True})
 
     def post_login(self, body):
-        device = self.device()
         teacher_password = get_setting("teacher_password")
         class_code = get_setting("class_code")
         guess = str(body.get("password", ""))[:200]
@@ -781,7 +821,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(HTTPStatus.SERVICE_UNAVAILABLE,
                            {"error": "No teacher password has been set on the server yet."})
             return
-        if too_many_failures(device):
+        if self.guesses_blocked():
             self.send_json(HTTPStatus.TOO_MANY_REQUESTS,
                            {"error": "Too many wrong tries. Wait five minutes and try again."})
             return
@@ -800,7 +840,7 @@ class Handler(BaseHTTPRequestHandler):
         finally:
             _login_slots.release()
         if role is None:
-            record_failure(device)
+            self.note_wrong_guess()
             self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "That is not right. Check it and try again."})
             return
         token, seconds = create_session(role)
