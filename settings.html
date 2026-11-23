@@ -70,6 +70,16 @@
         </table>
     </div>
 
+    <h2>Student Sign-Up</h2>
+    <div class="panel signup-setting">
+        <p class="hint">
+            While this is on, new students can make their own character on <strong>My Character</strong>:
+            first name, the first letter of their last name, class, avatar, first power, and three secret teams to log in with.
+            Turn it off when everyone has signed up.
+        </p>
+        <button type="button" id="signupSwitch" class="switch" role="switch" aria-label="Student sign-up">Off</button>
+    </div>
+
     <h2>Student Logins</h2>
     <div class="panel">
         <p class="hint" style="margin-top:0">
@@ -146,17 +156,44 @@
         </table>
     </div>
 
+    <h2>Power Pack</h2>
+    <div class="panel signup-setting">
+        <p class="hint">
+            Adds 23 Classcraft-style powers: Protect, Heal, Revive, Mana Transfer, Time Warp and more,
+            each for one class and unlocked at a level. Powers you already have with the same name are left alone.
+        </p>
+        <button type="button" id="powerPackButton">Add the Power Pack</button>
+    </div>
+    <p id="powerPackNotice" class="notice" role="status"></p>
+
     <h2 id="powerFormTitle">Add New Power</h2>
     <form id="powerForm" class="panel">
         <div class="field">
             <label for="powerName">Power Name</label>
-            <input type="text" id="powerName" name="powerName" required>
+            <input type="text" id="powerName" name="powerName" required maxlength="40">
         </div>
         <div class="field">
-            <label for="powerType">Power Type</label>
+            <label for="powerClass">Class</label>
+            <select id="powerClass" name="powerClass">
+                <option value="">Any class</option>
+                <option value="Mage">Mage</option>
+                <option value="Warrior">Warrior</option>
+                <option value="Healer">Healer</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="powerLevel">Unlocks at Level</label>
+            <select id="powerLevel" name="powerLevel">
+                <option>1</option><option>2</option><option>3</option><option>4</option>
+                <option>5</option><option>6</option><option>7</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="powerType">Who It Reaches</label>
             <select id="powerType" name="powerType">
-                <option value="self">Self-Directed</option>
-                <option value="team">Team-Based</option>
+                <option value="self">Just you</option>
+                <option value="team">One teammate</option>
+                <option value="everyone">Whole team</option>
             </select>
         </div>
         <div class="field">
@@ -164,24 +201,40 @@
             <input type="number" id="powerApCost" name="powerApCost" min="0" value="0">
         </div>
         <div class="field">
-            <label for="powerXp">XP Gain</label>
+            <label for="powerXp">Your XP</label>
             <input type="number" id="powerXp" name="powerXp" value="0">
         </div>
         <div class="field">
-            <label for="powerHp">HP Effect</label>
+            <label for="powerHp">Your HP</label>
             <input type="number" id="powerHp" name="powerHp" value="0">
         </div>
         <div class="field team-only">
-            <label for="otherXp">Other Player XP</label>
+            <label for="powerSpecial">Special</label>
+            <select id="powerSpecial" name="powerSpecial">
+                <option value="">None</option>
+                <option value="protect">Protect (takes half their next HP loss)</option>
+                <option value="revive">Revive (brings back a 0 HP teammate)</option>
+            </select>
+        </div>
+        <div class="field others-only">
+            <label for="otherXp">Teammate XP</label>
             <input type="number" id="otherXp" name="otherXp" value="0">
         </div>
-        <div class="field team-only">
-            <label for="otherAp">Other Player AP</label>
+        <div class="field others-only">
+            <label for="otherAp">Teammate AP</label>
             <input type="number" id="otherAp" name="otherAp" value="0">
         </div>
-        <div class="field team-only">
-            <label for="otherHp">Other Player HP</label>
+        <div class="field others-only">
+            <label for="otherHp">Teammate HP</label>
             <input type="number" id="otherHp" name="otherHp" value="0">
+        </div>
+        <div class="field wide">
+            <label for="powerReward">Classroom Reward (optional)</label>
+            <input type="text" id="powerReward" name="powerReward" maxlength="160" placeholder="For example: Choose where you sit for one lesson.">
+        </div>
+        <div class="field wide">
+            <label for="powerAbout">What Students See (optional)</label>
+            <input type="text" id="powerAbout" name="powerAbout" maxlength="160" placeholder="For example: Heal a teammate.">
         </div>
         <div class="actions">
             <button type="submit" id="powerSubmit">Add Power</button>
@@ -195,13 +248,11 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Type</th>
+                    <th>Class</th>
+                    <th class="num">Level</th>
+                    <th>Reaches</th>
                     <th class="num">AP Cost</th>
-                    <th class="num">XP Change</th>
-                    <th class="num">HP Change</th>
-                    <th class="num">Other Player XP</th>
-                    <th class="num">Other Player AP</th>
-                    <th class="num">Other Player HP</th>
+                    <th>What It Does</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -227,6 +278,98 @@
                 </tr>
             </thead>
             <tbody id="punishmentsTableBody"></tbody>
+        </table>
+    </div>
+
+    <h2>Wheel of Destiny</h2>
+    <p class="hint">The events on the wheel you spin once a day on the Home page. Game events change stats by themselves.
+        In the text, <strong>{name}</strong> becomes the chosen player and <strong>{team}</strong> the chosen team.</p>
+    <div class="panel signup-setting">
+        <p id="destinyToday" class="hint"></p>
+        <button type="button" id="destinyClear" class="secondary">Let Me Spin Again Today</button>
+    </div>
+    <h3 id="eventFormTitle">Add New Event</h3>
+    <form id="eventForm" class="panel">
+        <div class="field">
+            <label for="eventName">Event Name</label>
+            <input type="text" id="eventName" maxlength="40" required>
+        </div>
+        <div class="field">
+            <label for="eventKind">Kind</label>
+            <select id="eventKind">
+                <option value="game">🎮 Game</option>
+                <option value="learning">📚 Learning</option>
+                <option value="silly">🤪 Silly</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="eventWho">Changes Stats For</label>
+            <select id="eventWho">
+                <option value="none">Nobody</option>
+                <option value="all">Everyone</option>
+                <option value="one">One random player</option>
+                <option value="team">One random team</option>
+            </select>
+        </div>
+        <div class="field event-stat">
+            <label for="eventStat">Stat</label>
+            <select id="eventStat">
+                <option value="xp">XP</option>
+                <option value="ap">AP</option>
+                <option value="hp">HP</option>
+            </select>
+        </div>
+        <div class="field event-stat">
+            <label for="eventAmount">Amount (+ or −)</label>
+            <input type="number" id="eventAmount" value="0">
+        </div>
+        <div class="field wide">
+            <label for="eventText">What Happens</label>
+            <input type="text" id="eventText" maxlength="200" required>
+        </div>
+        <div class="actions">
+            <button type="submit" id="eventSubmit">Add Event</button>
+            <button type="button" id="eventCancel" class="secondary" hidden>Cancel</button>
+        </div>
+    </form>
+    <div class="table-wrap" style="margin-top:12px">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Kind</th>
+                    <th>What Happens</th>
+                    <th>Stats</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="eventsTableBody"></tbody>
+        </table>
+    </div>
+
+    <h2>Quick Damage</h2>
+    <p class="hint">One-tap reasons for losing HP, on Update Values and the Board. Each is logged with its reason.</p>
+    <form id="damageForm" class="panel">
+        <div class="field wide">
+            <label for="damageText">Reason</label>
+            <input type="text" id="damageText" maxlength="60" required>
+        </div>
+        <div class="field">
+            <label for="damageHp">HP Lost</label>
+            <input type="number" id="damageHp" min="1" value="1" required>
+        </div>
+        <button type="submit">Add Reason</button>
+    </form>
+    <div class="table-wrap" style="margin-top:12px">
+        <table>
+            <thead>
+                <tr>
+                    <th>Reason</th>
+                    <th class="num">HP Lost</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="damagesTableBody"></tbody>
         </table>
     </div>
 

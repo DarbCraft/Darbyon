@@ -117,7 +117,32 @@ Darbyon.ready(() => {
         undoButton.title = label ? 'Undo: ' + label : 'Nothing to undo';
     }
 
+    function renderDamages() {
+        const holder = document.getElementById('damageButtons');
+        holder.innerHTML = '';
+        const damages = Darbyon.getDamages();
+        if (!damages.length) holder.appendChild(el('p', 'Add reasons on the Settings page.', 'hint'));
+        damages.forEach(damage => {
+            const b = el('button', null, 'damage-button');
+            b.type = 'button';
+            b.appendChild(el('span', damage.text));
+            b.appendChild(el('strong', '−' + damage.hp + ' HP'));
+            b.addEventListener('click', () => {
+                const ids = Array.from(selected);
+                if (!ids.length) {
+                    alert('Tick at least one player first.');
+                    return;
+                }
+                const fallen = Darbyon.dealDamage(ids, damage.id);
+                render();
+                Darbyon.Battle.start(fallen, renderLog);
+            });
+            holder.appendChild(b);
+        });
+    }
+
     function render() {
+        renderDamages();
         renderTable();
         renderLog();
         renderUndo();

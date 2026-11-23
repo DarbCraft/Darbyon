@@ -932,6 +932,61 @@ Darbyon.ready(() => {
         }
     };
 
+    TOOLS.damage = {
+        title: 'Quick Damage',
+        width: 520,
+        build(body) {
+            const chosen = new Set();
+            const players = el('div', null, 'damage-players');
+            const reasons = el('div', null, 'damage-buttons');
+            const notice = el('p', '', 'notice');
+            notice.setAttribute('role', 'status');
+            body.appendChild(el('p', 'Tap players, then a reason.', 'hint'));
+            [players, reasons, notice].forEach(n => body.appendChild(n));
+
+            function draw() {
+                players.innerHTML = '';
+                const everyone = Darbyon.getCharacters().slice().sort((a, b) => a.name.localeCompare(b.name));
+                Array.from(chosen).forEach(id => { if (!everyone.some(p => p.id === id)) chosen.delete(id); });
+                if (!everyone.length) players.appendChild(el('p', 'There are no players yet.', 'hint'));
+                everyone.forEach(player => {
+                    const pick = button('', 'damage-player' + (chosen.has(player.id) ? ' chosen' : '') + (player.hp === 0 ? ' fallen' : ''), () => {
+                        if (chosen.has(player.id)) chosen.delete(player.id); else chosen.add(player.id);
+                        draw();
+                    });
+                    pick.setAttribute('aria-pressed', chosen.has(player.id) ? 'true' : 'false');
+                    pick.appendChild(Darbyon.avatarImage(player));
+                    pick.appendChild(el('span', player.name));
+                    pick.appendChild(el('span', '❤️ ' + player.hp, 'damage-hp'));
+                    players.appendChild(pick);
+                });
+                reasons.innerHTML = '';
+                Darbyon.getDamages().forEach(damage => {
+                    const hit = button('', 'damage-button', () => {
+                        const ids = Array.from(chosen);
+                        if (!ids.length) {
+                            notice.textContent = 'Tap a player first.';
+                            notice.className = 'notice error';
+                            return;
+                        }
+                        const names = Darbyon.getCharacters().filter(p => chosen.has(p.id)).map(p => p.name);
+                        const fallen = Darbyon.dealDamage(ids, damage.id);
+                        chosen.clear();
+                        notice.textContent = '−' + damage.hp + ' HP to ' + names.join(', ') + ' (' + damage.text + ')';
+                        notice.className = 'notice success';
+                        refreshAll();
+                        Darbyon.Battle.start(fallen);
+                    });
+                    hit.appendChild(el('span', damage.text));
+                    hit.appendChild(el('strong', '−' + damage.hp + ' HP'));
+                    reasons.appendChild(hit);
+                });
+            }
+            draw();
+            return { refresh: draw };
+        }
+    };
+
     // ---- Toolbar, background and full screen -----------------------------
 
     document.querySelectorAll('[data-widget]').forEach(b => {

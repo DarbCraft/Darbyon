@@ -8,9 +8,7 @@
 Darbyon.Battle = (() => {
     'use strict';
 
-    const COLOURS = ['#ffc533', '#ff8a8d', '#8ecbff', '#7fdcbb', '#c3b2fd', '#ffb37a', '#f9a8d0', '#a8e6f0'];
     const SIZE = 720;            // canvas pixels (drawn large so it stays sharp)
-    const SPIN_SECONDS = 4.5;
 
     let dialog, canvas, who, result, spinButton, skipButton, continueButton;
     let queue = [];
@@ -66,58 +64,6 @@ Darbyon.Battle = (() => {
         });
     }
 
-    // Shrinks the label, then trims it, until it fits along its slice.
-    function fitLabel(ctx, text, maxWidth) {
-        let size = 32;
-        const setFont = () => { ctx.font = '600 ' + size + 'px system-ui, Arial, sans-serif'; };
-        setFont();
-        while (size > 22 && ctx.measureText(text).width > maxWidth) {
-            size -= 2;
-            setFont();
-        }
-        let label = text;
-        while (label.length > 1 && ctx.measureText(label).width > maxWidth) {
-            label = label.slice(0, -2).trimEnd() + '…';
-        }
-        return label;
-    }
-
-    function drawWheel() {
-        const ctx = canvas.getContext('2d');
-        const r = SIZE / 2;
-        const slice = 2 * Math.PI / punishments.length;
-        ctx.clearRect(0, 0, SIZE, SIZE);
-        punishments.forEach((text, i) => {
-            // Slice 0 starts at the top and the slices run clockwise.
-            const start = -Math.PI / 2 + i * slice;
-            ctx.beginPath();
-            ctx.moveTo(r, r);
-            ctx.arc(r, r, r, start, start + slice);
-            ctx.closePath();
-            // Avoid two neighbours sharing a colour when the list wraps round.
-            let colour = COLOURS[i % COLOURS.length];
-            if (i === punishments.length - 1 && i > 0 && colour === COLOURS[0]) colour = COLOURS[1 + (i % 3)];
-            ctx.fillStyle = colour;
-            ctx.fill();
-            ctx.strokeStyle = '#17264d';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-
-            ctx.save();
-            ctx.translate(r, r);
-            ctx.rotate(start + slice / 2);
-            ctx.fillStyle = '#17264d';
-            ctx.textAlign = 'right';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(fitLabel(ctx, text, r - 90), r - 24, 0);
-            ctx.restore();
-        });
-        ctx.beginPath();
-        ctx.arc(r, r, 40, 0, 2 * Math.PI);
-        ctx.fillStyle = '#17264d';
-        ctx.fill();
-    }
-
     function showTurn() {
         current = queue.shift();
         punishments = Darbyon.getPunishments();
@@ -133,11 +79,10 @@ Darbyon.Battle = (() => {
         spinButton.hidden = false;
         spinButton.disabled = false;
 
-        canvas.style.transition = 'none';
-        canvas.style.transform = 'rotate(0deg)';
+        Darbyon.Wheel.reset(canvas);
         if (punishments.length) {
             canvas.parentNode.hidden = false;
-            drawWheel();
+            Darbyon.Wheel.draw(canvas, punishments);
         } else {
             canvas.parentNode.hidden = true;
             spinButton.hidden = true;
@@ -154,30 +99,14 @@ Darbyon.Battle = (() => {
         skipButton.hidden = true;
 
         const winner = Math.floor(Math.random() * punishments.length);
-        const slice = 360 / punishments.length;
-        // Land somewhere inside the winning slice, not always dead centre.
-        const offset = (winner + 0.5) * slice + (Math.random() - 0.5) * slice * 0.7;
-        const turns = 5 + Math.floor(Math.random() * 3);
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const seconds = reduceMotion ? 0.01 : SPIN_SECONDS;
-
-        let done = false;
-        const finish = () => {
-            if (done) return;
-            done = true;
+        Darbyon.Wheel.spinTo(canvas, winner, punishments.length, () => {
             spinning = false;
             result.textContent = punishments[winner];
             Darbyon.addLog(current.name + ' fell into Battle: ' + punishments[winner]);
             spinButton.hidden = true;
             continueButton.hidden = false;
             continueButton.focus();
-        };
-
-        canvas.getBoundingClientRect();   // make the browser register the reset position
-        canvas.style.transition = 'transform ' + seconds + 's cubic-bezier(0.12, 0.6, 0.1, 1)';
-        canvas.style.transform = 'rotate(' + (turns * 360 - offset) + 'deg)';
-        canvas.addEventListener('transitionend', finish, { once: true });
-        setTimeout(finish, seconds * 1000 + 300);   // in case the transition event never arrives
+        });
     }
 
     function next() {

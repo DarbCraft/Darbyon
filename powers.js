@@ -50,7 +50,10 @@ Darbyon.ready(() => {
             powerSelect.setAttribute('aria-label', 'Power for ' + player.name);
             powerSelect.appendChild(option('', 'Select power'));
             Darbyon.powersFor(player).forEach(power => {
-                powerSelect.appendChild(option(power.id, power.name + ' (' + power.apCost + ' AP)'));
+                const lock = Darbyon.powerLock(player, power);
+                const choice = option(power.id, power.name + ' (' + power.apCost + ' AP)' + (lock ? ' – ' + lock : ''));
+                choice.disabled = !!lock;
+                powerSelect.appendChild(choice);
             });
             const powerCell = document.createElement('td');
             powerCell.appendChild(powerSelect);
@@ -72,7 +75,7 @@ Darbyon.ready(() => {
                 const result = Darbyon.applyPower(player.id, powerSelect.value, targetSelect.value);
                 if (result.ok) {
                     render();
-                    showNotice(result.summary + '.', 'success');
+                    showNotice(result.summary + '.' + (result.reward ? ' 🎁 Reward: ' + result.reward : ''), 'success');
                     Darbyon.Battle.start(result.fallen);
                 } else {
                     showNotice(result.error, 'error');
@@ -94,17 +97,21 @@ Darbyon.ready(() => {
         powersBody.innerHTML = '';
         const powers = Darbyon.getPowers();
         if (!powers.length) {
-            Darbyon.emptyRow(powersBody, 5, 'No powers yet. Create them on the Settings page.');
+            Darbyon.emptyRow(powersBody, 6, 'No powers yet. Create them on the Settings page.');
             return;
         }
-        powers.forEach(power => {
+        const order = { '': 0, Warrior: 1, Healer: 2, Mage: 3 };
+        powers.slice().sort((a, b) => order[a.class] - order[b.class] || a.level - b.level).forEach(power => {
             const row = document.createElement('tr');
             row.appendChild(el('td', power.name));
-            row.appendChild(el('td', power.type === 'team' ? 'Team-Based' : 'Self-Directed'));
+            row.appendChild(power.class ? Darbyon.cell(Darbyon.typeTag(power.class)) : el('td', 'Any'));
+            row.appendChild(el('td', power.level, 'num'));
+            row.appendChild(el('td', Darbyon.REACH[power.type]));
             row.appendChild(el('td', power.apCost, 'num'));
-            row.appendChild(el('td', Darbyon.describeEffect(power.xp, 0, power.hp)));
-            row.appendChild(el('td', power.type === 'team'
-                ? Darbyon.describeEffect(power.otherXp, power.otherAp, power.otherHp) : 'N/A'));
+            const what = el('td', null, 'power-what');
+            const lines = Darbyon.describePower(power);
+            (lines.length ? lines : ['No effect']).forEach(line => what.appendChild(el('span', line)));
+            row.appendChild(what);
             powersBody.appendChild(row);
         });
     }

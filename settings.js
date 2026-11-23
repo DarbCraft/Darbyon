@@ -32,6 +32,7 @@ Darbyon.ready(() => {
 
     function renderCharacters() {
         renderCodes();      // the picture password list shows the same students
+        renderSignup();
         const tbody = byId('charactersTableBody');
         tbody.innerHTML = '';
         const characters = Darbyon.getCharacters();
@@ -418,8 +419,13 @@ Darbyon.ready(() => {
     let editingPowerId = null;
 
     function showTeamFields() {
-        const isTeam = byId('powerType').value === 'team';
-        document.querySelectorAll('.team-only').forEach(field => { field.hidden = !isTeam; });
+        const type = byId('powerType').value;
+        const special = type === 'team' ? byId('powerSpecial').value : '';
+        document.querySelectorAll('.team-only').forEach(field => { field.hidden = type !== 'team'; });
+        // Protect has no stat change for the teammate; Revive only sets their HP.
+        document.querySelectorAll('.others-only').forEach(field => {
+            field.hidden = type === 'self' || special === 'protect' || (special === 'revive' && !field.contains(byId('otherHp')));
+        });
     }
 
     function resetPowerForm() {
@@ -434,13 +440,18 @@ Darbyon.ready(() => {
     function editPower(power) {
         editingPowerId = power.id;
         byId('powerName').value = power.name;
+        byId('powerClass').value = power.class;
+        byId('powerLevel').value = power.level;
         byId('powerType').value = power.type;
         byId('powerApCost').value = power.apCost;
         byId('powerXp').value = power.xp;
         byId('powerHp').value = power.hp;
+        byId('powerSpecial').value = power.special;
         byId('otherXp').value = power.otherXp;
         byId('otherAp').value = power.otherAp;
         byId('otherHp').value = power.otherHp;
+        byId('powerReward').value = power.reward;
+        byId('powerAbout').value = power.about;
         byId('powerFormTitle').textContent = 'Edit Power: ' + power.name;
         byId('powerSubmit').textContent = 'Save Power';
         byId('powerCancel').hidden = false;
@@ -454,20 +465,21 @@ Darbyon.ready(() => {
         tbody.innerHTML = '';
         const powers = Darbyon.getPowers();
         if (!powers.length) {
-            Darbyon.emptyRow(tbody, 9, 'No powers yet. Add the first one above.');
+            Darbyon.emptyRow(tbody, 7, 'No powers yet. Add the Power Pack or make your own above.');
             return;
         }
-        powers.forEach(power => {
-            const isTeam = power.type === 'team';
+        const order = { '': 0, Warrior: 1, Healer: 2, Mage: 3 };
+        powers.slice().sort((a, b) => order[a.class] - order[b.class] || a.level - b.level).forEach(power => {
             const row = document.createElement('tr');
             row.appendChild(el('td', power.name));
-            row.appendChild(el('td', isTeam ? 'Team-Based' : 'Self-Directed'));
+            row.appendChild(power.class ? Darbyon.cell(Darbyon.typeTag(power.class)) : el('td', 'Any'));
+            row.appendChild(el('td', power.level, 'num'));
+            row.appendChild(el('td', Darbyon.REACH[power.type]));
             row.appendChild(el('td', power.apCost, 'num'));
-            row.appendChild(el('td', power.xp, 'num'));
-            row.appendChild(el('td', power.hp, 'num'));
-            row.appendChild(el('td', isTeam ? power.otherXp : '–', 'num'));
-            row.appendChild(el('td', isTeam ? power.otherAp : '–', 'num'));
-            row.appendChild(el('td', isTeam ? power.otherHp : '–', 'num'));
+            const what = el('td', null, 'power-what');
+            const lines = Darbyon.describePower(power);
+            (lines.length ? lines : ['No effect']).forEach(line => what.appendChild(el('span', line)));
+            row.appendChild(what);
             row.appendChild(actionsCell(
                 button('Edit', 'secondary', () => editPower(power)),
                 button('Delete', 'danger', () => {
@@ -483,25 +495,184 @@ Darbyon.ready(() => {
     }
 
     byId('powerType').addEventListener('change', showTeamFields);
+    byId('powerSpecial').addEventListener('change', showTeamFields);
     byId('powerCancel').addEventListener('click', resetPowerForm);
+
+    byId('powerPackButton').addEventListener('click', () => {
+        const added = Darbyon.addPowerPack();
+        const notice = byId('powerPackNotice');
+        notice.textContent = added ? 'Added ' + added + ' powers. Scroll down to see them, and change any levels or costs to suit your class.'
+                                   : 'You already have every power in the pack.';
+        notice.className = 'notice ' + (added ? 'success' : '');
+        renderPowers();
+    });
 
     byId('powerForm').addEventListener('submit', event => {
         event.preventDefault();
         const name = byId('powerName').value.trim();
         if (!name) return;
+        const type = byId('powerType').value;
+        const special = type === 'team' ? byId('powerSpecial').value : '';
+        const keepOthers = type !== 'self' && special !== 'protect';
         Darbyon.savePower({
             id: editingPowerId || undefined,
             name: name,
-            type: byId('powerType').value,
+            class: byId('powerClass').value,
+            level: byId('powerLevel').value,
+            type: type,
+            special: special,
             apCost: byId('powerApCost').value,
             xp: byId('powerXp').value,
             hp: byId('powerHp').value,
-            otherXp: byId('otherXp').value,
-            otherAp: byId('otherAp').value,
-            otherHp: byId('otherHp').value
+            otherXp: keepOthers && special !== 'revive' ? byId('otherXp').value : 0,
+            otherAp: keepOthers && special !== 'revive' ? byId('otherAp').value : 0,
+            otherHp: keepOthers ? byId('otherHp').value : 0,
+            reward: byId('powerReward').value,
+            about: byId('powerAbout').value
         });
         resetPowerForm();
         renderPowers();
+    });
+
+    // ---- Wheel of Destiny ----
+
+    let editingEventId = null;
+
+    function showEventFields() {
+        document.querySelectorAll('.event-stat').forEach(f => { f.hidden = byId('eventWho').value === 'none'; });
+    }
+
+    function resetEventForm() {
+        editingEventId = null;
+        byId('eventForm').reset();
+        byId('eventFormTitle').textContent = 'Add New Event';
+        byId('eventSubmit').textContent = 'Add Event';
+        byId('eventCancel').hidden = true;
+        showEventFields();
+    }
+
+    function eventStats(event) {
+        if (event.who === 'none' || !event.amount) return '–';
+        const change = (event.amount > 0 ? '+' : '') + event.amount + ' ' + event.stat.toUpperCase();
+        return change + ' ' + { all: 'everyone', one: 'one player', team: 'one team' }[event.who];
+    }
+
+    function renderEvents() {
+        const today = Darbyon.todaysEvent();
+        byId('destinyToday').textContent = today ? 'Today the wheel landed on ' + today.name + '.'
+                                                 : 'The wheel has not been spun today.';
+        byId('destinyClear').hidden = !today;
+        const tbody = byId('eventsTableBody');
+        tbody.innerHTML = '';
+        const events = Darbyon.getEvents();
+        if (!events.length) {
+            Darbyon.emptyRow(tbody, 5, 'No events yet. The wheel needs at least one.');
+            return;
+        }
+        events.forEach((event, index) => {
+            const row = document.createElement('tr');
+            row.appendChild(el('td', event.name));
+            row.appendChild(el('td', Darbyon.EVENT_KINDS[event.kind]));
+            row.appendChild(el('td', event.text));
+            row.appendChild(el('td', eventStats(event)));
+            row.appendChild(actionsCell(
+                button('Edit', 'secondary', () => {
+                    editingEventId = event.id;
+                    byId('eventName').value = event.name;
+                    byId('eventKind').value = event.kind;
+                    byId('eventWho').value = event.who;
+                    byId('eventStat').value = event.stat;
+                    byId('eventAmount').value = event.amount;
+                    byId('eventText').value = event.text;
+                    byId('eventFormTitle').textContent = 'Edit Event: ' + event.name;
+                    byId('eventSubmit').textContent = 'Save Event';
+                    byId('eventCancel').hidden = false;
+                    showEventFields();
+                    byId('eventFormTitle').scrollIntoView({ behavior: 'smooth' });
+                }),
+                button('Delete', 'danger', () => {
+                    if (!confirm('Delete "' + event.name + '" from the Wheel of Destiny?')) return;
+                    events.splice(index, 1);
+                    Darbyon.saveEvents(events);
+                    if (editingEventId === event.id) resetEventForm();
+                    renderEvents();
+                })
+            ));
+            tbody.appendChild(row);
+        });
+    }
+
+    byId('eventWho').addEventListener('change', showEventFields);
+    byId('eventCancel').addEventListener('click', resetEventForm);
+    byId('destinyClear').addEventListener('click', () => {
+        if (!confirm('Clear today\'s event so you can spin again? Any stats it changed stay changed (use Undo on Update Values to reverse them).')) return;
+        Darbyon.clearTodaysEvent();
+        renderEvents();
+    });
+    byId('eventForm').addEventListener('submit', event => {
+        event.preventDefault();
+        const events = Darbyon.getEvents();
+        const entry = {
+            id: editingEventId || undefined,
+            name: byId('eventName').value,
+            kind: byId('eventKind').value,
+            who: byId('eventWho').value,
+            stat: byId('eventStat').value,
+            amount: byId('eventAmount').value,
+            text: byId('eventText').value
+        };
+        const index = events.findIndex(e => e.id === editingEventId);
+        if (index === -1) events.push(entry); else events[index] = Object.assign(entry, { id: editingEventId });
+        Darbyon.saveEvents(events);
+        resetEventForm();
+        renderEvents();
+    });
+
+    // ---- Quick Damage ----
+
+    function renderDamages() {
+        const tbody = byId('damagesTableBody');
+        tbody.innerHTML = '';
+        const damages = Darbyon.getDamages();
+        if (!damages.length) {
+            Darbyon.emptyRow(tbody, 3, 'No reasons yet.');
+            return;
+        }
+        damages.forEach((damage, index) => {
+            const row = document.createElement('tr');
+            row.appendChild(el('td', damage.text));
+            row.appendChild(el('td', '−' + damage.hp, 'num'));
+            row.appendChild(actionsCell(
+                button('Edit', 'secondary', () => {
+                    const text = prompt('Reason:', damage.text);
+                    if (text === null || !text.trim()) return;
+                    const hp = parseInt(prompt('HP lost:', damage.hp), 10);
+                    if (!(hp > 0)) return;
+                    damages[index] = { id: damage.id, text: text.trim(), hp: hp };
+                    Darbyon.saveDamages(damages);
+                    renderDamages();
+                }),
+                button('Delete', 'danger', () => {
+                    if (!confirm('Delete "' + damage.text + '"?')) return;
+                    damages.splice(index, 1);
+                    Darbyon.saveDamages(damages);
+                    renderDamages();
+                })
+            ));
+            tbody.appendChild(row);
+        });
+    }
+
+    byId('damageForm').addEventListener('submit', event => {
+        event.preventDefault();
+        const text = byId('damageText').value.trim();
+        const hp = parseInt(byId('damageHp').value, 10);
+        if (!text || !(hp > 0)) return;
+        const damages = Darbyon.getDamages();
+        damages.push({ text: text, hp: hp });
+        Darbyon.saveDamages(damages);
+        byId('damageForm').reset();
+        renderDamages();
     });
 
     // ---- Battle punishments ----
@@ -546,6 +717,21 @@ Darbyon.ready(() => {
         Darbyon.savePunishments(punishments);
         byId('punishmentForm').reset();
         renderPunishments();
+    });
+
+    // ---- Student sign-up ----
+
+    function renderSignup() {
+        const on = Darbyon.signupIsOpen();
+        const toggle = byId('signupSwitch');
+        toggle.textContent = on ? 'On' : 'Off';
+        toggle.setAttribute('aria-checked', on ? 'true' : 'false');
+        toggle.disabled = !Darbyon.isServer();
+        if (!Darbyon.isServer()) toggle.title = 'Sign-up needs DårbCRÅFT running on the class server.';
+    }
+    byId('signupSwitch').addEventListener('click', () => {
+        Darbyon.setSignup(!Darbyon.signupIsOpen());
+        renderSignup();
     });
 
     // ---- Student logins ----
@@ -687,6 +873,8 @@ Darbyon.ready(() => {
         renderMessages();
         renderPowers();
         renderPunishments();
+        renderEvents();
+        renderDamages();
     }
 
     if (Darbyon.isServer()) {
@@ -694,7 +882,9 @@ Darbyon.ready(() => {
             'daily copies. A backup downloaded here is an extra copy you can keep somewhere else.';
     }
 
-    Darbyon.onChange(renderAll);
+    // New students may sign up while this page is open, so keep up with them.
+    Darbyon.onChange(renderAll, { poll: Darbyon.isServer(), every: 8000 });
     resetPowerForm();
+    resetEventForm();
     renderAll();
 });

@@ -132,6 +132,39 @@ tap **Yes**. They also vote in class polls there.
 A student who gets their pictures wrong five times is locked out for five
 minutes. To give someone new pictures, use **New Pictures** beside their name.
 
+## Letting new students sign themselves up
+
+Instead of typing everyone in, students can make their own character:
+
+1. On **Settings**, turn **Student Sign-Up** on.
+2. Students open **My Character**, type the class code, and tap **I am new**.
+3. They type their first name, tap the first letter of their last name
+   (so two Rubys become *Ruby S.* and *Ruby T.*), then choose a class, an
+   avatar, a first power and three secret teams. They tap the teams twice
+   to check they remember them, and they are logged in straight away.
+4. Turn **Student Sign-Up** off once everyone is in, so nobody adds extra players.
+
+The site refuses a name that is already taken, and one device can only make
+8 characters an hour. Students still join a team through you on **Settings**.
+If someone makes a silly name, use **Rename** or **Delete** on Settings.
+
+If you have Settings open on another screen while students sign up, new
+students appear within about 8 seconds.
+
+## Powers, the Wheel of Destiny and Quick Damage
+
+- **Power Pack:** on Settings, click **Add the Power Pack** for 23 Classcraft-style
+  powers. Each belongs to one class and unlocks at a level. Some reach one teammate,
+  some the whole team, and some give a classroom reward you grant (you see it when you
+  say yes). **Protect** makes a Warrior take half of a teammate's next HP loss.
+  **Revive** brings a teammate at 0 HP back. Edit any level or cost to suit your class.
+- **Wheel of Destiny:** spin it once a day at the top of the Home page. Game events
+  change stats by themselves. Edit the events on Settings, where **Let Me Spin Again
+  Today** clears the day's spin.
+- **Quick Damage:** tick players on Update Values (or tap them in the Board's
+  **Damage** tool), then tap a reason. The HP comes off and the reason is logged.
+  Edit the reasons on Settings.
+
 ## The classroom Board
 
 **Board** is the page for the projector. Open tools from the bar along the

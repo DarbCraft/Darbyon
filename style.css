@@ -770,6 +770,7 @@ button.widget-close:hover { color: var(--ink); background: #fff; }
 .widget-noise     .widget-head { background: #e8a317; color: var(--ink); }
 .widget-poll      .widget-head { background: #2a6fb0; }
 .widget-requests  .widget-head { background: #2e6b34; }
+.widget-damage    .widget-head { background: #d4572a; }
 .widget-picker .widget-head button.widget-close,
 .widget-noise  .widget-head button.widget-close { color: var(--ink); }
 .widget-picker .widget-head button.widget-close:hover,
@@ -977,3 +978,97 @@ a, button, select, input, label, summary { -webkit-tap-highlight-color: transpar
     .stat-value { font-size: 1.3rem; }
     .hero { justify-content: center; text-align: left; }
 }
+
+
+/* =====================================================================
+   New students signing up (My Character)
+   ===================================================================== */
+
+.new-player { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+              max-width: 760px; margin-bottom: 20px; background: var(--sun); }
+.new-player p { margin: 0; font-size: 1.15rem; font-weight: 900; }
+.signup { max-width: 760px; }
+.signup h2 { margin: 8px 0 6px; font-size: 1.6rem; }
+.signup-dots { display: flex; gap: 6px; }
+.signup-dots .dot { width: 12px; height: 12px; background: var(--line); border-radius: 50%; }
+.signup-dots .dot.done { background: var(--good); }
+.signup-dots .dot.now { background: var(--ink); }
+.signup-actions { justify-content: space-between; margin-top: 18px; }
+.signup-input { max-width: 420px; font-size: 1.5rem !important; font-weight: 800 !important; margin-top: 8px; }
+.letter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; margin-top: 12px; }
+button.letter { padding: 10px 0; font-size: 1.3rem; color: var(--ink); background: var(--sky); border-radius: 14px; }
+button.letter[aria-pressed="true"] { color: #fff; background: var(--ink); }
+.signup-preview { min-height: 1.6em; margin: 16px 0 0; font-size: 1.3rem; font-weight: 900; }
+.signup-preview.clash { color: var(--danger); font-size: 1.05rem; }
+.class-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 12px; }
+button.class-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 12px; white-space: normal;
+                    color: var(--ink); background: var(--paper); border: 3px solid var(--ink); border-radius: 22px; }
+button.class-card:hover, button.class-card[aria-pressed="true"] { background: var(--sun); }
+button.class-card strong { font-size: 1.4rem; }
+.class-text { font-size: 0.95rem; font-weight: 600; }
+.class-stats { font-size: 0.9rem; font-weight: 800; white-space: pre; }
+button.class-card .avatar-big { margin: 0; }
+.signup-avatars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 520px; margin-top: 12px; }
+.signup .power-grid { margin-top: 12px; }
+.signup .picture-slots { margin-top: 12px; }
+.signup-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; }
+.signup-summary .tag { margin-bottom: 8px; }
+.signup-name { margin: 0 0 8px; font-size: 1.8rem; font-weight: 900; }
+.signup-summary p { font-weight: 700; }
+
+/* Settings: the sign-up switch */
+.signup-setting { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.signup-setting p { margin: 0; flex: 1 1 300px; }
+
+
+/* =====================================================================
+   Wheel of Destiny (Home page)
+   ===================================================================== */
+
+.destiny { margin-bottom: 26px; background: linear-gradient(135deg, #fff6d6, #ffffff 60%); }
+.destiny h2 { margin: 0 0 12px; }
+.destiny-spin { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.destiny-wheel { width: min(320px, 80vw); }
+.destiny-side { flex: 1 1 240px; }
+.destiny-side p { margin-top: 0; font-weight: 700; }
+.destiny-wait { margin: 0; font-size: 1.1rem; font-weight: 700; }
+.destiny-card { padding: 18px 20px; background: #fff; border: 3px solid var(--ink); border-radius: 20px; }
+.destiny-card.kind-game { border-color: #2a6fb0; }
+.destiny-card.kind-learning { border-color: #2e6b34; }
+.destiny-card.kind-silly { border-color: #c2417b; }
+.destiny-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.destiny-date { font-weight: 800; color: var(--muted); }
+.destiny-name { margin: 10px 0 4px; font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; line-height: 1.1; }
+.destiny-text { margin: 0; font-size: 1.2rem; font-weight: 600; max-width: 60ch; }
+.destiny-outcome { display: inline-block; margin: 12px 0 0; padding: 6px 14px; font-weight: 900;
+                   background: var(--sun); border-radius: 999px; }
+
+/* Settings: what a power does, one line each */
+.power-what span { display: block; }
+.power-what span + span { margin-top: 2px; }
+.request-reward { display: block; margin-top: 2px; font-weight: 700; }
+
+/* Power cards: who a power reaches, rewards, locked powers */
+.power-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.power-tags .power-cost, .power-reach { margin: 0; padding: 2px 10px; font-size: 0.85rem; font-weight: 800; border-radius: 999px; }
+.power-reach { background: var(--sky); }
+.power-about { font-style: italic; }
+.power-reward { padding: 6px 10px; font-weight: 700; background: #fff6d6; border-radius: 12px; }
+.power-card.locked { opacity: 0.62; }
+.power-card.locked .power-reward { background: #eef2f8; }
+
+/* Quick Damage (Update Values and the Board) */
+.quick-damage { margin: 12px 0 16px; padding: 12px 16px; }
+.quick-damage-title { margin: 0 0 8px; font-weight: 900; }
+.damage-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+button.damage-button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 0.95rem;
+                       color: var(--ink); background: #ffe3dc; box-shadow: inset 0 0 0 2px #e8a597; }
+button.damage-button strong { color: #a32a1d; white-space: nowrap; }
+button.damage-button:hover { background: #ffd0c4; }
+.damage-players { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin-bottom: 14px; }
+button.damage-player { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; white-space: normal;
+                       font-size: 0.85rem; color: var(--ink); background: #fff; box-shadow: inset 0 0 0 2px var(--line); }
+button.damage-player .avatar { width: 44px; height: 44px; }
+button.damage-player[aria-pressed="true"] { background: #ffe3dc; box-shadow: inset 0 0 0 3px #d4572a; }
+button.damage-player.fallen { opacity: 0.55; }
+.damage-hp { font-weight: 800; font-size: 0.8rem; }

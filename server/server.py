@@ -45,8 +45,8 @@ BACKUP_DIR = DATA_DIR / "backups"
 # ask to use a power or vote in a poll; the teacher reads them.
 DATA_KEYS = {"characters", "teams", "powers", "messages", "punishments",
              "shownMessages", "shownPlayers", "changeLog", "undoStack",
-             "pictureCodes", "poll"}
-PUBLIC_KEYS = {"characters", "teams", "powers"}
+             "pictureCodes", "poll", "signup", "events", "dailyEvent", "damages"}
+PUBLIC_KEYS = {"characters", "teams", "powers", "dailyEvent"}
 SERVER_KEYS = {"powerRequests", "pollVotes"}
 
 PICTURE_COUNT = 12            # pictures a student chooses from ...
@@ -54,6 +54,12 @@ PICTURE_CODE_LENGTH = 3       # ... and how many they tap, in order
 STUDENT_COOKIE = "darbyon_student"
 STUDENT_SESSION_HOURS = 10    # a school day; students tap their pictures again each morning
 REQUESTS_KEPT_HOURS = 24
+
+# Students signing themselves up (only while the teacher has sign-up switched on).
+CLASS_STATS = {"Mage": {"hp": 6, "ap": 30}, "Warrior": {"hp": 10, "ap": 15}, "Healer": {"hp": 8, "ap": 20}}
+MAX_PLAYERS = 80
+SIGNUPS_PER_DEVICE_PER_HOUR = 8
+_signups = {}                 # device address -> times of recent sign-ups
 
 # Only these kinds of file are ever sent to a browser.
 STATIC_TYPES = {
@@ -190,6 +196,14 @@ def to_int(value):
         return 0
 
 
+XP_PER_LEVEL = 5000          # must match app.js
+MAX_LEVEL = 7
+
+
+def level_of(character):
+    return min(MAX_LEVEL, max(0, to_int(character.get("xp"))) // XP_PER_LEVEL + 1)
+
+
 def tidy_power(p):
     """Reads a power saved in any of the site's older formats."""
     other = [to_int(p.get(k)) for k in ("otherXp", "otherAp", "otherHp")]
@@ -197,11 +211,15 @@ def tidy_power(p):
         other = [to_int(p.get("otherPlayerxp") or p.get("otherPlayerXP")),
                  to_int(p.get("otherPlayerAP")), to_int(p.get("otherPlayerHP"))]
     kind = p.get("type")
-    if kind not in ("team", "self"):
+    if kind not in ("team", "self", "everyone"):
         kind = "team" if p.get("target") == "other" or any(other) else "self"
     cost = p.get("apCost")
     cost = max(0, to_int(cost)) if cost is not None else abs(to_int(p.get("ap") or p.get("apEffect")))
-    return {"id": str(p.get("id", "")), "name": str(p.get("name", "")), "type": kind, "apCost": cost}
+    klass = p.get("class") if p.get("class") in CLASS_STATS else ""
+    level = min(MAX_LEVEL, max(1, to_int(p.get("level")) or 1))
+    special = p.get("special") if kind == "team" and p.get("special") in ("protect", "revive") else ""
+    return {"id": str(p.get("id", "")), "name": str(p.get("name", "")), "type": kind, "apCost": cost,
+            "class": klass, "level": level, "special": special}
 
 
 def class_snapshot():
@@ -214,7 +232,7 @@ def powers_for(character, powers):
     """A player's own powers, or every power if they have not been given any."""
     own_ids = [str(i) for i in character.get("powers") or []]
     own = [p for p in powers if p["id"] in own_ids]
-    return own or powers
+    return own or [p for p in powers if not p["class"] or p["class"] == character.get("type")]
 
 
 def find_character(characters, character_id):
@@ -227,6 +245,47 @@ def picture_code_for(character_id):
             code = entry.get("code")
             if isinstance(code, list) and len(code) == PICTURE_CODE_LENGTH:
                 return [to_int(i) for i in code]
+    return None
+
+
+def signup_open():
+    entry = load_key("signup", [])[0]
+    return bool(entry and isinstance(entry[0], dict) and entry[0].get("open"))
+
+
+def tidy_first_name(text):
+    """'  ruby ' -> 'Ruby'. Returns None if it is not a sensible first name."""
+    text = " ".join(str(text).split())[:20]
+    if not text or not all(ch.isalpha() or ch in " -'" for ch in text) or not any(ch.isalpha() for ch in text):
+        return None
+    return text[0].upper() + text[1:]
+
+
+def add_signup_character(character, code):
+    """
+    Adds a new student, their picture password and a log entry in one step.
+    Returns an error message, or None if it worked.
+    """
+    with _write_lock, connect() as db:
+        rows = {k: (json.loads(v), r) for k, v, r in db.execute(
+            "SELECT key, value, rev FROM data WHERE key IN ('characters', 'pictureCodes', 'changeLog')")}
+        characters = rows.get("characters", ([], 0))[0]
+        if len(characters) >= MAX_PLAYERS:
+            return "The class is full. Ask your teacher."
+        if any(str(c.get("name", "")).lower() == character["name"].lower() for c in characters if isinstance(c, dict)):
+            return "There is already a " + character["name"] + " in the class. Ask your teacher."
+        codes = rows.get("pictureCodes", ([], 0))[0]
+        log = rows.get("changeLog", ([], 0))[0]
+        new_values = {
+            "characters": characters + [character],
+            "pictureCodes": codes + [{"id": character["id"], "code": code}],
+            "changeLog": (log + [{"time": time.strftime("%d/%m/%Y, %I:%M:%S %p"),
+                                  "text": character["name"] + " signed up as a " + character["type"]}])[-200:],
+        }
+        for key, value in new_values.items():
+            db.execute("INSERT INTO data (key, value, rev) VALUES (?, ?, ?) "
+                       "ON CONFLICT(key) DO UPDATE SET value = excluded.value, rev = excluded.rev",
+                       (key, json.dumps(value), rows.get(key, (None, 0))[1] + 1))
     return None
 
 
@@ -490,7 +549,8 @@ class Handler(BaseHTTPRequestHandler):
         routes = {"/api/login": self.post_login, "/api/logout": self.post_logout, "/api/save": self.post_save,
                   "/api/student-login": self.post_student_login, "/api/student-logout": self.post_student_logout,
                   "/api/power-request": self.post_power_request, "/api/power-request-cancel": self.post_request_cancel,
-                  "/api/vote": self.post_vote, "/api/request-resolve": self.post_request_resolve}
+                  "/api/vote": self.post_vote, "/api/request-resolve": self.post_request_resolve,
+                  "/api/signup": self.post_signup}
         if path not in routes:
             self.close_connection = True
             self.send_json(HTTPStatus.NOT_FOUND, {"error": "Not found."})
@@ -519,7 +579,64 @@ class Handler(BaseHTTPRequestHandler):
                          if poll and v.get("pollId") == poll.get("id") and v.get("studentId") == student), None)
             data["poll"] = [poll] if poll and poll.get("open") else []
             data["me"] = {"id": student, "requests": requests[-5:], "vote": vote}
-        self.send_json(HTTPStatus.OK, {"server": True, "role": role, "data": data, "revs": revs})
+        answer = {"server": True, "role": role, "data": data, "revs": revs}
+        if role in ("viewer", "student"):
+            answer["signup"] = signup_open()
+        self.send_json(HTTPStatus.OK, answer)
+
+    def post_signup(self, body):
+        """A new student creates their own character, then is logged in to it."""
+        if get_setting("class_code") and self.role() not in ("viewer", "teacher"):
+            self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Type the class code first."})
+            return
+        if not signup_open():
+            self.send_json(HTTPStatus.FORBIDDEN, {"error": "Signing up is closed. Ask your teacher."})
+            return
+        first = tidy_first_name(body.get("first", ""))
+        initial = str(body.get("initial", "")).strip().upper()
+        kind = str(body.get("type", ""))
+        avatar = str(body.get("avatar", ""))
+        code = body.get("code")
+        power_id = str(body.get("powerId", "") or "")
+        powers = class_snapshot()[1]
+        error = None
+        if not first:
+            error = "Type your first name, using letters only."
+        elif len(initial) != 1 or not initial.isalpha():
+            error = "Choose the first letter of your last name."
+        elif kind not in CLASS_STATS:
+            error = "Choose Mage, Warrior or Healer."
+        elif avatar not in [kind.lower() + "-" + g + n for g in "mf" for n in "123"]:
+            error = "Choose one of the " + kind + " avatars."
+        elif (not isinstance(code, list) or len(code) != PICTURE_CODE_LENGTH
+              or not all(isinstance(i, int) and not isinstance(i, bool) and 0 <= i < PICTURE_COUNT for i in code)
+              or len(set(code)) != PICTURE_CODE_LENGTH):
+            error = "Choose three different teams for your secret code."
+        elif power_id and not any(p["id"] == power_id and p["class"] in ("", kind) and p["level"] <= 1 for p in powers):
+            error = "That power does not exist any more. Choose another."
+        if error:
+            self.send_json(HTTPStatus.BAD_REQUEST, {"error": error})
+            return
+
+        device = self.device() or "unknown"
+        with _failed_lock:
+            recent = [t for t in _signups.get(device, []) if t > time.time() - 3600]
+            if len(recent) >= SIGNUPS_PER_DEVICE_PER_HOUR:
+                self.send_json(HTTPStatus.TOO_MANY_REQUESTS, {"error": "Too many new players from this device. Ask your teacher."})
+                return
+            _signups[device] = recent + [time.time()]
+
+        stats = CLASS_STATS[kind]
+        character = {"id": secrets.token_hex(6), "name": first + " " + initial + ".", "type": kind,
+                     "xp": 0, "ap": stats["ap"], "hp": stats["hp"], "team": "", "avatar": avatar,
+                     "powers": [power_id] if power_id else []}
+        error = add_signup_character(character, code)
+        if error:
+            self.send_json(HTTPStatus.CONFLICT, {"error": error})
+            return
+        end_session(self.cookie_value(STUDENT_COOKIE))
+        token, seconds = create_session("student", character["id"])
+        self.send_json(HTTPStatus.OK, {"ok": True, "name": character["name"]}, [self.cookie(token, seconds, STUDENT_COOKIE)])
 
     def needs_student(self):
         """Replies and returns None unless a student is signed in; otherwise their character id."""
@@ -568,14 +685,22 @@ class Handler(BaseHTTPRequestHandler):
         target = None
         if not power:
             error = "You do not have that power."
+        elif power["class"] and power["class"] != me.get("type"):
+            error = "%s is only for %ss." % (power["name"], power["class"])
+        elif level_of(me) < power["level"]:
+            error = "%s unlocks at level %d. You are level %d." % (power["name"], power["level"], level_of(me))
         elif to_int(me.get("ap")) < power["apCost"]:
             error = "You need %d AP for %s. You have %d." % (power["apCost"], power["name"], to_int(me.get("ap")))
+        elif power["type"] in ("team", "everyone") and not me.get("team"):
+            error = "You are not in a team yet, so you cannot use a team power."
+        elif power["type"] == "everyone" and not any(c is not me and c.get("team") == me.get("team") for c in characters):
+            error = "You have no teammates yet."
         elif power["type"] == "team":
             target = find_character(characters, str(body.get("targetId", "")))
-            if not me.get("team"):
-                error = "You are not in a team yet, so you cannot use a team power."
-            elif not target or target is me or target.get("team") != me.get("team"):
+            if not target or target is me or target.get("team") != me.get("team"):
                 error = "Choose a teammate for this power."
+            elif power["special"] == "revive" and to_int(target.get("hp")) > 0:
+                error = "%s only works on a teammate with 0 HP." % power["name"]
         if not error and any(r.get("studentId") == student and r.get("status") == "pending"
                              for r in load_key("powerRequests", [])[0]):
             error = "You already have a power waiting for your teacher."
