@@ -527,6 +527,10 @@ Darbyon.ready(() => {
             else if (me.ap < power.apCost) reason = 'You need ' + (power.apCost - me.ap) + ' more AP';
             else if (needsMate && !teammates.length) reason = 'You need a teammate for this';
             else if (power.special === 'revive' && !fallenMates.length) reason = 'Nobody on your team has 0 HP';
+            else if (power.type === 'team' && !teammates.some(m => !Darbyon.powerWasted(power, me, [m]))) reason = 'Your teammates are already full';
+            else if (power.type !== 'team' && Darbyon.powerWasted(power, me, power.type === 'everyone' ? teammates : [])) {
+                reason = power.type === 'everyone' ? 'Your team is already full' : 'Your HP is already full';
+            }
             const choose = button(reason || (chosenPower === power.id ? 'Chosen' : 'Choose'),
                                   chosenPower === power.id ? '' : 'secondary', () => {
                 chosenPower = power.id;
@@ -543,7 +547,9 @@ Darbyon.ready(() => {
         const power = powers.find(p => p.id === chosenPower);
         if (power && !pending) {
             const box = el('section', null, 'panel use-power');
-            const choices = power.special === 'revive' ? teammates.filter(m => m.hp === 0) : teammates;
+            // Only teammates the power would actually help can be chosen.
+            const choices = power.special === 'revive' ? teammates.filter(m => m.hp === 0)
+                : teammates.filter(m => !Darbyon.powerWasted(power, me, [m]));
             if (power.type === 'team') {
                 box.appendChild(el('h2', 'Who gets ' + power.name + '?'));
                 const grid = el('div', null, 'who-grid small');

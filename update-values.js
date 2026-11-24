@@ -38,6 +38,11 @@ Darbyon.ready(() => {
         if (!amount) return;
         const fallen = Darbyon.adjustStat(ids, stat, amount);
         render();
+        if (fallen.capped && fallen.capped.length) {
+            alert(fallen.capped.join(', ') + (fallen.capped.length === 1 ? ' is' : ' are') + ' already at the most ' +
+                  stat.toUpperCase() + ' their class allows, so ' + (fallen.capped.length === 1 ? 'they stay' : 'they stay') +
+                  ' at that limit.');
+        }
         Darbyon.Battle.start(fallen, renderLog);
     }
 

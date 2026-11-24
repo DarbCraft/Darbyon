@@ -176,6 +176,16 @@ students appear within about 8 seconds.
 - **Projector** on the Board lines the open tools up to fill the screen and makes
   them bigger.
 
+## HP and AP limits, and the daily refill
+
+- HP and AP never go above a class's starting values (Warrior 10 HP and 15 AP,
+  Healer 8 and 20, Mage 6 and 30). A power that would only add HP or AP to someone
+  who is already full is refused with a message; on My Character it is greyed out.
+  A player already above the limit from before keeps it until you change it.
+- Each day (Perth time) everyone gets 2 AP back, and every second day 1 HP, up to
+  their class's limit. It happens the first time anyone opens the site that day and
+  counts weekends too. Change the amounts or switch it off on Settings → Powers.
+
 ## The classroom Board
 
 **Board** is the page for the projector. Open tools from the bar along the

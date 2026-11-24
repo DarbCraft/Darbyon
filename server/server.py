@@ -20,6 +20,7 @@ Who can do what:
 """
 
 import argparse
+import datetime
 import getpass
 import hashlib
 import hmac
@@ -45,7 +46,7 @@ BACKUP_DIR = DATA_DIR / "backups"
 # ask to use a power or vote in a poll; the teacher reads them.
 DATA_KEYS = {"characters", "teams", "powers", "messages", "punishments",
              "shownMessages", "shownPlayers", "changeLog", "undoStack",
-             "pictureCodes", "poll", "signup", "events", "dailyEvent", "damages"}
+             "pictureCodes", "poll", "signup", "events", "dailyEvent", "damages", "refill"}
 PUBLIC_KEYS = {"characters", "teams", "powers", "dailyEvent"}
 SERVER_KEYS = {"powerRequests", "pollVotes"}
 
@@ -242,7 +243,30 @@ def tidy_power(p):
     level = min(MAX_LEVEL, max(1, to_int(p.get("level")) or 1))
     special = p.get("special") if kind == "team" and p.get("special") in ("protect", "revive") else ""
     return {"id": str(p.get("id", "")), "name": str(p.get("name", "")), "type": kind, "apCost": cost,
-            "class": klass, "level": level, "special": special}
+            "class": klass, "level": level, "special": special,
+            "xp": to_int(p.get("xp")), "hp": to_int(p.get("hp")),
+            "otherXp": other[0], "otherAp": other[1], "otherHp": other[2],
+            "reward": bool(str(p.get("reward") or "").strip())}
+
+
+def max_of(character, stat):
+    """The most HP or AP a player's class allows (must match app.js)."""
+    return CLASS_STATS.get(character.get("type"), {}).get(stat, 10 ** 9)
+
+
+def power_wasted(power, me, mates):
+    """Why a power would do nothing useful, or "" if it helps someone (as app.js)."""
+    if power["xp"] > 0 or power["otherXp"] > 0 or power["reward"] or power["special"]:
+        return ""
+    gains = []
+    for who, stat, amount in [(me, "hp", power["hp"])] + [(m, s, power["other" + s.capitalize()])
+                                                           for m in mates for s in ("hp", "ap")]:
+        if amount > 0:
+            gains.append(to_int(who.get(stat)) < max_of(who, stat))
+    if not gains or any(gains):
+        return ""
+    return "That would do nothing: %s already full, so %s cannot be used right now." % (
+        "everyone it reaches is" if len(mates) > 1 else ("your teammate is" if mates else "your HP is"), power["name"])
 
 
 def class_snapshot():
@@ -310,6 +334,79 @@ def add_signup_character(character, code):
                        "ON CONFLICT(key) DO UPDATE SET value = excluded.value, rev = excluded.rev",
                        (key, json.dumps(value), rows.get(key, (None, 0))[1] + 1))
     return None
+
+
+# ---- Daily refill -------------------------------------------------------------
+# Once a day (Perth time) every player gets some AP back and, every few days,
+# some HP, never going over their class's maximum. It happens the first time
+# anyone opens the site that day; missed days are caught up, up to 14.
+
+REFILL_DEFAULTS = {"on": True, "ap": 2, "apEvery": 1, "hp": 1, "hpEvery": 2}
+REFILL_CATCH_UP_DAYS = 14
+_refill_done_for = None          # the Perth date already handled by this server
+
+
+def perth_today():
+    return (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=8)).date()
+
+
+def tidy_refill(raw):
+    cfg = raw[0] if isinstance(raw, list) and raw and isinstance(raw[0], dict) else {}
+    return {"on": bool(cfg.get("on", REFILL_DEFAULTS["on"])),
+            "ap": min(30, max(0, to_int(cfg.get("ap", REFILL_DEFAULTS["ap"])))),
+            "apEvery": min(7, max(1, to_int(cfg.get("apEvery", REFILL_DEFAULTS["apEvery"])))),
+            "hp": min(30, max(0, to_int(cfg.get("hp", REFILL_DEFAULTS["hp"])))),
+            "hpEvery": min(7, max(1, to_int(cfg.get("hpEvery", REFILL_DEFAULTS["hpEvery"]))))}
+
+
+def daily_refill(today=None):
+    """Gives the day's AP and HP if today's refill has not happened yet."""
+    global _refill_done_for
+    today = today or perth_today()
+    if _refill_done_for == today:
+        return
+    with _write_lock, connect() as db:
+        setting = lambda name: (db.execute("SELECT value FROM settings WHERE name = ?", (name,)).fetchone() or [None])[0]
+        last = setting("refill_last")
+        day = to_int(setting("refill_day"))
+        days = (today - datetime.date.fromisoformat(last)).days if last else 0
+        if days > 0:
+            row = db.execute("SELECT value FROM data WHERE key = 'refill'").fetchone()
+            cfg = tidy_refill(json.loads(row[0]) if row else [])
+            gain = {"ap": 0, "hp": 0}
+            for _ in range(min(days, REFILL_CATCH_UP_DAYS)):
+                day += 1
+                if day % cfg["apEvery"] == 0:
+                    gain["ap"] += cfg["ap"]
+                if day % cfg["hpEvery"] == 0:
+                    gain["hp"] += cfg["hp"]
+            if cfg["on"] and (gain["ap"] or gain["hp"]):
+                rows = {k: (json.loads(v), r) for k, v, r in db.execute(
+                    "SELECT key, value, rev FROM data WHERE key IN ('characters', 'changeLog')")}
+                characters = rows.get("characters", ([], 0))[0]
+                changed = 0
+                for c in characters:
+                    if not isinstance(c, dict):
+                        continue
+                    for stat, amount in gain.items():
+                        now, most = to_int(c.get(stat)), max_of(c, stat)
+                        if amount > 0 and now < most:
+                            c[stat] = min(most, now + amount)
+                            changed += 1
+                if changed:
+                    words = " and ".join("+%d %s" % (gain[s], s.upper()) for s in ("ap", "hp") if gain[s])
+                    log = rows.get("changeLog", ([], 0))[0]
+                    log = (log + [{"time": time.strftime("%d/%m/%Y, %I:%M:%S %p"),
+                                   "text": "Daily refill: " + words + " (up to each class's maximum)"}])[-200:]
+                    for key, value in (("characters", characters), ("changeLog", log)):
+                        db.execute("INSERT INTO data (key, value, rev) VALUES (?, ?, ?) "
+                                   "ON CONFLICT(key) DO UPDATE SET value = excluded.value, rev = excluded.rev",
+                                   (key, json.dumps(value), rows.get(key, (None, 0))[1] + 1))
+        if days > 0 or not last:
+            for name, value in (("refill_last", today.isoformat()), ("refill_day", str(day))):
+                db.execute("INSERT INTO settings (name, value) VALUES (?, ?) "
+                           "ON CONFLICT(name) DO UPDATE SET value = excluded.value", (name, value))
+    _refill_done_for = today
 
 
 def current_poll():
@@ -611,6 +708,7 @@ class Handler(BaseHTTPRequestHandler):
             routes[path](body)
 
     def get_state(self):
+        daily_refill()
         role = self.role()
         student = None if role == "teacher" else self.student()
         if role == "teacher":
@@ -755,6 +853,10 @@ class Handler(BaseHTTPRequestHandler):
                 error = "Choose a teammate for this power."
             elif power["special"] == "revive" and to_int(target.get("hp")) > 0:
                 error = "%s only works on a teammate with 0 HP." % power["name"]
+        if not error:
+            mates = [target] if target else (
+                [c for c in characters if c is not me and c.get("team") == me.get("team")] if power["type"] == "everyone" else [])
+            error = power_wasted(power, me, mates) or None
         if not error and any(r.get("studentId") == student and r.get("status") == "pending"
                              for r in load_key("powerRequests", [])[0]):
             error = "You already have a power waiting for your teacher."

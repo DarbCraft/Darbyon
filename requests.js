@@ -37,6 +37,7 @@ Darbyon.Requests = (() => {
             const answer = approve => async () => {
                 actions.querySelectorAll('button').forEach(b => { b.disabled = true; });
                 const result = await Darbyon.answerRequest(request, approve);
+                if (!result.ok) alert(result.error);
                 if (result.ok && approve && Darbyon.Battle) Darbyon.Battle.start(result.fallen || []);
                 if (afterAnswer) {
                     afterAnswer(result.ok ? (approve ? result.summary + '.' + (result.reward ? ' Reward: ' + result.reward : '') : 'Declined ' + student.name + "'s " + request.powerName + '.')

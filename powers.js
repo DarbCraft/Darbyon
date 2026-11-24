@@ -79,6 +79,7 @@ Darbyon.ready(() => {
                     Darbyon.Battle.start(result.fallen);
                 } else {
                     showNotice(result.error, 'error');
+                    alert(result.error);
                 }
             });
 

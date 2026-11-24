@@ -1161,3 +1161,8 @@ summary svg.icon { margin-left: 2px; }
 .board.projector .board-empty { position: static; }
 #projectorButton[aria-pressed="true"] { color: var(--ink); background: var(--sun); }
 @media (max-width: 700px) { #projectorButton { display: none; } }
+
+/* Settings: daily refill */
+.refill-form .wide-hint { grid-column: 1 / -1; margin: 0; }
+.refill-form .actions { align-items: center; }
+.refill-form .notice { margin: 0; }

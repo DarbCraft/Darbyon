@@ -143,6 +143,42 @@
     </section>
 
     <section class="tab-panel" id="panel-powers" data-tab="powers" role="tabpanel" aria-labelledby="tab-powers">
+    <h2>Daily Refill</h2>
+    <form id="refillForm" class="panel refill-form">
+        <p class="hint wide-hint">
+            Each morning (Perth time) every player gets some AP back, and every few days some HP.
+            Nobody goes above their class's maximum: Warrior 10 HP and 15 AP, Healer 8 HP and 20 AP, Mage 6 HP and 30 AP.
+            It counts every day, weekends too.
+        </p>
+        <div class="field">
+            <label for="refillOn">Daily Refill</label>
+            <select id="refillOn">
+                <option value="on">On</option>
+                <option value="off">Off</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="refillAp">AP Back</label>
+            <input type="number" id="refillAp" min="0" max="30">
+        </div>
+        <div class="field">
+            <label for="refillApEvery">Every … Days</label>
+            <input type="number" id="refillApEvery" min="1" max="7">
+        </div>
+        <div class="field">
+            <label for="refillHp">HP Back</label>
+            <input type="number" id="refillHp" min="0" max="30">
+        </div>
+        <div class="field">
+            <label for="refillHpEvery">Every … Days</label>
+            <input type="number" id="refillHpEvery" min="1" max="7">
+        </div>
+        <div class="actions">
+            <button type="submit">Save Refill</button>
+            <p id="refillNotice" class="notice" role="status"></p>
+        </div>
+    </form>
+
     <h2>Power Pack</h2>
     <div class="panel signup-setting">
         <p class="hint">

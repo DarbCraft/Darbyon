@@ -875,6 +875,7 @@ Darbyon.ready(() => {
         renderPunishments();
         renderEvents();
         renderDamages();
+        renderRefill();
     }
 
     if (Darbyon.isServer()) {
@@ -884,6 +885,35 @@ Darbyon.ready(() => {
 
     // New students may sign up while this page is open, so keep up with them.
     Darbyon.onChange(renderAll, { poll: Darbyon.isServer(), every: 8000 });
+    // ---- Daily refill ----
+
+    function renderRefill() {
+        if (document.activeElement && document.activeElement.closest('#refillForm')) return;   // being edited
+        const cfg = Darbyon.getRefill();
+        byId('refillOn').value = cfg.on ? 'on' : 'off';
+        byId('refillAp').value = cfg.ap;
+        byId('refillApEvery').value = cfg.apEvery;
+        byId('refillHp').value = cfg.hp;
+        byId('refillHpEvery').value = cfg.hpEvery;
+    }
+
+    byId('refillForm').addEventListener('submit', event => {
+        event.preventDefault();
+        Darbyon.saveRefill({
+            on: byId('refillOn').value === 'on',
+            ap: byId('refillAp').value, apEvery: byId('refillApEvery').value,
+            hp: byId('refillHp').value, hpEvery: byId('refillHpEvery').value
+        });
+        document.activeElement.blur();
+        renderRefill();
+        const cfg = Darbyon.getRefill();
+        const every = n => n === 1 ? 'every day' : 'every ' + n + ' days';
+        byId('refillNotice').textContent = cfg.on
+            ? 'Saved: ' + cfg.ap + ' AP ' + every(cfg.apEvery) + ' and ' + cfg.hp + ' HP ' + every(cfg.hpEvery) + '.'
+            : 'Saved: the daily refill is off.';
+        byId('refillNotice').className = 'notice success';
+    });
+
     // ---- Tabs ----
     // The last tab used is remembered on this device. A link like
     // settings.html#powers opens that tab.

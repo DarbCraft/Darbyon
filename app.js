@@ -40,7 +40,7 @@ const Darbyon = (() => {
     // Everything that makes up a class. Used by backup and restore.
     const DATA_KEYS = ['characters', 'teams', 'powers', 'messages', 'punishments',
                        'shownMessages', 'shownPlayers', 'changeLog', 'undoStack',
-                       'pictureCodes', 'poll', 'signup', 'events', 'dailyEvent', 'damages'];
+                       'pictureCodes', 'poll', 'signup', 'events', 'dailyEvent', 'damages', 'refill'];
 
     // The pictures students tap, in order, to log in to their own character:
     // sports teams, shown as the team's name in its colours with the sport's
@@ -529,6 +529,8 @@ const Darbyon = (() => {
         const characters = getCharacters();
         const entries = [];
         const history = [];
+        const capped = [];               // players who hit their class maximum
+        fallen.capped = capped;
         const why = reason ? ' (' + reason + ')' : '';
         const hurt = (c, damage, note) => {
             const before = c.hp;
@@ -554,7 +556,9 @@ const Darbyon = (() => {
             const before = c[stat];
             if (stat === 'hp' && amount < 0) hurt(c, -amount);
             else {
-                c[stat] = Math.max(0, before + amount);
+                raise(c, stat, amount);
+                if (amount > 0 && before + amount > c[stat]) capped.push(c.name);
+                if (c[stat] === before) return;          // already full: nothing changed
                 if (c[stat] !== before) history.push({ c: c.id, n: c.name, k: 'stat', s: stat, d: c[stat] - before, r: reason || '' });
             }
             entries.push(c.name + ' / ' + stat.toUpperCase() + ' / ' + before + ' -> ' + c[stat] + why);
@@ -777,6 +781,116 @@ const Darbyon = (() => {
     // effect. A team power also changes the chosen teammate, who must be on
     // the same team as the player.
     // Returns { ok: true } or { ok: false, error: '...' }.
+    // ---- HP and AP limits -------------------------------------------------
+    // HP and AP never go above a class's starting values (Warrior 10 HP and
+    // 15 AP, and so on). A player already above that, from before the limit
+    // existed, keeps what they have until the teacher changes it.
+
+    function maxOf(c, stat) {
+        const kind = CLASSES[c.type];
+        return kind && (stat === 'hp' || stat === 'ap') ? kind[stat] : Infinity;
+    }
+
+    const hasRoom = (c, stat) => c[stat] < maxOf(c, stat);
+
+    // Changes a stat, stopping gains at the class maximum.
+    function raise(c, stat, amount) {
+        if (amount <= 0) {
+            c[stat] = Math.max(0, c[stat] + amount);
+            return;
+        }
+        if (!hasRoom(c, stat)) return;
+        c[stat] = Math.min(maxOf(c, stat), c[stat] + amount);
+    }
+
+    // Why a power would do nothing useful, or '' if it helps someone.
+    // `recipients` are the teammates it reaches (none for a 'self' power).
+    function powerWasted(power, user, recipients) {
+        if (power.xp > 0 || power.otherXp > 0 || power.reward || power.special) return '';
+        const full = [];
+        let helps = false;
+        let gains = 0;
+        const check = (c, stat, amount) => {
+            if (amount <= 0) return;
+            gains++;
+            if (hasRoom(c, stat)) helps = true;
+            else full.push(c.name + ' already has full ' + stat.toUpperCase() + ' (' + c[stat] + ' of ' + maxOf(c, stat) + ')');
+        };
+        check(user, 'hp', power.hp);
+        recipients.forEach(mate => {
+            check(mate, 'hp', power.otherHp);
+            check(mate, 'ap', power.otherAp);
+        });
+        if (!gains || helps) return '';
+        const who = recipients.length > 1 ? 'Everyone ' + power.name + ' reaches is already full' : full.join(' and ');
+        return who + ', so ' + power.name + ' would do nothing.';
+    }
+
+    // ---- Daily refill -------------------------------------------------------
+    // Every day (Perth time) players get some AP back, and every few days some
+    // HP, up to their class maximum. On the class server the server does this;
+    // on the GitHub version the teacher's browser does it when the site opens.
+
+    const REFILL_DEFAULTS = { on: true, ap: 2, apEvery: 1, hp: 1, hpEvery: 2 };
+
+    function getRefill() {
+        const raw = read('refill', [])[0] || {};
+        const num = (value, low, high, fallback) => Math.min(high, Math.max(low, value === undefined ? fallback : toInt(value)));
+        return {
+            on: raw.on === undefined ? REFILL_DEFAULTS.on : !!raw.on,
+            ap: num(raw.ap, 0, 30, REFILL_DEFAULTS.ap),
+            apEvery: num(raw.apEvery, 1, 7, REFILL_DEFAULTS.apEvery),
+            hp: num(raw.hp, 0, 30, REFILL_DEFAULTS.hp),
+            hpEvery: num(raw.hpEvery, 1, 7, REFILL_DEFAULTS.hpEvery)
+        };
+    }
+
+    function saveRefill(settings) {
+        write('refill', [Object.assign(getRefill(), settings)]);
+    }
+
+    // Days between two 'YYYY-MM-DD' dates.
+    const daysBetween = (from, to) => Math.round((Date.parse(to) - Date.parse(from)) / 86400000);
+
+    function localRefill() {
+        let last = null;
+        let day = 0;
+        try {
+            last = localStorage.getItem('darbyon-refill-last');
+            day = toInt(localStorage.getItem('darbyon-refill-day'));
+        } catch (err) {
+            return;
+        }
+        const today = perthDate();
+        const days = last ? daysBetween(last, today) : 0;
+        if (last && days <= 0) return;
+        const cfg = getRefill();
+        const gain = { ap: 0, hp: 0 };
+        for (let i = 0; i < Math.min(days, 14); i++) {
+            day++;
+            if (day % cfg.apEvery === 0) gain.ap += cfg.ap;
+            if (day % cfg.hpEvery === 0) gain.hp += cfg.hp;
+        }
+        if (cfg.on && (gain.ap || gain.hp)) {
+            const characters = getCharacters();
+            let changed = 0;
+            characters.forEach(c => ['ap', 'hp'].forEach(stat => {
+                const before = c[stat];
+                raise(c, stat, gain[stat]);
+                if (c[stat] !== before) changed++;
+            }));
+            if (changed) {
+                saveCharacters(characters);
+                addLog('Daily refill: ' + ['ap', 'hp'].filter(s => gain[s]).map(s => '+' + gain[s] + ' ' + s.toUpperCase()).join(' and ') +
+                       " (up to each class's maximum)");
+            }
+        }
+        try {
+            localStorage.setItem('darbyon-refill-last', today);
+            localStorage.setItem('darbyon-refill-day', day);
+        } catch (err) { /* storage off */ }
+    }
+
     function applyPower(userId, powerId, targetId) {
         const characters = getCharacters();
         const power = getPowers().find(p => p.id === powerId);
@@ -815,25 +929,27 @@ const Darbyon = (() => {
             return { ok: false, error: 'Not enough AP to use this power! ' + user.name + ' has ' +
                                        user.ap + ' AP and ' + power.name + ' costs ' + power.apCost + '.' };
         }
+        const wasted = powerWasted(power, user, target ? [target] : everyone);
+        if (wasted) return { ok: false, error: wasted };
 
         const fallen = [];
         const startStats = new Map(characters.map(c => [c.id, { xp: c.xp, ap: c.ap, hp: c.hp }]));
         const userHpBefore = user.hp;
         user.ap -= power.apCost;
         user.xp = Math.max(0, user.xp + power.xp);
-        user.hp = Math.max(0, user.hp + power.hp);
+        raise(user, 'hp', power.hp);
         if (userHpBefore > 0 && user.hp === 0) fallen.push({ id: user.id, name: user.name });
         let summary = user.name + ' used ' + power.name;
         const affect = mate => {
             const hpBefore = mate.hp;
             mate.xp = Math.max(0, mate.xp + power.otherXp);
-            mate.ap = Math.max(0, mate.ap + power.otherAp);
-            mate.hp = Math.max(0, mate.hp + power.otherHp);
+            raise(mate, 'ap', power.otherAp);
+            raise(mate, 'hp', power.otherHp);
             if (hpBefore > 0 && mate.hp === 0) fallen.push({ id: mate.id, name: mate.name });
         };
         if (target) {
             if (power.special === 'protect') target.shield = user.id;
-            else if (power.special === 'revive') target.hp = Math.max(1, power.otherHp);
+            else if (power.special === 'revive') target.hp = Math.min(maxOf(target, 'hp'), Math.max(1, power.otherHp));
             else affect(target);
             summary += ' on ' + target.name;
         }
@@ -1544,7 +1660,10 @@ const Darbyon = (() => {
         renderNav();
         const currentTab = document.querySelector('nav [aria-current="page"]');
         if (currentTab && currentTab.scrollIntoView) currentTab.scrollIntoView({ block: 'nearest', inline: 'center' });
-        if (mode !== 'server') return true;
+        if (mode !== 'server') {
+            localRefill();
+            return true;
+        }
 
         window.addEventListener('focus', refresh);
         document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
@@ -1585,7 +1704,8 @@ const Darbyon = (() => {
         getTeams, addTeam, renameTeam, deleteTeam,
         icon, iconText, fillIcons, STAT_ICONS, EVENT_ICONS,
         undoAction, lastUndoId: () => lastUndo, undoSpin, getHistory,
-        getPowers, savePower, deletePower, applyPower, describeEffect, powersFor,
+        getPowers, savePower, deletePower, applyPower, describeEffect, powersFor, maxOf, powerWasted,
+        getRefill, saveRefill,
         addPowerPack, powerLock, describePower, REACH, POWER_PACK,
         getEvents, saveEvents, spinDestiny, todaysEvent, clearTodaysEvent, perthDate, EVENT_KINDS,
         getDamages, saveDamages, dealDamage,
